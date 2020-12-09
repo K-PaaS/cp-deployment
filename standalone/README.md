@@ -1,3 +1,10 @@
+# paas-ta-container-platform-standalone-deployment
+## 소개
+
+컨테이너 플랫폼을 배포하기 위한 Kubespray 설치에 필요한 소스파일 구성입니다.
+
+---
+
 # Deploy a Production Ready Kubernetes Cluster
 
 ![Kubernetes Logo](https://raw.githubusercontent.com/kubernetes-sigs/kubespray/master/docs/img/kubernetes-logo.png)
