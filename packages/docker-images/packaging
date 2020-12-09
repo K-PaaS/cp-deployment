@@ -1,5 +1,0 @@
-set -e
-
-JOB_NAME=docker-images
-
-cp $JOB_NAME/* ${BOSH_INSTALL_TARGET}
