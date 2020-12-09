@@ -1,0 +1,12 @@
+---
+name: docker-images
+templates:
+  bin/post-deploy.erb: bin/post-deploy
+packages:
+  - docker-images
+
+consumes:
+  - name: private-image-repository-link
+    type: private-image-repository
+
+properties: {}

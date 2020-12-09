@@ -1,0 +1,34 @@
+global
+    daemon
+    pidfile /var/vcap/sys/run/haproxy/haproxy.pid
+    maxconn 100000
+
+defaults
+    mode http
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
+    stats enable
+    stats uri /haproxy-admin
+
+
+### MariaDB
+frontend mariadb
+    mode tcp
+    bind *:<%= link('caas-mariadb-link').p('port') %>
+    default_backend mariadb_servers
+
+backend mariadb_servers
+    mode tcp
+    server server-0 <%= link('caas-mariadb-link').instances[0].address%>:<%= link('caas-mariadb-link').p('port') %>
+
+### PrivateImageRepository
+frontend private-image-repository
+    mode tcp
+    bind *:<%= link('private-image-repository-link').p('image_repository.port') %>
+    default_backend private_image_repository_servers
+
+backend private_image_repository_servers
+    mode tcp
+    server server-0 <%= link('private-image-repository-link').instances[0].address%>:<%= link('private-image-repository-link').p('image_repository.port') %>
+
