@@ -19,4 +19,4 @@
 - https://github.com/PaaS-TA/paas-ta-container-platform-release/tree/caas-dev
 
 ## License
-PaaS-TA 컨테이너 플랫폼 WEB USER는 [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0)를 사용합니다.
+paas-ta-container-platform-edge-deployment는 [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0)를 사용합니다.
