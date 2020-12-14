@@ -24,7 +24,10 @@
 |Docker|v19.03.12|
 
 ### 단독 배포 설치
-
+|주요 소프트웨어|Version|
+|---|---|
+|docker|v35.3.4|
+|paasta-container-platform|v1.0|
 
 ## Install Guide
 ### Kubespray 설치 가이드
