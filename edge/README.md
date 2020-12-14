@@ -1,7 +1,7 @@
 # paas-ta-container-platform-edge-deployment
 ## 소개
 
-컨테이너 플랫폼을 배포하기 위한 KubeEdge 설치에 필요한 소스파일 구성입니다.
+컨테이너 플랫폼 Edge 배포용 Kubernetes 설치를 위한 KubeEdge keadm 실행 파일 구성입니다. keadm 명령을 통해 KubeEdge 설치 시 필요한 추가 파일을 자동으로 다운로드 합니다.
 
 ## Configuration
 |주요 소프트웨어|Version|
