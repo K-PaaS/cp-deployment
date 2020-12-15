@@ -4,10 +4,8 @@
 쿠버네티스 단독배포를 사용하기 위한 Bosh 기반의 서비스 설치에 필요한 소스파일 구성입니다.
 
 ## Configuration
-|주요 소프트웨어|Version|
-|---|---|
-|docker|v35.3.4|
-|paasta-container-platform|v1.0|
+- docker :: v35.3.4
+- paasta-container-platform :: v1.0
 
 ## Install Guide
 ### 단독 배포 설치 가이드
