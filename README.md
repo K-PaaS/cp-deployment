@@ -7,27 +7,24 @@
 
 ## Configuration
 ### Kubespray 설치
-|주요 소프트웨어|Version|Python Package|Version
-|---|---|---|---|
-|Kubespray|v2.14.1|ansible|2.9.6|
-|Kubernetes Native|v1.18.6|jinja2|2.11.1|
-|Docker|v19.03.12|netaddr|0.7.19|
-|||pbr|5.4.4|
-|||jmespath|0.9.5|
-|||ruamel.yaml|0.16.10|
+- Kubespray :: v2.14.1
+- Kubernetes Native :: v1.18.6
+- Docker :: v19.03.12
+- pbr :: 5.4.4
+- jmespath :: 0.9.5
+- ruamel.yaml :: 0.16.10
+- ansible :: 2.9.6
+- jinja2 :: 2.11.1
+- netaddr :: 0.7.19
 
 ### KubeEdge 설치
-|주요 소프트웨어|Version|
-|---|---|
-|KubeEdge|v1.4.0|
-|Kubernetes Native|v1.18.6|
-|Docker|v19.03.12|
+- KubeEdge :: v1.4.0
+- Kubernetes Native :: v1.18.6
+- Docker :: v19.03.12
 
 ### 단독 배포 설치
-|주요 소프트웨어|Version|
-|---|---|
-|docker|v35.3.4|
-|paasta-container-platform|v1.0|
+- docker :: v35.3.4
+- paasta-container-platform :: v1.0
 
 ## Install Guide
 ### Kubespray 설치 가이드
