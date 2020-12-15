@@ -7,11 +7,9 @@
 KubeEdge는 keadm 명령을 사용하기 위한 실행파일 1개로 구성 되어 있습니다.
 
 ## Configuration
-|주요 소프트웨어|Version|
-|---|---|
-|KubeEdge|v1.4.0|
-|Kubernetes Native|v1.18.6|
-|Docker|v19.03.12|
+- KubeEdge :: v1.4.0
+- Kubernetes Native :: v1.18.6
+- Docker :: v19.03.12
 
 ## Install Guide
 ### KubeEdge 설치 가이드
