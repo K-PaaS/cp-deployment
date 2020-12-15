@@ -7,14 +7,15 @@
 Kubespray는 Ansible playbook으로 배포를 진행 하기 때문에 ansible-playbook 명령을 사용하기 위한 스크립트 파일 구성입니다.
 
 ## Configuration
-|주요 소프트웨어|Version|Python Package|Version
-|---|---|---|---|
-|Kubespray|v2.14.1|ansible|2.9.6|
-|Kubernetes Native|v1.18.6|jinja2|2.11.1|
-|Docker|v19.03.12|netaddr|0.7.19|
-|||pbr|5.4.4|
-|||jmespath|0.9.5|
-|||ruamel.yaml|0.16.10|
+- Kubespray :: v2.14.1
+- Kubernetes Native :: v1.18.6
+- Docker :: v19.03.12
+- pbr :: 5.4.4
+- jmespath :: 0.9.5
+- ruamel.yaml :: 0.16.10
+- ansible :: 2.9.6
+- jinja2 :: 2.11.1
+- netaddr :: 0.7.19
 
 ## Install Guide
 ### Kubespray 설치 가이드
