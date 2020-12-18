@@ -13,6 +13,9 @@ Components 요소 및 배포의 속성을 정의한 manifest와 Iaas마다 서�
 ### 단독 배포 설치 가이드
 - [paas-ta-container-platform-bosh-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-guide-v1.0.md)
 
+### 서비스 배포 설치 가이드
+- [paas-ta-container-platform-bosh-deployment-caas-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-caas-guide-v1.0.md)
+
 ## Release
 - https://github.com/PaaS-TA/paas-ta-container-platform-release/tree/dev
 - https://github.com/PaaS-TA/paas-ta-container-platform-release/tree/caas-dev
