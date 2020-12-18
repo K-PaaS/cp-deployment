@@ -85,8 +85,8 @@
             weight: 3
           planupdatable: 'true'
           tags: "Container Service,Containers as a Service"
-          #dashboard:
-          #url: http://((haproxy_public_url)):((caas_dashboard_port))/caas/intro/overview/
+          dashboard:
+          url: http://((haproxy_public_url)):32091/caas/intro/overview/
         auth:
           id: admin
           password: cloudfoundry
