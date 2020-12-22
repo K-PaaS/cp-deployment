@@ -6,7 +6,7 @@
 ## Script 설명
 Kubespray는 Ansible playbook으로 배포를 진행 하기 때문에 ansible-playbook 명령을 사용하기 위한 스크립트 파일로 구성 되어 있습니다.
 
-## Configuration
+## 설정 
 - Kubespray :: v2.14.1
 - Kubernetes Native :: v1.18.6
 - Docker :: v19.03.12
