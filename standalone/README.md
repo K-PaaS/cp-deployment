@@ -1,4 +1,4 @@
-# paas-ta-container-platform-standalone-deployment
+# PaaS-TA 컨테이너 플랫폼 STADALONE DEPLOYMENT
 ## 소개
 
 컨테이너 플랫폼 단독 배포용 Kubernetes 설치를 위한 Kubespray Ansible Playbook 소스 파일 구성입니다. ansible-playbook 명령을 통해 Kubernetes 설치에 필요한 모든 과정이 자동으로 진행됩니다.
@@ -17,13 +17,21 @@ Kubespray는 Ansible playbook으로 배포를 진행 하기 때문에 ansible-pl
 - jinja2 :: 2.11.1
 - netaddr :: 0.7.19
 
-## Install Guide
-### Kubespray 설치 가이드
-- [paas-ta-container-platform-standalone-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/standalone/paas-ta-container-platform-standalone-deployment-guide-v1.0.md)
+## 가이드	
+### 단독 배포 가이드 	
+- [paas-ta-container-platform-standalone-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/standalone/paas-ta-container-platform-standalone-deployment-guide-v1.0.md)	
+- [paas-ta-container-platform-bosh-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-guide-v1.0.md)
 
-## Release
+### CaaS 배포 가이드
+- [paas-ta-container-platform-standalone-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/standalone/paas-ta-container-platform-standalone-deployment-guide-v1.0.md)	
+- [paas-ta-container-platform-bosh-deployment-caas-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-caas-guide-v1.0.md)	
+
+## 릴리즈
 - https://github.com/PaaS-TA/paas-ta-container-platform-release/tree/dev
 - https://github.com/PaaS-TA/paas-ta-container-platform-release/tree/caas-dev
 
-## License
+## 메인
+- https://github.com/PaaS-TA/paas-ta-container-platform/tree/dev
+
+## 라이선스
 paas-ta-container-platform-standalone-deployment는 [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0)를 사용합니다.
