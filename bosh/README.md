@@ -26,4 +26,4 @@ Components 요소 및 배포의 속성을 정의한 manifest와 Iaas마다 서�
 - https://github.com/PaaS-TA/paas-ta-container-platform/tree/dev
 
 ## 라이선스
-paas-ta-container-platform-bosh-deployment는 [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0)를 사용합니다.
+[Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0)를 사용합니다.
