@@ -3,7 +3,7 @@
 
 컨테이너 플랫폼 Edge 배포용 Kubernetes 설치를 위한 KubeEdge keadm 실행 파일 구성입니다. keadm 명령을 통해 KubeEdge 설치 시 필요한 추가 파일을 자동으로 다운로드 합니다.
 
-## Script 설명
+## 스크립트 설명 
 KubeEdge는 keadm 명령을 사용하기 위한 실행파일 1개로 구성 되어 있습니다.
 
 ## 가이드	
