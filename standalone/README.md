@@ -6,25 +6,11 @@
 ## Script 설명
 Kubespray는 Ansible playbook으로 배포를 진행 하기 때문에 ansible-playbook 명령을 사용하기 위한 스크립트 파일로 구성 되어 있습니다.
 
-## 설정 
-- Kubespray :: v2.14.1
-- Kubernetes Native :: v1.18.6
-- Docker :: v19.03.12
-- pbr :: 5.4.4
-- jmespath :: 0.9.5
-- ruamel.yaml :: 0.16.10
-- ansible :: 2.9.6
-- jinja2 :: 2.11.1
-- netaddr :: 0.7.19
 
 ## 가이드	
-### 단독 배포 가이드 	
+### KubeSpray 설치 가이드 	
 - [paas-ta-container-platform-standalone-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/standalone/paas-ta-container-platform-standalone-deployment-guide-v1.0.md)	
-- [paas-ta-container-platform-bosh-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-guide-v1.0.md)
 
-### CaaS 배포 가이드
-- [paas-ta-container-platform-standalone-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/standalone/paas-ta-container-platform-standalone-deployment-guide-v1.0.md)	
-- [paas-ta-container-platform-bosh-deployment-caas-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-caas-guide-v1.0.md)	
 
 ## 릴리즈
 - https://github.com/PaaS-TA/paas-ta-container-platform-release/tree/dev

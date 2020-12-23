@@ -6,13 +6,8 @@
 ## Script 설명
 KubeEdge는 keadm 명령을 사용하기 위한 실행파일 1개로 구성 되어 있습니다.
 
-## 설정
-- KubeEdge :: v1.4.0
-- Kubernetes Native :: v1.18.6
-- Docker :: v19.03.12
-
 ## 가이드	
-### Edge 배포 가이드	
+### KubeEdge 설치 가이드	
 - [paas-ta-container-platform-edge-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/edge/paas-ta-container-platform-edge-deployment-guide-v1.0.md)	
 
 ## 릴리즈	

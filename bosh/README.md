@@ -5,17 +5,11 @@
 ## Script 설명
 Components 요소 및 배포의 속성을 정의한 manifest와 Iaas마다 서버 환경에 맞춰 설정을 할 수 있는 deploy 파일들로 구성 되어있습니다.
 
-## 설정
-- docker :: v35.3.4
-- paasta-container-platform :: v1.0
-
 ## 가이드	
-### 단독 배포 가이드 	
-- [paas-ta-container-platform-standalone-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/standalone/paas-ta-container-platform-standalone-deployment-guide-v1.0.md)	
+### 단독 배포 가이드 		
 - [paas-ta-container-platform-bosh-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-guide-v1.0.md)
 
 ### CaaS 배포 가이드
-- [paas-ta-container-platform-standalone-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/standalone/paas-ta-container-platform-standalone-deployment-guide-v1.0.md)	
 - [paas-ta-container-platform-bosh-deployment-caas-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-caas-guide-v1.0.md)	
 
 ## 릴리즈
