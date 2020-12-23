@@ -3,7 +3,7 @@
 쿠버네티스 단독배포를 사용하기 위한 Bosh 기반의 Release의 설치 및 서비스를 등록 하는데 필요한 소스파일 구성입니다.
 
 ## Script 설명
-Components 요소 및 배포의 속성을 정의한 manifest와 Iaas마다 서버 환경에 맞춰 설정을 할 수 있는 deploy 파일들로 구성 되어있습니다.
+Components 요소 및 배포의 속성을 정의한 manifest와 IaaS마다 서버 환경에 맞춰 설정을 할 수 있는 deploy 파일들로 구성 되어있습니다.
 
 ## 가이드	
 ### 단독 배포 가이드 		
