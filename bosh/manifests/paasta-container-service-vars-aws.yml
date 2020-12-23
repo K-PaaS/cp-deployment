@@ -17,7 +17,7 @@ kubernetes_cluster_tag: 'kubernetes'    # Do not update!
 
 # STEMCELL
 stemcell_os: "ubuntu-xenial"
-stemcell_version: "621.78"
+stemcell_version: "621.94"
 stemcell_alias: "xenial"
 
 # CREDHUB
