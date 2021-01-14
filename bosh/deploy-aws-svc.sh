@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # SET VARIABLES
-export CONTAINER_DEPLOYMENT_NAME='paasta-container-platform'
-export CONTAINER_BOSH2_NAME='micro-bosh'
+export CONTAINER_DEPLOYMENT_NAME='paasta-container-platform'   # deployment name
+export CONTAINER_BOSH2_NAME='micro-bosh'                       # bosh name (e.g. micro-bosh)
 export CONTAINER_BOSH2_UUID=`bosh int <(bosh -e ${CONTAINER_BOSH2_NAME} environment --json) --path=/Tables/0/Rows/0/uuid`
 
 # DEPLOY
