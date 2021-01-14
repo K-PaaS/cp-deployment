@@ -69,9 +69,9 @@ ansible-playbook -i inventory/mycluster/hosts.yml remove-node.yml -b -v \
 --extra-vars "node=nodename,nodename2"
 ```
 
-If a node is completely unreachable by ssh, add `--extra-vars reset_nodes=no`
+If a node is completely unreachable by ssh, add `--extra-vars reset_nodes=false`
 to skip the node reset step. If one node is unavailable, but others you wish
-to remove are able to connect via SSH, you could set reset_nodes=no as a host
+to remove are able to connect via SSH, you could set `reset_nodes=false` as a host
 var in inventory.
 
 ## Connecting to Kubernetes
@@ -95,11 +95,11 @@ the Kubernetes [documentation](https://kubernetes.io/docs/tasks/access-applicati
 
 Supported version is kubernetes-dashboard v2.0.x :
 
-- Login options are : token/kubeconfig by default, basic can be enabled with `kube_basic_auth: true` inventory variable - not recommended because this requires ABAC api-server which is not tested by kubespray team
+- Login option : token/kubeconfig by default
 - Deployed by default in "kube-system" namespace, can be overridden with `dashboard_namespace: kubernetes-dashboard` in inventory,
 - Only serves over https
 
-Access is described in [dashboard docs](https://github.com/kubernetes/dashboard/tree/master/docs/user/accessing-dashboard). With kubespray's default deployment in kube-system namespace, instead of kuberntes-dashboard :
+Access is described in [dashboard docs](https://github.com/kubernetes/dashboard/tree/master/docs/user/accessing-dashboard). With kubespray's default deployment in kube-system namespace, instead of kubernetes-dashboard :
 
 - Proxy URL is <http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#/login>
 - kubectl commands must be run with "-n kube-system"
@@ -126,6 +126,8 @@ host and can optionally be configured on your ansible host by setting
 - If `kubectl_localhost` enabled, `kubectl` will download onto `/usr/local/bin/` and setup with bash completion. A helper script `inventory/mycluster/artifacts/kubectl.sh` also created for setup with below `admin.conf`.
 - If `kubeconfig_localhost` enabled `admin.conf` will appear in the `inventory/mycluster/artifacts/` directory after deployment.
 - The location where these files are downloaded to can be configured via the `artifacts_dir` variable.
+
+NOTE: The controller host name in the admin.conf file might be a private IP. If so, change it to use the controller's public IP or the cluster's load balancer.
 
 You can see a list of nodes by running the following commands:
 

@@ -10,10 +10,11 @@ In case your servers don't have access to internet (for example when deploying o
 
 ## Configure Inventory
 
-Once all artifacts are accessible from your internal network, **adjust** the following variables in your inventory to match your environment:
+Once all artifacts are accessible from your internal network, **adjust** the following variables in [your inventory](/inventory/sample/group_vars/k8s-cluster/offline.yml) to match your environment:
 
 ```yaml
 # Registry overrides
+kube_image_repo: "{{ registry_host }}"
 gcr_image_repo: "{{ registry_host }}"
 docker_image_repo: "{{ registry_host }}"
 quay_image_repo: "{{ registry_host }}"
@@ -33,7 +34,7 @@ calicoctl_download_url: "{{ files_repo }}/kubernetes/calico/{{ calico_ctl_versio
 docker_rh_repo_base_url: "{{ yum_repo }}/docker-ce/$releasever/$basearch"
 docker_rh_repo_gpgkey: "{{ yum_repo }}/docker-ce/gpg"
 ## Containerd
-extras_rh_repo_base_url: "{{ yum_repo }}/centos/$releasever/extras/$basearch"
+extras_rh_repo_base_url: "{{ yum_repo }}/centos/{{ ansible_distribution_major_version }}/extras/$basearch"
 extras_rh_repo_gpgkey: "{{ yum_repo }}/containerd/gpg"
 
 # Fedora
@@ -61,9 +62,6 @@ docker_ubuntu_repo_gpgkey: "{{ ubuntu_repo }}/docker-ce/gpg"
 containerd_ubuntu_repo_base_url: "{{ ubuntu_repo }}/containerd"
 containerd_ubuntu_repo_gpgkey: "{{ ubuntu_repo }}/containerd/gpg"
 containerd_ubuntu_repo_repokey: 'YOURREPOKEY'
-
-# If using helm
-helm_stable_repo_url: "{{ helm_registry }}"
 ```
 
 For the OS specific settings, just define the one matching your OS.
@@ -72,9 +70,15 @@ If you use the settings like the one above, you'll need to define in your invent
 * `registry_host`: Container image registry. If you _don't_ use the same repository path for the container images that the ones defined in [Download's role defaults](https://github.com/kubernetes-sigs/kubespray/blob/master/roles/download/defaults/main.yml), you need to override the `*_image_repo` for these container images. If you want to make your life easier, use the same repository path, you won't have to override anything else.
 * `files_repo`: HTTP webserver or reverse proxy that is able to serve the files listed above. Path is not important, you can store them anywhere as long as it's accessible by kubespray. It's recommended to use `*_version` in the path so that you don't need to modify this setting everytime kubespray upgrades one of these components.
 * `yum_repo`/`debian_repo`/`ubuntu_repo`: OS package repository depending of your OS, should point to your internal repository. Adjust the path accordingly.
-* `helm_registry`: Helm Registry to use for `stable` Helm Charts if `helm_enabled: true`
 
 ## Install Kubespray Python Packages
+
+### Recommended way: Kubespray Container Image
+
+The easiest way is to use [kubespray container image](https://quay.io/kubespray/kubespray) as all the required packages are baked in the image.
+Just copy the container image in your private container image registry and you are all set!
+
+### Manual installation
 
 Look at the `requirements.txt` file and check if your OS provides all packages out-of-the-box (Using the OS package manager). For those missing, you need to either use a proxy that has Internet access (typically from a DMZ) or setup a PyPi server in your network that will host these packages.
 
@@ -100,6 +104,12 @@ Once all artifacts are in place and your inventory properly set up, you can run 
 
 ```bash
 ansible-playbook -i inventory/my_airgap_cluster/hosts.yaml -b cluster.yml
+```
+
+If you use [Kubespray Container Image](#recommended-way:-kubespray-container-image), you can mount your inventory inside the container:
+
+```bash
+docker run --rm -it -v path_to_inventory/my_airgap_cluster:inventory/my_airgap_cluster myprivateregisry.com/kubespray/kubespray:v2.14.0 ansible-playbook -i inventory/my_airgap_cluster/hosts.yaml -b cluster.yml
 ```
 
 ## Please Note: Offline installation doesn't support CRI-O container runtime at the moment (see [this issue](https://github.com/kubernetes-sigs/kubespray/issues/6233))

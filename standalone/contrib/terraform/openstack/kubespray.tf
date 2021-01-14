@@ -1,7 +1,3 @@
-provider "openstack" {
-  version = "~> 1.17"
-}
-
 module "network" {
   source = "./modules/network"
 
@@ -27,6 +23,8 @@ module "ips" {
   network_name                  = var.network_name
   router_id                     = module.network.router_id
   k8s_nodes                     = var.k8s_nodes
+  k8s_master_fips               = var.k8s_master_fips
+  router_internal_port_id       = module.network.router_internal_port_id
 }
 
 module "compute" {
@@ -79,6 +77,8 @@ module "compute" {
   wait_for_floatingip                          = var.wait_for_floatingip
   use_access_ip                                = var.use_access_ip
   use_server_groups                            = var.use_server_groups
+  extra_sec_groups                             = var.extra_sec_groups
+  extra_sec_groups_name                        = var.extra_sec_groups_name
 
   network_id = module.network.router_id
 }

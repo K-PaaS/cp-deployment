@@ -24,7 +24,7 @@
   copy:
     content: |
       [keyfile]
-      unmanaged-devices=interface-name:cali*;interface-name:tunl*
+      unmanaged-devices=interface-name:cali*;interface-name:tunl*;interface-name:vxlan.calico
     dest: /etc/NetworkManager/conf.d/calico.conf
   when: nm_check.rc == 0
   notify: Calico | Reload NetworkManager
@@ -32,7 +32,7 @@
 - name: Calico | Write Calico cni config
   template:
     src: "cni-calico.conflist.j2"
-    dest: "/etc/cni/net.d/{% if calico_version is version('v3.3.0', '>=') %}calico.conflist.template{% else %}10-calico.conflist{% endif %}"
+    dest: "/etc/cni/net.d/calico.conflist.template"
     owner: kube
   register: calico_conflist
   notify: reset_calico_cni
@@ -135,28 +135,11 @@
   loop_control:
     label: "{{ item.item.file }}"
 
-- name: Calico | Configure calico network pool (version < v3.3.0)
+- name: Calico | Configure calico network pool
   command:
     cmd: "{{ bin_dir }}/calicoctl.sh apply -f -"
-    stdin: >
-      { "kind": "IPPool",
-        "apiVersion": "projectcalico.org/v3",
-        "metadata": {
-          "name": "{{ calico_pool_name }}",
-        },
-        "spec": {
-          "cidr": "{{ calico_pool_cidr | default(kube_pods_subnet) }}",
-          "ipipMode": "{{ calico_ipip_mode }}",
-          "vxlanMode": "{{ calico_vxlan_mode }}",
-          "natOutgoing": {{ nat_outgoing|default(false) and not peer_with_router|default(false) }} }}
-  when:
-    - inventory_hostname == groups['kube-master'][0]
-    - 'calico_conf.stdout == "0"'
-    - calico_version is version("v3.3.0", "<")
-
-- name: Calico | Configure calico network pool (version >= v3.3.0)
-  command:
-    cmd: "{{ bin_dir }}/calicoctl.sh apply -f -"
+    stdin: "{{ stdin | to_json }}"
+  vars:
     stdin: >
       { "kind": "IPPool",
         "apiVersion": "projectcalico.org/v3",
@@ -172,7 +155,12 @@
   when:
     - inventory_hostname == groups['kube-master'][0]
     - 'calico_conf.stdout == "0"'
-    - calico_version is version("v3.3.0", ">=")
+
+- name: Populate Service External IPs
+  set_fact:
+    _service_external_ips: "{{ _service_external_ips|default([]) + [ {'cidr': item} ] }}"
+  with_items: "{{ calico_advertise_service_external_ips }}"
+  run_once: yes
 
 - name: "Determine nodeToNodeMesh needed state"
   set_fact:
@@ -182,9 +170,11 @@
     - inventory_hostname in groups['k8s-cluster']
   run_once: yes
 
-- name: Calico | Set global as_num
+- name: Calico | Set up BGP Configuration
   command:
     cmd: "{{ bin_dir }}/calicoctl.sh apply -f -"
+    stdin: "{{ stdin | to_json }}"
+  vars:
     stdin: >
       { "kind": "BGPConfiguration",
       "apiVersion": "projectcalico.org/v3",
@@ -193,8 +183,10 @@
       },
       "spec": {
           "logSeverityScreen": "Info",
+          {% if not calico_no_global_as_num|default(false) %}"asNumber": {{ global_as_num }},{% endif %}
           "nodeToNodeMeshEnabled": {{ nodeToNodeMeshEnabled|default('true') }} ,
-          "asNumber": {{ global_as_num }} }}
+          {% if calico_advertise_cluster_ips|default(false) %}"serviceClusterIPs": [{"cidr": "{{ kube_service_addresses }}" }],{% endif %}
+          "serviceExternalIPs": {{ _service_external_ips|default([]) }} }}
   changed_when: false
   when:
     - inventory_hostname == groups['kube-master'][0]
@@ -202,6 +194,8 @@
 - name: Calico | Configure peering with router(s) at global scope
   command:
     cmd: "{{ bin_dir }}/calicoctl.sh apply -f -"
+    stdin: "{{ stdin | to_json }}"
+  vars:
     stdin: >
       {"apiVersion": "projectcalico.org/v3",
       "kind": "BGPPeer",
@@ -225,6 +219,8 @@
 - name: Calico | Configure peering with route reflectors at global scope
   command:
     cmd: "{{ bin_dir }}/calicoctl.sh apply -f -"
+    stdin: "{{ stdin | to_json }}"
+  vars:
     stdin: >
       {"apiVersion": "projectcalico.org/v3",
       "kind": "BGPPeer",
@@ -248,6 +244,8 @@
 - name: Calico | Configure route reflectors to peer with each other
   command:
     cmd: "{{ bin_dir }}/calicoctl.sh apply -f -"
+    stdin: "{{ stdin | to_json }}"
+  vars:
     stdin: >
       {"apiVersion": "projectcalico.org/v3",
       "kind": "BGPPeer",
@@ -322,6 +320,8 @@
 - name: Calico | Configure node asNumber for per node peering
   command:
     cmd: "{{ bin_dir }}/calicoctl.sh apply -f -"
+    stdin: "{{ stdin | to_json }}"
+  vars:
     stdin: >
       {"apiVersion": "projectcalico.org/v3",
       "kind": "Node",
@@ -347,6 +347,8 @@
 - name: Calico | Configure peering with router(s) at node scope
   command:
     cmd: "{{ bin_dir }}/calicoctl.sh apply -f -"
+    stdin: "{{ stdin | to_json }}"
+  vars:
     stdin: >
       {"apiVersion": "projectcalico.org/v3",
       "kind": "BGPPeer",

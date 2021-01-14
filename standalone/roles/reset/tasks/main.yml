@@ -1,11 +1,4 @@
 ---
-- name: reset | include file with pre-reset tasks specific to the network_plugin if exists
-  include_tasks: "{{ (role_path + '/../network_plugin/' + kube_network_plugin + '/tasks/pre-reset.yml') | realpath  }}"
-  when:
-    - kube_network_plugin in ['contiv']
-  tags:
-    - network
-
 - name: reset | stop services
   service:
     name: "{{ item }}"
@@ -19,15 +12,20 @@
 
 - name: reset | remove services
   file:
-    path: "/etc/systemd/system/{{ item }}.service"
+    path: "/etc/systemd/system/{{ item }}"
     state: absent
   with_items:
-    - kubelet
-    - vault
-    - calico-node
+    - kubelet.service
+    - vault.service
+    - calico-node.service
+    - containerd.service.d/http-proxy.conf
+    - crio.service.d/http-proxy.conf
+    - vault.service.d/http-proxy.conf
   register: services_removed
   tags:
     - services
+    - containerd
+    - crio
 
 - name: reset | remove docker dropins
   file:
@@ -37,6 +35,7 @@
     - docker-dns.conf
     - docker-options.conf
     - http-proxy.conf
+    - docker-orphan-cleanup.conf
   register: docker_dropins_removed
   tags:
     - docker
@@ -66,21 +65,13 @@
   tags:
     - docker
 
-- name: reset | stop all cri containers
-  shell: "set -o pipefail && crictl ps -aq | xargs -r crictl -t 60s stop"
-  args:
-    executable: /bin/bash
-  register: remove_all_cri_containers
-  retries: 5
-  until: remove_all_cri_containers.rc == 0
-  delay: 5
-  tags:
-    - crio
-    - containerd
-  when: container_manager in ["crio", "containerd"]
+- name: reset | check if crictl is present
+  stat:
+    path: "{{ bin_dir }}/crictl"
+  register: crictl
 
-- name: reset | remove all cri containers
-  shell: "set -o pipefail && crictl ps -aq | xargs -r crictl -t 60s rm"
+- name: reset | stop all cri containers
+  shell: "set -o pipefail && {{ bin_dir }}/crictl ps -q | xargs -r {{ bin_dir }}/crictl -t 60s stop"
   args:
     executable: /bin/bash
   register: remove_all_cri_containers
@@ -90,33 +81,64 @@
   tags:
     - crio
     - containerd
-  when: container_manager in ["crio", "containerd"] and deploy_container_engine|default(true)
+  when:
+    - crictl.stat.exists
+    - container_manager in ["crio", "containerd"]
+  ignore_errors: true
+
+- name: reset | force remove all cri containers
+  command: "{{ bin_dir }}/crictl rm -a -f"
+  register: remove_all_cri_containers
+  retries: 5
+  until: remove_all_cri_containers.rc == 0
+  delay: 5
+  tags:
+    - crio
+    - containerd
+  when:
+    - crictl.stat.exists
+    - container_manager in ["crio", "containerd"]
+    - deploy_container_engine|default(true)
+
+- name: reset | stop and disable crio service
+  service:
+    name: crio
+    state: stopped
+    enabled: false
+  failed_when: false
+  tags: [ crio ]
+  when: container_manager == "crio"
+
+- name: reset | forcefully wipe CRI-O's container and image storage
+  command: "crio wipe -f"
+  failed_when: false
+  tags: [ crio ]
+  when: container_manager == "crio"
 
 - name: reset | stop all cri pods
-  shell: "set -o pipefail && crictl pods -q | xargs -r crictl -t 60s stopp"
+  shell: "set -o pipefail && {{ bin_dir }}/crictl pods -q | xargs -r {{ bin_dir }}/crictl -t 60s stopp"
   args:
     executable: /bin/bash
   register: remove_all_cri_containers
   retries: 5
   until: remove_all_cri_containers.rc == 0
   delay: 5
-  tags:
-    - crio
-    - containerd
-  when: container_manager in ["crio", "containerd"]
+  tags: [ containerd ]
+  when:
+    - crictl.stat.exists
+    - container_manager == "containerd"
+  ignore_errors: true
 
-- name: reset | remove all cri pods
-  shell: "set -o pipefail && crictl pods -q | xargs -r crictl -t 60s rmp"
-  args:
-    executable: /bin/bash
+- name: reset | force remove all cri pods
+  command: "{{ bin_dir }}/crictl rmp -a -f"
   register: remove_all_cri_containers
   retries: 5
   until: remove_all_cri_containers.rc == 0
   delay: 5
-  tags:
-    - crio
-    - containerd
-  when: container_manager in ["crio", "containerd"]
+  tags: [ containerd ]
+  when:
+    - crictl.stat.exists
+    - container_manager == "containerd"
 
 - name: reset | stop etcd services
   service:
@@ -147,6 +169,7 @@
     warn: false
   check_mode: no
   register: mounted_dirs
+  failed_when: false
   tags:
     - mounts
 
@@ -154,6 +177,7 @@
   command: umount -f {{ item }}
   with_items: "{{ mounted_dirs.stdout_lines }}"
   register: umount_dir
+  when: mounted_dirs
   retries: 4
   until: umount_dir.rc == 0
   delay: 5
@@ -245,7 +269,6 @@
     - "{{ bin_dir }}/kubernetes-scripts"
     - "{{ bin_dir }}/kubectl"
     - "{{ bin_dir }}/kubeadm"
-    - "{{ bin_dir }}/hyperkube"
     - "{{ bin_dir }}/helm"
     - "{{ bin_dir }}/calicoctl"
     - "{{ bin_dir }}/calicoctl.sh"
@@ -255,9 +278,6 @@
     - "{{ bin_dir }}/netctl"
     - /var/lib/cni
     - /etc/vault
-    - /etc/contiv
-    - /var/contiv
-    - /run/contiv
     - /etc/openvswitch
     - /run/openvswitch
     - /var/lib/kube-router
@@ -293,7 +313,7 @@
 - name: reset | include file with reset tasks specific to the network_plugin if exists
   include_tasks: "{{ (role_path + '/../network_plugin/' + kube_network_plugin + '/tasks/reset.yml') | realpath  }}"
   when:
-    - kube_network_plugin in ['flannel', 'cilium', 'contiv', 'kube-router', 'calico']
+    - kube_network_plugin in ['flannel', 'cilium', 'kube-router', 'calico']
   tags:
     - network
 

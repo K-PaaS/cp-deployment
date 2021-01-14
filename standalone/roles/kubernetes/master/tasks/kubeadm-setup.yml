@@ -130,7 +130,7 @@
   when:
     - inventory_hostname == groups['kube-master']|first
     - kubeadm_already_run.stat.exists
-    - apiserver_sans_check.changed
+    - apiserver_sans_check.changed or force_certificate_regeneration
 
 - name: kubeadm | regenerate apiserver cert 2/2
   command: >-
@@ -140,7 +140,7 @@
   when:
     - inventory_hostname == groups['kube-master']|first
     - kubeadm_already_run.stat.exists
-    - apiserver_sans_check.changed
+    - apiserver_sans_check.changed or force_certificate_regeneration
 
 - name: kubeadm | Initialize first master
   command: >-
@@ -148,7 +148,7 @@
     {{ bin_dir }}/kubeadm init
     --config={{ kube_config_dir }}/kubeadm-config.yaml
     --ignore-preflight-errors=all
-    --skip-phases=addon/coredns
+    --skip-phases={{ kubeadm_init_phases_skip | join(',') }}
     --upload-certs
   register: kubeadm_init
   # Retry is because upload config sometimes fails
@@ -199,13 +199,8 @@
   tags:
     - kubeadm_token
 
-- name: kubeadm | Initialize other masters (experimental control plane)
-  include_tasks: kubeadm-secondary-experimental.yml
-  when: kubeadm_control_plane
-
-- name: kubeadm | Initialize other masters (legacy not control plane)
-  include_tasks: kubeadm-secondary-legacy.yml
-  when: not kubeadm_control_plane
+- name: kubeadm | Join other masters
+  include_tasks: kubeadm-secondary.yml
 
 - name: kubeadm | upgrade kubernetes cluster
   include_tasks: kubeadm-upgrade.yml

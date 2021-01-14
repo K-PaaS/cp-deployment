@@ -63,10 +63,10 @@ def get_var_as_bool(name, default):
 
 
 CONFIG_FILE = os.environ.get("CONFIG_FILE", "./inventory/sample/hosts.yaml")
-KUBE_MASTERS = int(os.environ.get("KUBE_MASTERS_MASTERS", 1))
+KUBE_MASTERS = int(os.environ.get("KUBE_MASTERS", 1))
 # Reconfigures cluster distribution at scale
 SCALE_THRESHOLD = int(os.environ.get("SCALE_THRESHOLD", 50))
-MASSIVE_SCALE_THRESHOLD = int(os.environ.get("SCALE_THRESHOLD", 200))
+MASSIVE_SCALE_THRESHOLD = int(os.environ.get("MASSIVE_SCALE_THRESHOLD", 200))
 
 DEBUG = get_var_as_bool("DEBUG", True)
 HOST_PREFIX = os.environ.get("HOST_PREFIX", "node")
@@ -402,6 +402,7 @@ Configurable env vars:
 DEBUG                   Enable debug printing. Default: True
 CONFIG_FILE             File to write config to Default: ./inventory/sample/hosts.yaml
 HOST_PREFIX             Host prefix for generated hosts. Default: node
+KUBE_MASTERS            Set the number of kube-masters. Default: 2
 SCALE_THRESHOLD         Separate ETCD role if # of nodes >= 50
 MASSIVE_SCALE_THRESHOLD Separate K8s master and ETCD if # of nodes >= 200
 '''  # noqa

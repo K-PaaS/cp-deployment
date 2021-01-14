@@ -317,8 +317,8 @@ spec:
             secretKeyRef:
               name: memberlist
               key: secretkey
-        image: metallb/speaker:{{ metallb_version }}
-        imagePullPolicy: Always
+        image: {{ metallb_speaker_image_repo }}:{{ metallb_version }}
+        imagePullPolicy: {{ k8s_image_pull_policy }}
         name: speaker
         ports:
         - containerPort: {{ metallb_port }}
@@ -373,8 +373,8 @@ spec:
       - args:
         - --port={{ metallb_port }}
         - --config=config
-        image: metallb/controller:{{ metallb_version }}
-        imagePullPolicy: Always
+        image: {{ metallb_controller_image_repo }}:{{ metallb_version }}
+        imagePullPolicy: {{ k8s_image_pull_policy }}
         name: controller
         ports:
         - containerPort: {{ metallb_port }}

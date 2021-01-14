@@ -42,8 +42,12 @@ spec:
             - --v=1
             - --cloud-config=$(CLOUD_CONFIG)
             - --cloud-provider=openstack
+            - --cluster-name={{ cluster_name }}
             - --use-service-account-credentials=true
             - --address=127.0.0.1
+{% for key, value in external_openstack_cloud_controller_extra_args.items() %}
+            - "{{ '--' + key + '=' + value }}"
+{% endfor %}
           volumeMounts:
             - mountPath: /etc/kubernetes/pki
               name: k8s-certs

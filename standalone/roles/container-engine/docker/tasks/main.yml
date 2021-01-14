@@ -74,6 +74,7 @@
   retries: 4
   delay: "{{ retry_stagger | d(3) }}"
   with_items: "{{ docker_repo_key_info.repo_keys }}"
+  environment: "{{ proxy_env }}"
   when: not (ansible_os_family in ["Flatcar Container Linux by Kinvolk", "RedHat", "Suse", "ClearLinux"] or is_ostree)
 
 - name: ensure docker-ce repository is enabled
@@ -95,6 +96,7 @@
   retries: 4
   delay: "{{ retry_stagger | d(3) }}"
   with_items: "{{ dockerproject_repo_key_info.repo_keys }}"
+  environment: "{{ proxy_env }}"
   when:
     - not (ansible_os_family in ["Flatcar Container Linux by Kinvolk", "RedHat", "Suse", "ClearLinux"] or is_ostree)
     - use_docker_engine is defined and use_docker_engine
@@ -130,7 +132,7 @@
 - name: Configure extras repository on RedHat/CentOS if container-selinux is not available in current repos
   yum_repository:
     name: extras
-    description: "CentOS-7 - Extras"
+    description: "CentOS-{{ ansible_distribution_major_version }} - Extras"
     state: present
     baseurl: "{{ extras_rh_repo_base_url }}"
     file: "extras"
@@ -166,6 +168,7 @@
     conf_file: "{{ item.yum_conf|default(omit) }}"
     state: "{{ item.state | default('present') }}"
     update_cache: "{{ omit if ansible_distribution == 'Fedora' else True }}"
+    enablerepo: "{{ item.repo | default(omit) }}"
   register: docker_task_result
   until: docker_task_result is succeeded
   retries: 4
@@ -207,9 +210,12 @@
 # This is required to ensure any apt upgrade will not break kubernetes
 - name: Tell Debian hosts not to change the docker version with apt upgrade
   dpkg_selections:
-    name: docker-ce
+    name: "{{ item }}"
     selection: hold
   when: ansible_os_family in ["Debian"]
+  with_items:
+    - docker-ce
+    - docker-ce-cli
 
 - name: ensure docker started, remove our config if docker start failed and try again
   block:
