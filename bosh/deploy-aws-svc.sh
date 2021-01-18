@@ -11,7 +11,6 @@ bosh -e ${CONTAINER_BOSH2_NAME} -n -d ${CONTAINER_DEPLOYMENT_NAME} deploy --no-r
     -o manifests/ops-files/paasta-container-service/network-aws.yml \
     -o manifests/ops-files/misc/first-time-deploy.yml \
     -o manifests/ops-files/add-jenkins-service-broker.yml \
-    -o manifests/ops-files/add-service-broker.yml \
     -v deployment_name=${CONTAINER_DEPLOYMENT_NAME} \
     -v director_name=${CONTAINER_BOSH2_NAME} \
     -v director_uuid=${CONTAINER_BOSH2_UUID}
