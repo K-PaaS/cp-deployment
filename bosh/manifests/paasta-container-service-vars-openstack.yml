@@ -57,7 +57,7 @@ haproxy_azs: [z7]
 mariadb_port: "3306"    #"<MARIADB_PORT>"
 mariadb_azs: [z5]
 mariadb_persistent_disk_type: "10GB"
-mariadb_admin_user_id: "root"   #"<MARIADB_ADMIN_USER_ID>"
+mariadb_admin_user_id: "cp-admin"   #"<MARIADB_ADMIN_USER_ID>"
 mariadb_admin_user_password: "Paasta@2019" #"<MARIADB_ADMIN_USER_PASSWORD>"
 mariadb_role_set_administrator_code_name: "Administrator"
 mariadb_role_set_administrator_code: "RS0001"
