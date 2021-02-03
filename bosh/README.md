@@ -16,10 +16,10 @@ Components 요소 및 배포의 속성을 정의한 manifest와 IaaS마다 서�
 - [paas-ta-container-platform-bosh-deployment-caas-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-caas-guide-v1.0.md)	
 
 ## 릴리즈
-- https://github.com/PaaS-TA/paas-ta-container-platform-release/tree/dev
+- https://github.com/PaaS-TA/paas-ta-container-platform-release  
 
 ## 메인
-- https://github.com/PaaS-TA/paas-ta-container-platform/tree/dev
+- https://github.com/PaaS-TA/paas-ta-container-platform  
 
 ## 라이선스
 [Apache-2.0 License](http://www.apache.org/licenses/LICENSE-2.0)를 사용한다.
