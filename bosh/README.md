@@ -7,13 +7,13 @@ Components 요소 및 배포의 속성을 정의한 manifest와 IaaS마다 서�
 
 ## 가이드	
 ### 단독 배포 가이드 		
-- [paas-ta-container-platform-bosh-deployment-spray-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-spray-guide-v1.0.md)
+- [paas-ta-container-platform-bosh-deployment-spray-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/master/install-guide/bosh/paas-ta-container-platform-bosh-deployment-spray-guide-v1.0.md)
 
 ### Edge 배포 가이드 		
-- [paas-ta-container-platform-bosh-deployment-edge-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-edge-guide-v1.0.md)
+- [paas-ta-container-platform-bosh-deployment-edge-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/master/install-guide/bosh/paas-ta-container-platform-bosh-deployment-edge-guide-v1.0.md)
 
 ### CaaS 배포 가이드
-- [paas-ta-container-platform-bosh-deployment-caas-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/bosh/paas-ta-container-platform-bosh-deployment-caas-guide-v1.0.md)	
+- [paas-ta-container-platform-bosh-deployment-caas-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/master/install-guide/bosh/paas-ta-container-platform-bosh-deployment-caas-guide-v1.0.md)	
 
 ## 릴리즈
 - https://github.com/PaaS-TA/paas-ta-container-platform-release  

@@ -8,7 +8,7 @@ Kubespray는 Ansible playbook으로 배포를 진행 하기 때문에 ansible-pl
 
 ## 가이드	
 ### Kubespray 설치 가이드	
-- [paas-ta-container-platform-standalone-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/dev/install-guide/standalone/paas-ta-container-platform-standalone-deployment-guide-v1.0.md)	
+- [paas-ta-container-platform-standalone-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/master/install-guide/standalone/paas-ta-container-platform-standalone-deployment-guide-v1.0.md)	
 
 ## 릴리즈	
 - https://github.com/PaaS-TA/paas-ta-container-platform-release  
