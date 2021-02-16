@@ -1,22 +1,22 @@
 name: ((deployment_name))
 releases:
 - name: kubo
-  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.0/release/service/((cfcr_release_name))-((cfcr_release_version)).tgz
+  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.1/release/service/((cfcr_release_name))-((cfcr_release_version)).tgz
   version: ((cfcr_release_version))
 - name: cfcr-etcd
-  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.0/release/service/cfcr-etcd-1.11.1.tgz
+  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.1/release/service/cfcr-etcd-1.11.1.tgz
   version: 1.11.1
 - name: docker
-  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.0/release/service/docker-35.2.1.tgz
+  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.1/release/service/docker-35.2.1.tgz
   version: 35.2.1
 - name: bpm
-  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.0/release/service/bpm-1.0.4.tgz
+  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.1/release/service/bpm-1.0.4.tgz
   version: 1.0.4
 - name: bosh-dns
   version: 1.12.0
-  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.0/release/service/bosh-dns-release-1.12.0.tgz
+  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.1/release/service/bosh-dns-release-1.12.0.tgz
 - name: ((caas_projects_release_name))
-  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.0/release/service/((caas_projects_release_name))-((caas_projects_release_version)).tgz
+  url: file:///home/((inception_os_user_name))/workspace/paasta-5.5.1/release/service/((caas_projects_release_name))-((caas_projects_release_version)).tgz
   version: ((caas_projects_release_version))
 
 stemcells:
