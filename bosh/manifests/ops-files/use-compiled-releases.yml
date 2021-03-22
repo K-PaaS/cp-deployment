@@ -1,0 +1,3 @@
+- type: replace
+  path: /releases/name=((container_platform_release_name))/url
+  value: https://nextcloud.paas-ta.org/index.php/s/zYjJg9yffxwSbFT/download
