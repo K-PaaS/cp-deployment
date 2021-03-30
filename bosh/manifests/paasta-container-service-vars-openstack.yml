@@ -47,7 +47,7 @@ mariadb_port: "13306"                                                           
 mariadb_azs: [z5]                                                                   # mariadb azs
 mariadb_persistent_disk_type: "10GB"                                                # mariadb persistent disk type
 mariadb_admin_user_id: "cp-admin"                                                   # mariadb admin user name (e.g. cp-admin)
-mariadb_admin_user_password: "Paasta!2021"                                         # mariadb admin user password (e.g. Paasta!2021)
+mariadb_admin_user_password: "Paasta!2021"                                          # mariadb admin user password (e.g. Paasta!2021)
 mariadb_role_set_administrator_code_name: "Administrator"                           # administrator role's code name (e.g. Administrator)
 mariadb_role_set_administrator_code: "RS0001"                                       # administrator role's code (e.g. RS0001)
 mariadb_role_set_regular_user_code_name: "Regular User"                             # regular user role's code name (e.g. Regular User)
