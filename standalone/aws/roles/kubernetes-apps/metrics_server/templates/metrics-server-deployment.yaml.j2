@@ -22,6 +22,15 @@ spec:
       annotations:
         seccomp.security.alpha.kubernetes.io/pod: 'runtime/default'
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - {{ master_node_hostname }}
       priorityClassName: system-cluster-critical
       serviceAccountName: metrics-server
       containers:
