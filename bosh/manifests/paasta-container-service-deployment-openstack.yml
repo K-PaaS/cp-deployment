@@ -1,7 +1,7 @@
 name: ((deployment_name))
 releases:
 - name: ((container_platform_release_name))
-  url: https://nextcloud.paas-ta.org/index.php/s/zYjJg9yffxwSbFT/download
+  url: https://nextcloud.paas-ta.org/index.php/s/ggdZyEKejPSszFj/download
   version: ((container_platform_release_version))
 
 stemcells:
