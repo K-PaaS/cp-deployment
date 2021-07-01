@@ -45,10 +45,15 @@ spec:
 {% if metrics_server_kubelet_preferred_address_types %}
         - --kubelet-preferred-address-types={{ metrics_server_kubelet_preferred_address_types }}
 {% endif %}
+        - --kubelet-use-node-status-port
 {% if metrics_server_kubelet_insecure_tls %}
         - --kubelet-insecure-tls
 {% endif %}
         - --metric-resolution={{ metrics_server_metric_resolution }}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 300Mi
         ports:
         - containerPort: 8443
           name: https
@@ -58,21 +63,15 @@ spec:
           mountPath: /tmp
         livenessProbe:
           httpGet:
-            path: /healthz
+            path: /healthz?exclude=readyz
             port: https
             scheme: HTTPS
-          successThreshold: 1
-          initialDelaySeconds: 20
-          failureThreshold: 3
           timeoutSeconds: 10
         readinessProbe:
           httpGet:
-            path: /healthz
+            path: /healthz?exclude=livez
             port: https
             scheme: HTTPS
-          successThreshold: 1
-          initialDelaySeconds: 20
-          failureThreshold: 3
           timeoutSeconds: 10
         securityContext:
           allowPrivilegeEscalation: false
@@ -136,6 +135,8 @@ spec:
       tolerations:
         - key: node-role.kubernetes.io/master
           effect: NoSchedule
+        - key: node-role.kubernetes.io/control-plane
+          effect: NoSchedule
 {% endif %}
       affinity:
         nodeAffinity:
@@ -143,7 +144,11 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
+{% if kube_version is version('v1.20.0', '<') %}
               - key: node-role.kubernetes.io/master
+{% else %}
+              - key: node-role.kubernetes.io/control-plane
+{% endif %}
                 operator: In
                 values:
                 - ""

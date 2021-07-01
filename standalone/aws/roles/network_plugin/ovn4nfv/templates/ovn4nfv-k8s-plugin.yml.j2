@@ -414,6 +414,9 @@ spec:
        - key: "node-role.kubernetes.io/master"
          effect: "NoSchedule"
          operator: "Exists"
+       - key: "node-role.kubernetes.io/control-plane"
+         effect: "NoSchedule"
+         operator: "Exists"
       serviceAccountName: k8s-nfn-sa
       containers:
         - name: nfn-operator
@@ -482,7 +485,7 @@ spec:
     spec:
       hostNetwork: true
       nodeSelector:
-        beta.kubernetes.io/arch: amd64
+        kubernetes.io/arch: amd64
       tolerations:
       - operator: Exists
         effect: NoSchedule
@@ -556,7 +559,7 @@ spec:
       hostNetwork: true
       hostPID: true
       nodeSelector:
-        beta.kubernetes.io/arch: amd64
+        kubernetes.io/arch: amd64
       tolerations:
       - operator: Exists
         effect: NoSchedule

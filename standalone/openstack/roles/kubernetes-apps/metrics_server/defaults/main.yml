@@ -14,4 +14,5 @@ addon_resizer_limits_cpu: 100m
 addon_resizer_limits_memory: 300Mi
 addon_resizer_requests_cpu: 5m
 addon_resizer_requests_memory: 50Mi
-master_node_hostname: 
+
+master_node_hostname: {MASTER_NODE_HOSTNAME}

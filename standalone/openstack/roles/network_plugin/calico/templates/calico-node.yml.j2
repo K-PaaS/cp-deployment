@@ -64,7 +64,7 @@ spec:
         # and CNI network config file on each node.
         - name: install-cni
           image: {{ calico_cni_image_repo }}:{{ calico_cni_image_tag }}
-          command: ["{{ (calico_version is version('v3.16.0', '<'))|ternary('/install-cni.sh','/opt/cni/bin/install') }}"]
+          command: ["/opt/cni/bin/install"]
           env:
             # Name of the CNI config file to create.
             - name: CNI_CONF_NAME
@@ -200,12 +200,14 @@ spec:
 {% endif %}
             - name: CALICO_IPV4POOL_IPIP
               value: "{{ calico_ipv4pool_ipip }}"
-            # Disable IPv6 on Kubernetes.
             - name: FELIX_IPV6SUPPORT
-              value: "false"
+              value: "{{ enable_dual_stack_networks | default(false) }}"
             # Set Felix logging to "info"
             - name: FELIX_LOGSEVERITYSCREEN
               value: "{{ calico_loglevel }}"
+            # Set Calico startup logging to "error"
+            - name: CALICO_STARTUP_LOGLEVEL
+              value: "{{ calico_node_startup_loglevel }}"
             # Enable or disable usage report
             - name: FELIX_USAGEREPORTINGENABLED
               value: "{{ calico_usage_reporting }}"
@@ -239,6 +241,10 @@ spec:
             - name: IP
               value: "autodetect"
 {% endif %}
+{% if enable_dual_stack_networks %}
+            - name: IP6
+              value: autodetect
+{% endif %}
 {% if calico_use_default_route_src_ipaddr|default(false) %}
             - name: FELIX_DEVICEROUTESOURCEADDRESS
               valueFrom:
@@ -253,6 +259,8 @@ spec:
               value: "true"
             - name: FELIX_IGNORELOOSERPF
               value: "{{ calico_node_ignorelooserpf }}"
+            - name: CALICO_MANAGE_CNI
+              value: "true"
 {% if calico_node_extra_envs is defined %}
 {% for key in calico_node_extra_envs %}
             - name: {{ key }}
@@ -303,6 +311,8 @@ spec:
             - name: xtables-lock
               mountPath: /run/xtables.lock
               readOnly: false
+            - mountPath: /host/etc/cni/net.d
+              name: cni-net-dir
 {% if typha_secure %}
             - name: typha-client
               mountPath: /etc/typha-client
