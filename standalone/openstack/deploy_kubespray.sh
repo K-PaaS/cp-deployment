@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. kubespray_var.sh
-. package_install.sh
-. kubespray_setting.sh
-. kubespray_install.sh
+source kubespray_var.sh
+source package_install.sh
+source kubespray_setting.sh
+source kubespray_install.sh
