@@ -101,7 +101,7 @@ class KubesprayInventory(object):
             self.purge_invalid_hosts(self.hosts.keys(), PROTECTED_NAMES)
             self.set_all(self.hosts)
             self.set_k8s_cluster()
-            etcd_hosts_count = 3 if len(self.hosts.keys()) >= 3 else 1
+            etcd_hosts_count = 1 if len(self.hosts.keys()) >= 3 else 1
             self.set_etcd(list(self.hosts.keys())[:etcd_hosts_count])
             if len(self.hosts) >= SCALE_THRESHOLD:
                 self.set_kube_control_plane(list(self.hosts.keys())[
