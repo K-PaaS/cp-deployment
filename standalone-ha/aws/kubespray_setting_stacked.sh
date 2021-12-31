@@ -17,7 +17,7 @@ sed -i "s/{MASTER_NODE_HOSTNAME}/$MASTER1_NODE_HOSTNAME/g" roles/kubernetes-apps
 
 sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" roles/kubernetes/control-plane/tasks/kubeadm-setup.yml
 
-sed -i "s/{LOADBALANCER_VIP}/$LOADBALANCER_VIP/g" inventory/mycluster/group_vars/all/all.yml
+sed -i "s/{LOADBALANCER_DOMAIN}/$LOADBALANCER_DOMAIN/g" inventory/mycluster/group_vars/all/all.yml
 sed -i "s/{ETCD1_NODE_PRIVATE_IP}/$MASTER1_NODE_PRIVATE_IP/g" inventory/mycluster/group_vars/all/all.yml
 sed -i "s/{ETCD2_NODE_PRIVATE_IP}/$MASTER2_NODE_PRIVATE_IP/g" inventory/mycluster/group_vars/all/all.yml
 sed -i "s/{ETCD3_NODE_PRIVATE_IP}/$MASTER3_NODE_PRIVATE_IP/g" inventory/mycluster/group_vars/all/all.yml
