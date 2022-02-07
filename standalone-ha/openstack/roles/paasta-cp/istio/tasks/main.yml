@@ -4,7 +4,7 @@
   shell: |
     curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.11.4 TARGET_ARCH=x86_64 sh -
     cd istio-1.11.4
-    echo "export PATH=$PWD/bin:$PATH" >> ~/.bash_profile
-    . ~/.bash_profile
+    echo "export PATH=$PWD/bin:$PATH" >> ~/.profile
+    . ~/.profile
   args:
     warn: false
