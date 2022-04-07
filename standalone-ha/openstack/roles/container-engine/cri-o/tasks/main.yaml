@@ -11,6 +11,13 @@
   set_fact:
     is_ostree: "{{ ostree.stat.exists }}"
 
+- name: get ostree version
+  shell: "set -o pipefail && rpm-ostree --version | awk -F\\' '/Version/{print $2}'"
+  args:
+    executable: /bin/bash
+  register: ostree_version
+  when: is_ostree
+
 - name: gather os specific variables
   include_vars: "{{ item }}"
   with_first_found:
@@ -28,25 +35,11 @@
   tags:
     - facts
 
-- name: disable unified_cgroup_hierarchy in Fedora 31+
-  command: grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"
-  when:
-    - ansible_distribution == "Fedora"
-    - (ansible_distribution_major_version | int) >= 31
-    - ansible_proc_cmdline['systemd.unified_cgroup_hierarchy'] is not defined or ansible_proc_cmdline['systemd.unified_cgroup_hierarchy'] != '0'
-
-- name: reboot in Fedora 31+
-  reboot:
-  when:
-    - ansible_distribution == "Fedora"
-    - (ansible_distribution_major_version | int) >= 31
-    - ansible_proc_cmdline['systemd.unified_cgroup_hierarchy'] is not defined or ansible_proc_cmdline['systemd.unified_cgroup_hierarchy'] != '0'
-
 - name: import crio repo
   import_tasks: "crio_repo.yml"
   when: crio_add_repos
 
-- include_role:
+- include_role:  # noqa unnamed-task
     name: container-engine/crictl
 
 - name: Build a list of crio runtimes with Katacontainers runtimes
@@ -69,12 +62,21 @@
   file:
     path: "{{ item }}"
     state: directory
+    mode: 0755
 
 - name: Install cri-o config
   template:
     src: crio.conf.j2
     dest: /etc/crio/crio.conf
+    mode: 0644
   register: config_install
+
+- name: Install config.json
+  template:
+    src: config.json.j2
+    dest: /etc/crio/config.json
+    mode: 0644
+  register: reg_auth_install
 
 - name: Add skopeo pkg to install
   set_fact:
@@ -82,6 +84,13 @@
   when:
     - not skip_downloads|default(false)
     - download_run_once
+
+- name: Add libseccomp2 package from Debian Backports to install
+  set_fact:
+    crio_packages: "{{ crio_debian_buster_backports_packages + crio_packages }}"
+  when:
+    - ansible_distribution == "Debian"
+    - ansible_distribution_version == "10"
 
 - name: Install cri-o packages
   package:
@@ -103,7 +112,7 @@
   register: need_bootstrap_crio
   when: is_ostree
 
-- name: Install cri-o packages with osttree
+- name: Install cri-o packages with ostree
   command: "rpm-ostree install {{ crio_packages|join(' ') }}"
   when:
     - is_ostree
@@ -129,6 +138,7 @@
   copy:
     src: mounts.conf
     dest: /etc/containers/mounts.conf
+    mode: 0644
   when:
     - ansible_os_family == 'RedHat'
   notify: restart crio
@@ -147,6 +157,7 @@
     section: storage.options.overlay
     option: mountopt
     value: '{{ ''"nodev"'' if ansible_kernel is version_compare(("4.18" if ansible_os_family == "RedHat" else "4.19"), "<") else ''"nodev,metacopy=on"'' }}'
+    mode: 0644
 
 - name: Create directory registries configs
   file:
@@ -159,6 +170,7 @@
   template:
     src: registry-mirror.conf.j2
     dest: "/etc/containers/registries.conf.d/{{ item.prefix }}.conf"
+    mode: 0644
   loop: "{{ crio_registries_mirrors }}"
   notify: restart crio
 
@@ -166,8 +178,23 @@
   template:
     src: http-proxy.conf.j2
     dest: /etc/systemd/system/crio.service.d/http-proxy.conf
+    mode: 0644
   notify: restart crio
   when: http_proxy is defined or https_proxy is defined
+
+- name: Configure the uid/gid space for user namespaces
+  lineinfile:
+    path: '{{ item.path }}'
+    line: '{{ item.entry }}'
+    regex: '^\s*{{ crio_remap_user }}:'
+    state: '{{ "present" if crio_remap_enable | bool else "absent" }}'
+  loop:
+    - path: /etc/subuid
+      entry: '{{ crio_remap_user }}:{{ crio_subuid_start }}:{{ crio_subuid_length }}'
+    - path: /etc/subgid
+      entry: '{{ crio_remap_user }}:{{ crio_subgid_start }}:{{ crio_subgid_length }}'
+  loop_control:
+    label: '{{ item.path }}'
 
 - name: Ensure crio service is started and enabled
   service:
@@ -183,6 +210,7 @@
     state: restarted
   when:
     - config_install.changed
+    - reg_auth_install.changed
     - not package_install.changed
     - not service_start.changed
 

@@ -3,7 +3,7 @@
 ## Generic Ansible variables
 
 You can view facts gathered by Ansible automatically
-[here](https://docs.ansible.com/ansible/latest/playbooks_variables.html#information-discovered-from-systems-facts).
+[here](https://docs.ansible.com/ansible/latest/user_guide/playbooks_vars_facts.html#ansible-facts).
 
 Some variables of note include:
 
@@ -18,7 +18,8 @@ Some variables of note include:
 * *docker_version* - Specify version of Docker to used (should be quoted
   string). Must match one of the keys defined for *docker_versioned_pkg*
   in `roles/container-engine/docker/vars/*.yml`.
-* *containerd_version* - Specify version of Containerd to use
+* *containerd_version* - Specify version of containerd to use when setting `container_manager` to `containerd`
+* *docker_containerd_version* - Specify which version of containerd to use when setting `container_manager` to `docker`
 * *etcd_version* - Specify version of ETCD to use
 * *ipip* - Enables Calico ipip encapsulation by default
 * *kube_network_plugin* - Sets k8s network plugin (default Calico)
@@ -26,7 +27,7 @@ Some variables of note include:
 * *kube_version* - Specify a given Kubernetes version
 * *searchdomains* - Array of DNS domains to search when looking up hostnames
 * *nameservers* - Array of nameservers to use for DNS lookup
-* *preinstall_selinux_state* - Set selinux state, permitted values are permissive and disabled.
+* *preinstall_selinux_state* - Set selinux state, permitted values are permissive, enforcing and disabled.
 
 ## Addressing variables
 
@@ -119,14 +120,14 @@ Stack](https://github.com/kubernetes-sigs/kubespray/blob/master/docs/dns-stack.m
   ``--insecure-registry=myregistry.mydomain:5000``
 * *docker_plugins* - This list can be used to define [Docker plugins](https://docs.docker.com/engine/extend/) to install.
 * *containerd_default_runtime* - Sets the default Containerd runtime used by the Kubernetes CRI plugin.
-* *containerd_runtimes* - Sets the Containerd runtime attributes used by the Kubernetes CRI plugin.
+* *containerd_additional_runtimes* - Sets the additional Containerd runtimes used by the Kubernetes CRI plugin.
   [Default config](https://github.com/kubernetes-sigs/kubespray/blob/master/roles/container-engine/containerd/defaults/main.yml) can be overriden in inventory vars.
 * *http_proxy/https_proxy/no_proxy/no_proxy_exclude_workers/additional_no_proxy* - Proxy variables for deploying behind a
   proxy. Note that no_proxy defaults to all internal cluster IPs and hostnames
   that correspond to each node.
-* *kubelet_cgroup_driver* - Allows manual override of the
-  cgroup-driver option for Kubelet. By default autodetection is used
-  to match Docker configuration.
+* *kubelet_cgroup_driver* - Allows manual override of the cgroup-driver option for Kubelet.
+  By default autodetection is used to match container manager configuration.
+  `systemd` is the preferred driver for `containerd` though it can have issues with `cgroups v1` and `kata-containers` in which case you may want to change to `cgroupfs`.
 * *kubelet_rotate_certificates* - Auto rotate the kubelet client certificates by requesting new certificates
   from the kube-apiserver when the certificate expiration approaches.
 * *kubelet_rotate_server_certificates* - Auto rotate the kubelet server certificates by requesting new certificates
@@ -136,14 +137,12 @@ Stack](https://github.com/kubernetes-sigs/kubespray/blob/master/docs/dns-stack.m
   [kubelet-rubber-stamp](https://github.com/kontena/kubelet-rubber-stamp).
 * *node_labels* - Labels applied to nodes via kubelet --node-labels parameter.
   For example, labels can be set in the inventory as variables or more widely in group_vars.
-  *node_labels* can be defined either as a dict or a comma-separated labels string:
+  *node_labels* can only be defined as a dict:
 
 ```yml
 node_labels:
   label1_name: label1_value
   label2_name: label2_value
-
-node_labels: "label1_name=label1_value,label2_name=label2_value"
 ```
 
 * *node_taints* - Taints applied to nodes via kubelet --register-with-taints parameter.
@@ -180,7 +179,7 @@ node_taints:
 For all kube components, custom flags can be passed in. This allows for edge cases where users need changes to the default deployment that may not be applicable to all deployments.
 
 Extra flags for the kubelet can be specified using these variables,
-in the form of dicts of key-value pairs of configuration parameters that will be inserted into the kubelet YAML config file. The `kubelet_node_config_extra_args` apply kubelet settings only to nodes and not masters. Example:
+in the form of dicts of key-value pairs of configuration parameters that will be inserted into the kubelet YAML config file. The `kubelet_node_config_extra_args` apply kubelet settings only to nodes and not control planes. Example:
 
 ```yml
 kubelet_config_extra_args:
@@ -202,7 +201,7 @@ Previously, the same parameters could be passed as flags to kubelet binary with 
 * *kubelet_custom_flags*
 * *kubelet_node_custom_flags*
 
-The `kubelet_node_custom_flags` apply kubelet settings only to nodes and not masters. Example:
+The `kubelet_node_custom_flags` apply kubelet settings only to nodes and not control planes. Example:
 
 ```yml
 kubelet_custom_flags:

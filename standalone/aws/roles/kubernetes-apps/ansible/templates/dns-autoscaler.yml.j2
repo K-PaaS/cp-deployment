@@ -32,6 +32,8 @@ spec:
       annotations:
         seccomp.security.alpha.kubernetes.io/pod: 'runtime/default'
     spec:
+      nodeSelector:
+        {{ dns_autoscaler_deployment_nodeselector}}
       priorityClassName: system-cluster-critical
       securityContext:
         supplementalGroups: [ 65534 ]
@@ -55,11 +57,7 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
-{% if kube_version is version('v1.20.0', '<') %}
-              - key: node-role.kubernetes.io/master
-{% else %}
               - key: node-role.kubernetes.io/control-plane
-{% endif %}
                 operator: In
                 values:
                 - ""

@@ -294,6 +294,7 @@ runtime_path = "{{ runtime.path }}"
 runtime_type = "{{ runtime.type }}"
 runtime_root = "{{ runtime.root }}"
 privileged_without_host_devices = {{ runtime.privileged_without_host_devices|default(false)|lower }}
+allowed_annotations = {{ runtime.allowed_annotations|default([])|to_json }}
 {% endfor %}
 
 # Kata Containers with the Firecracker VMM
@@ -313,7 +314,7 @@ default_transport = "docker://"
 
 # The path to a file containing credentials necessary for pulling images from
 # secure registries. The file is similar to that of /var/lib/kubelet/config.json
-global_auth_file = ""
+global_auth_file = "/etc/crio/config.json"
 
 # The image used to instantiate infra containers.
 # This option supports live configuration reload.

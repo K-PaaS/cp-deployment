@@ -1,4 +1,14 @@
 ---
+- name: Calico | Install Wireguard packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ calico_wireguard_packages }}"
+  register: calico_package_install
+  until: calico_package_install is succeeded
+  retries: 4
+  when: calico_wireguard_enabled
+
 - name: Calico | Copy calicoctl binary from download dir
   copy:
     src: "{{ local_release_dir }}/calicoctl"
@@ -10,7 +20,7 @@
   template:
     src: "cni-calico.conflist.j2"
     dest: "/etc/cni/net.d/calico.conflist.template"
-    owner: kube
+    owner: root
   register: calico_conflist
   notify: reset_calico_cni
 
@@ -112,16 +122,6 @@
     - enable_dual_stack_networks
 
 - block:
-    - name: Calico | Remove unwanted annotations and creationTimestamp keys from metadata in Calico manifests
-      # noqa 303 - sed avoids using nested loop
-      shell: >-
-        sed -E -i
-        -e '/^\s{2,4}creationTimestamp: null$/d'
-        -e '/^\s{2,4}annotations:/{:1;/\(devel\)$/!{N;b 1}; /.*/d}'
-        {{ local_release_dir }}/calico-{{ calico_version }}-kdd-crds/*.yaml
-      when:
-        - calico_version is version('v3.17.0', '<')
-
     - name: Calico | Create calico manifests for kdd
       assemble:
         src: "{{ local_release_dir }}/calico-{{ calico_version }}-kdd-crds"
@@ -140,6 +140,29 @@
   when:
     - inventory_hostname in groups['kube_control_plane']
     - calico_datastore == "kdd"
+
+- name: Calico | Configure calico FelixConfiguration
+  command:
+    cmd: "{{ bin_dir }}/calicoctl.sh apply -f -"
+    stdin: "{{ stdin is string | ternary(stdin, stdin|to_json) }}"
+  vars:
+    stdin: >
+      { "kind": "FelixConfiguration",
+        "apiVersion": "projectcalico.org/v3",
+        "metadata": {
+          "name": "default",
+        },
+        "spec": {
+          "ipipEnabled": {{ calico_ipip_mode != 'Never' }},
+          "reportingInterval": "{{ calico_felix_reporting_interval }}",
+          "bpfLogLevel": "{{ calico_bpf_log_level }}",
+          "bpfEnabled": {{ calico_bpf_enabled | bool }},
+          "bpfExternalServiceMode": "{{ calico_bpf_service_mode }}",
+          "wireguardEnabled": {{ calico_wireguard_enabled | bool }},
+          "logSeverityScreen": "{{ calico_felix_log_severity_screen }}",
+          "vxlanEnabled": {{ calico_vxlan_mode != 'Never' }} }}
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
 
 - name: Calico | Configure calico network pool
   command:
@@ -218,8 +241,9 @@
           "logSeverityScreen": "Info",
           {% if not calico_no_global_as_num|default(false) %}"asNumber": {{ global_as_num }},{% endif %}
           "nodeToNodeMeshEnabled": {{ nodeToNodeMeshEnabled|default('true') }} ,
-          {% if calico_advertise_cluster_ips|default(false) %}"serviceClusterIPs": [{"cidr": "{{ kube_service_addresses }}" }],{% endif %}
-          {% if calico_version is version('v3.18.0', '>') and calico_advertise_service_loadbalancer_ips|length > 0  %}"serviceLoadBalancerIPs": {{ _service_loadbalancer_ips }},{% endif %}
+          {% if calico_advertise_cluster_ips|default(false) %}
+          "serviceClusterIPs": [{"cidr": "{{ kube_service_addresses }}" } {{ ',{"cidr":"' + kube_service_addresses_ipv6 + '"}' if enable_dual_stack_networks else '' }}],{% endif %}
+          {% if calico_advertise_service_loadbalancer_ips|length > 0  %}"serviceLoadBalancerIPs": {{ _service_loadbalancer_ips }},{% endif %}
           "serviceExternalIPs": {{ _service_external_ips|default([]) }} }}
   changed_when: false
   when:
@@ -312,6 +336,7 @@
     - {name: calico, file: calico-node-sa.yml, type: sa}
     - {name: calico, file: calico-cr.yml, type: clusterrole}
     - {name: calico, file: calico-crb.yml, type: clusterrolebinding}
+    - {name: kubernetes-services-endpoint, file: kubernetes-services-endpoint.yml, type: cm }
   register: calico_node_manifests
   when:
     - inventory_hostname in groups['kube_control_plane']
@@ -393,7 +418,8 @@
       "spec": {
         "asNumber": "{{ item.as }}",
         "node": "{{ inventory_hostname }}",
-        "peerIP": "{{ item.router_id }}"
+        "peerIP": "{{ item.router_id }}",
+        "sourceAddress": "{{ item.sourceaddress|default('UseNodeIP') }}"
       }}
   register: output
   retries: 4
