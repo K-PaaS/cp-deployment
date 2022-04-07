@@ -1,0 +1,6 @@
+---
+- name: nfs common Package Install
+  become_method: sudo
+  shell: apt-get install -y nfs-common
+  args:
+    warn: false
