@@ -1,3 +1,0 @@
-- type: replace
-  path: /variables/name=tls-kubernetes/options/alternative_names/-
-  value: ((api_hostname))
