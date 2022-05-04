@@ -23,7 +23,7 @@ done
 sed -i "s/{MASTER_NODE_HOSTNAME}/$MASTER_NODE_HOSTNAME/g" roles/kubernetes-apps/metrics_server/defaults/main.yml
 
 sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER_NODE_PUBLIC_IP/g" roles/kubernetes/control-plane/tasks/kubeadm-setup.yml
-sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" roles/container-engine/cri-o/defaults/main.yml
+sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER_NODE_PUBLIC_IP/g" roles/container-engine/cri-o/defaults/main.yml
 
 declare -a IPS=($MASTER_NODE_PRIVATE_IP $array_worker_node_ip)
 CONFIG_FILE=inventory/mycluster/hosts.yaml python3 contrib/inventory_builder/inventory.py ${IPS[@]}
