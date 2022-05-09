@@ -1,0 +1,30 @@
+---
+- name: get home dir path
+  become_user: ubuntu
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: cri-o install
+  shell: |
+    echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ edge_node_os }}/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+    echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/{{ edge_node_os }}/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}.list
+    curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/{{ edge_node_os }}/Release.key | apt-key add -
+    curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ edge_node_os }}/Release.key | apt-key add -
+    apt-get update
+    apt-get install -y cri-o cri-o-runc
+
+- name: create cni plugins dir
+  shell: mkdir -p /opt/cni/bin
+
+- name: copy cni plugins
+  copy:
+    src: "{{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/cni-plugins/"
+    dest: "/opt/cni/bin/"
+    mode: 0755
+
+- name: enable crio.service
+  shell: |
+    sed -i 's/,metacopy=on//g' /etc/containers/storage.conf
+    systemctl daemon-reload
+    systemctl enable crio.service
+    systemctl start crio.service

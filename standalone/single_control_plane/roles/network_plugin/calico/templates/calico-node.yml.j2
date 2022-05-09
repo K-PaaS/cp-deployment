@@ -26,6 +26,13 @@ spec:
         prometheus.io/port: "{{ calico_felix_prometheusmetricsport }}"
 {% endif %}
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/edge
+                operator: DoesNotExist
       nodeSelector:
         {{ calico_ds_nodeselector }}
       priorityClassName: system-node-critical

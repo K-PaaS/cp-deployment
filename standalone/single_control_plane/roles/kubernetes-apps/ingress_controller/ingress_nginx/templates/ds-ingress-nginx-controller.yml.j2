@@ -21,6 +21,13 @@ spec:
         prometheus.io/port: "10254"
         prometheus.io/scrape: "true"
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/edge
+                operator: DoesNotExist
       serviceAccountName: ingress-nginx
       terminationGracePeriodSeconds: {{ ingress_nginx_termination_grace_period_seconds }}
 {% if ingress_nginx_host_network %}
