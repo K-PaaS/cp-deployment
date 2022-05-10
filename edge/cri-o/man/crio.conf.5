@@ -1,0 +1,585 @@
+.TH "crio.conf" "5" " Kubernetes Container Runtime Daemon for Open Container Initiative Containers" "Aleksa Sarai" "OCTOBER 2016" 
+.nh
+.ad l
+
+
+.SH NAME
+.PP
+crio.conf \- configuration file of the CRI\-O OCI Kubernetes Container Runtime daemon
+
+
+.SH DESCRIPTION
+.PP
+The CRI\-O configuration file specifies all of the available configuration options and command\-line flags for the crio(8) OCI Kubernetes Container Runtime daemon
+\[la]./crio.8.md\[ra], but in a TOML format that can be more easily modified and versioned.
+
+.PP
+CRI\-O supports partial configuration reload during runtime, which can be done by sending SIGHUP to the running process. Currently supported options in \fB\fCcrio.conf\fR are explicitly marked with 'This option supports live configuration reload'.
+
+.PP
+The containers\-registries.conf(5) file can be reloaded as well by sending SIGHUP to the \fB\fCcrio\fR process.
+
+.PP
+The default crio.conf is located at /etc/crio/crio.conf.
+
+
+.SH FORMAT
+.PP
+The TOML format
+\[la]https://github.com/toml-lang/toml\[ra] is used as the encoding of the configuration file. Every option and subtable listed here is nested under a global "crio" table. No bare options are used. The format of TOML can be simplified to:
+
+.PP
+.RS
+
+.nf
+[table]
+option = value
+
+[table.subtable1]
+option = value
+
+[table.subtable2]
+option = value
+
+.fi
+.RE
+
+.SH CRIO TABLE
+.PP
+CRI\-O reads its storage defaults from the containers\-storage.conf(5) file located at /etc/containers/storage.conf. Modify this storage configuration if you want to change the system's defaults. If you want to modify storage just for CRI\-O, you can change the storage configuration options here.
+
+.PP
+\fBroot\fP="/var/lib/containers/storage"
+  Path to the "root directory". CRI\-O stores all of its data, including containers images, in this directory.
+
+.PP
+\fBrunroot\fP="/var/run/containers/storage"
+  Path to the "run directory". CRI\-O stores all of its state in this directory.
+
+.PP
+\fBstorage\_driver\fP="overlay"
+  Storage driver used to manage the storage of images and containers. Please refer to containers\-storage.conf(5) to see all available storage drivers.
+
+.PP
+\fBstorage\_option\fP=[]
+  List to pass options to the storage driver. Please refer to containers\-storage.conf(5) to see all available storage options.
+
+.PP
+\fBlog\_dir\fP="/var/log/crio/pods"
+  The default log directory where all logs will go unless directly specified by the kubelet. The log directory specified must be an absolute directory.
+
+.PP
+\fBversion\_file\fP="/var/run/crio/version"
+  Location for CRI\-O to lay down the temporary version file.
+  It is used to check if crio wipe should wipe containers, which should
+  always happen on a node reboot
+
+.PP
+\fBversion\_file\_persist\fP="/var/lib/crio/version"
+  Location for CRI\-O to lay down the persistent version file.
+  It is used to check if crio wipe should wipe images, which should
+  only happen when CRI\-O has been upgraded
+
+.PP
+\fBinternal\_wipe\fP=true
+  \fBThis option is currently DEPRECATED, and will be removed in the future.\fP
+  Whether CRI\-O should wipe containers after a reboot and images after an upgrade when the server starts.
+  If set to false, one must run \fB\fCcrio wipe\fR to wipe the containers and images in these situations.
+
+.PP
+\fBclean\_shutdown\_file\fP="/var/lib/crio/clean.shutdown"
+  Location for CRI\-O to lay down the clean shutdown file.
+  It is used to check whether crio had time to sync before shutting down.
+  If not found, crio wipe will clear the storage directory.
+
+.SH CRIO.API TABLE
+.PP
+The \fB\fCcrio.api\fR table contains settings for the kubelet/gRPC interface.
+
+.PP
+\fBlisten\fP="/var/run/crio/crio.sock"
+  Path to AF\_LOCAL socket on which CRI\-O will listen.
+
+.PP
+\fBstream\_address\fP="127.0.0.1"
+  IP address on which the stream server will listen.
+
+.PP
+\fBstream\_port\fP="0"
+  The port on which the stream server will listen. If the port is set to "0", then CRI\-O will allocate a random free port number.
+
+.PP
+\fBstream\_enable\_tls\fP=false
+  Enable encrypted TLS transport of the stream server.
+
+.PP
+\fBstream\_idle\_timeout\fP=""
+  Length of time until open streams terminate due to lack of activity.
+
+.PP
+\fBstream\_tls\_cert\fP=""
+  Path to the x509 certificate file used to serve the encrypted stream. This file can change and CRI\-O will automatically pick up the changes within 5 minutes.
+
+.PP
+\fBstream\_tls\_key\fP=""
+  Path to the key file used to serve the encrypted stream. This file can change and CRI\-O will automatically pick up the changes within 5 minutes.
+
+.PP
+\fBstream\_tls\_ca\fP=""
+  Path to the x509 CA(s) file used to verify and authenticate client communication with the encrypted stream. This file can change and CRI\-O will automatically pick up the changes within 5 minutes.
+
+.PP
+\fBgrpc\_max\_send\_msg\_size\fP=83886080
+  Maximum grpc send message size in bytes. If not set or <=0, then CRI\-O will default to 80 * 1024 * 1024.
+
+.PP
+\fBgrpc\_max\_recv\_msg\_size\fP=83886080
+  Maximum grpc receive message size. If not set or <= 0, then CRI\-O will default to 80 * 1024 * 1024.
+
+.SH CRIO.RUNTIME TABLE
+.PP
+The \fB\fCcrio.runtime\fR table contains settings pertaining to the OCI runtime used and options for how to set up and manage the OCI runtime.
+
+.PP
+\fBdefault\_runtime\fP="runc"
+  The \fIname\fP of the OCI runtime to be used as the default.
+
+.PP
+\fBdefault\_ulimits\fP=[]
+  A list of ulimits to be set in containers by default, specified as "<ulimit name>=<soft limit>:<hard limit>", for example:"nofile=1024:2048". If nothing is set here, settings will be inherited from the CRI\-O daemon.
+
+.PP
+\fBno\_pivot\fP=false
+  If true, the runtime will not use \fB\fCpivot\_root\fR, but instead use \fB\fCMS\_MOVE\fR\&.
+
+.PP
+\fBdecryption\_keys\_path\fP="/etc/crio/keys/"
+  Path where the keys required for image decryption are located
+
+.PP
+\fBconmon\fP=""
+  Path to the conmon binary, used for monitoring the OCI runtime. Will be searched for using $PATH if empty.
+
+.PP
+\fBconmon\_cgroup\fP="system.slice"
+  Cgroup setting for conmon
+
+.PP
+\fBconmon\_env\fP=["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"]
+  Environment variable list for the conmon process, used for passing necessary environment variables to conmon or the runtime.
+
+.PP
+\fBdefault\_env\fP=[]
+  Additional environment variables to set for all the containers. These are overridden if set in the container image spec or in
+the container runtime configuration.
+
+.PP
+\fBselinux\fP=false
+  If true, SELinux will be used for pod separation on the host.
+
+.PP
+\fBseccomp\_profile\fP=""
+  Path to the seccomp.json profile which is used as the default seccomp profile for the runtime. If not specified, then the internal default seccomp profile will be used.
+
+.PP
+\fBseccomp\_use\_default\_when\_empty\fP=false
+  Changes the meaning of an empty seccomp profile.  By default (and according to CRI spec), an empty profile means unconfined.
+  This option tells CRI\-O to treat an empty profile as the default profile, which might increase security.
+
+.PP
+\fBapparmor\_profile\fP=""
+  Used to change the name of the default AppArmor profile of CRI\-O. The default profile name is "crio\-default".
+
+.PP
+\fBblockio\_config\_file\fP=""
+  Path to the blockio class configuration file for configuring the cgroup blockio controller.
+
+.PP
+\fBirqbalance\_config\_file\fP="/etc/sysconfig/irqbalance"
+  Used to change irqbalance service config file which is used by CRI\-O.
+  For CentOS/SUSE, this file is located at /etc/sysconfig/irqbalance. For Ubuntu, this file is located at /etc/default/irqbalance.
+
+.PP
+\fBrdt\_config\_file\fP=""
+  Path to the RDT configuration file for configuring the resctrl pseudo\-filesystem.
+
+.PP
+\fBcgroup\_manager\fP="systemd"
+  Cgroup management implementation used for the runtime.
+
+.PP
+\fBdefault\_capabilities\fP=[]
+  List of default capabilities for containers. If it is empty or commented out, only the capabilities defined in the container json file by the user/kube will be added.
+
+.PP
+The default list is:
+
+.PP
+.RS
+
+.nf
+  default\_capabilities = [
+	  "CHOWN",
+	  "DAC\_OVERRIDE",
+	  "FSETID",
+	  "FOWNER",
+	  "SETGID",
+	  "SETUID",
+	  "SETPCAP",
+	  "NET\_BIND\_SERVICE",
+	  "KILL",
+  ]
+
+.fi
+.RE
+
+.PP
+\fBdefault\_sysctls\fP=[]
+ List of default sysctls. If it is empty or commented out, only the sysctls defined in the container json file by the user/kube will be added.
+
+.PP
+One example would be allowing ping inside of containers.  On systems that support \fB\fC/proc/sys/net/ipv4/ping\_group\_range\fR, the default list could be:
+
+.PP
+.RS
+
+.nf
+  default\_sysctls = [
+       "net.ipv4.ping\_group\_range = 0   2147483647",
+  ]
+
+.fi
+.RE
+
+.PP
+\fBallowed\_devices\fP=[]
+  List of devices on the host that a user can specify with the "io.kubernetes.cri\-o.Devices" allowed annotation.
+
+.PP
+\fBadditional\_devices\fP=[]
+  List of additional devices. Specified as "<device-on-host>:<device-on-container>:<permissions>", for example: "\-\-additional\-devices=/dev/sdc:/dev/xvdc:rwm". If it is empty or commented out, only the devices defined in the container json file by the user/kube will be added.
+
+.PP
+\fBhooks\_dir\fP=["\fIpath\fP", ...]
+  Each \fB\fC*.json\fR file in the path configures a hook for CRI\-O containers.  For more details on the syntax of the JSON files and the semantics of hook injection, see \fB\fCoci\-hooks(5)\fR\&.  CRI\-\&O currently support both the 1.0.0 and 0.1.0 hook schemas, although the 0.1.0 schema is deprecated.
+
+.PP
+Paths listed later in the array have higher precedence (\fB\fCoci\-hooks(5)\fR discusses directory precedence).
+
+.PP
+For the annotation conditions, CRI\-O uses the Kubernetes annotations, which are a subset of the annotations passed to the OCI runtime.  For example, \fB\fCio.kubernetes.cri\-o.Volumes\fR is part of the OCI runtime configuration annotations, but it is not part of the Kubernetes annotations being matched for hooks.
+
+.PP
+For the bind\-mount conditions, only mounts explicitly requested by Kubernetes configuration are considered.  Bind mounts that CRI\-O inserts by default (e.g. \fB\fC/dev/shm\fR) are not considered.
+
+.PP
+\fBdefault\_mounts\fP=[]
+  List of default mounts for each container. \fBDeprecated:\fP this option will be removed in future versions in favor of \fB\fCdefault\_mounts\_file\fR\&.
+
+.PP
+\fBdefault\_mounts\_file\fP=""
+  Path to the file specifying the defaults mounts for each container. The format of the config is /SRC:/DST, one mount per line. Notice that CRI\-O reads its default mounts from the following two files:
+
+.PP
+.RS
+
+.nf
+1) `/etc/containers/mounts.conf` (i.e., default\_mounts\_file): This is the override file, where users can either add in their own default mounts, or override the default mounts shipped with the package.
+
+2) `/usr/share/containers/mounts.conf`: This is the default file read for mounts. If you want CRI\-O to read from a different, specific mounts file, you can change the default\_mounts\_file. Note, if this is done, CRI\-O will only add mounts it finds in this file.
+
+.fi
+.RE
+
+.PP
+\fBpids\_limit\fP=1024
+  Maximum number of processes allowed in a container.
+
+.PP
+\fBlog\_filter\fP=""
+  Filter the log messages by the provided regular expression. This option supports live configuration reload. For example 'request:.*' filters all gRPC requests.
+
+.PP
+\fBlog\_level\fP="info"
+  Changes the verbosity of the logs based on the level it is set to. Options are fatal, panic, error, warn, info, debug, and trace. This option supports live configuration reload.
+
+.PP
+\fBlog\_size\_max\fP=\-1
+  Maximum size allowed for the container log file. Negative numbers indicate that no size limit is imposed. If it is positive, it must be >= 8192 to match/exceed conmon's read buffer. The file is truncated and re\-opened so the limit is never exceeded.
+
+.PP
+\fBlog\_to\_journald\fP=false
+  Whether container output should be logged to journald in addition to the kuberentes log file.
+
+.PP
+\fBcontainer\_exits\_dir\fP="/var/run/crio/exits"
+  Path to directory in which container exit files are written to by conmon.
+
+.PP
+\fBcontainer\_attach\_socket\_dir\fP="/var/run/crio"
+  Path to directory for container attach sockets.
+
+.PP
+\fBbind\_mount\_prefix\fP=""
+  A prefix to use for the source of the bind mounts. This option would be useful when running CRI\-O in a container and the / directory on the host is mounted as /host in the container. Then if CRI\-O runs with the \-\-bind\-mount\-prefix=/host option, CRI\-O would add the /host directory to any bind mounts it hands over to CRI. If Kubernetes asked to have /var/lib/foobar bind mounted into the container, then CRI\-O would bind mount /host/var/lib/foobar. Since CRI\-O itself is running in a container with / or the host mounted on /host, the container would end up with /var/lib/foobar from the host mounted in the container rather than /var/lib/foobar from the CRI\-O container.
+
+.PP
+\fBread\_only\fP=false
+  If set to true, all containers will run in read\-only mode.
+
+.PP
+\fBuid\_mappings\fP=""
+  The UID mappings for the user namespace of each container. A range is specified in the form containerUID:HostUID:Size. Multiple ranges must be separated by comma.
+
+.PP
+\fBminimum\_mappable\_uid\fP=\-1
+  The lowest host UID which can be specified in mappings supplied, either as part of a \fBuid\_mappings\fP or as part of a request received over CRI, for a pod that will be run as a UID other than 0.
+
+.PP
+\fBgid\_mappings\fP=""
+  The GID mappings for the user namespace of each container. A range is specified in the form containerGID:HostGID:Size. Multiple ranges must be separated by comma.
+
+.PP
+\fBminimum\_mappable\_gid\fP=\-1
+  The lowest host GID which can be specified in mappings supplied, either as part of a \fBgid\_mappings\fP or as part of a request received over CRI, for a pod that will be run as a UID other than 0.
+
+.PP
+\fBctr\_stop\_timeout\fP=30
+  The minimal amount of time in seconds to wait before issuing a timeout regarding the proper termination of the container.
+
+.PP
+\fBdrop\_infra\_ctr\fP=true
+  Determines whether we drop the infra container when a pod does not have a private PID namespace, and does not use a kernel separating runtime (like kata).
+  Requies \fBmanage\_ns\_lifecycle\fP to be true.
+
+.PP
+\fBinfra\_ctr\_cpuset\fP=""
+    Determines the CPU set to run infra containers. If not specified, the CRI\-O will use all online CPUs to run infra containers.
+    You can specify CPUs in the Linux CPU list format.
+    To get better isolation for guaranteed pods, set this parameter to be equal to kubelet reserved\-cpus.
+
+.PP
+\fBnamespaces\_dir\fP="/var/run"
+  The directory where the state of the managed namespaces gets tracked. Only used when manage\_ns\_lifecycle is true
+
+.PP
+\fBpinns\_path\fP=""
+  The path to find the pinns binary, which is needed to manage namespace lifecycle
+
+.PP
+\fBabsent\_mount\_sources\_to\_reject\fP=[]
+  A list of paths that, when absent from the host, will cause a container creation to fail (as opposed to the current behavior of creating a directory).
+
+.PP
+\fBdevice\_ownership\_from\_security\_context\fP=false
+  Changes the default behavior of setting container devices uid/gid from CRI's SecurityContext (RunAsUser/RunAsGroup) instead of taking host's uid/gid.
+
+.SS CRIO.RUNTIME.RUNTIMES TABLE
+.PP
+The "crio.runtime.runtimes" table defines a list of OCI compatible runtimes.  The runtime to use is picked based on the runtime handler provided by the CRI.  If no runtime handler is provided, the runtime will be picked based on the level of trust of the workload.
+
+.PP
+\fBruntime\_path\fP=""
+  Path to the OCI compatible runtime used for this runtime handler.
+
+.PP
+\fBruntime\_root\fP=""
+  Root directory used to store runtime data
+
+.PP
+\fBruntime\_type\fP="oci"
+  Type of the runtime used for this runtime handler. "oci", "vm"
+
+.PP
+\fBruntime\_config\_path\fP=""
+  Path to the runtime configuration file, should only be used with VM runtime types
+
+.PP
+\fBprivileged\_without\_host\_devices\fP=false
+  Whether this runtime handler prevents host devices from being passed to privileged containers.
+
+.PP
+\fBallowed\_annotations\fP=[]
+  \fBThis field is currently DEPRECATED. If you'd like to use allowed\_annotations, please use a workload.\fP
+  A list of experimental annotations this runtime handler is allowed to process.
+  The currently recognized values are:
+  "io.kubernetes.cri\-o.userns\-mode" for configuring a user namespace for the pod.
+  "io.kubernetes.cri\-o.Devices" for configuring devices for the pod.
+  "io.kubernetes.cri\-o.ShmSize" for configuring the size of /dev/shm.
+  "io.kubernetes.cri\-o.UnifiedCgroup.$CTR\_NAME" for configuring the cgroup v2 unified block for a container.
+  "io.containers.trace\-syscall" for tracing syscalls via the OCI seccomp BPF hook.
+
+.SS CRIO.RUNTIME.WORKLOADS TABLE
+.PP
+The "crio.runtime.workloads" table defines a list of workloads \- a way to customize the behavior of a pod and container.
+A workload is chosen for a pod based on whether the workload's \fBactivation\_annotation\fP is an annotation on the pod.
+
+.PP
+\fBactivation\_annotation\fP=""
+  activation\_annotation is the pod annotation that activates these workload settings.
+
+.PP
+\fBannotation\_prefix\fP=""
+  annotation\_prefix is the way a pod can override a specific resource for a container.
+  The full annotation must be of the form \fB\fC$annotation\_prefix.$resource/$ctrname = $value\fR\&.
+
+.PP
+\fBallowed\_annotations\fP=[]
+  allowed\_annotations is a slice of experimental annotations that this workload is allowed to process.
+  The currently recognized values are:
+  "io.kubernetes.cri\-o.userns\-mode" for configuring a user namespace for the pod.
+  "io.kubernetes.cri\-o.Devices" for configuring devices for the pod.
+  "io.kubernetes.cri\-o.ShmSize" for configuring the size of /dev/shm.
+  "io.kubernetes.cri\-o.UnifiedCgroup.$CTR\_NAME" for configuring the cgroup v2 unified block for a container.
+  "io.containers.trace\-syscall" for tracing syscalls via the OCI seccomp BPF hook.
+
+.SS CRIO.RUNTIME.WORKLOAD.RESOURCES TABLE
+.PP
+The resources table is a structure for overriding certain resources for pods using this workload.
+This structure provides a default value, and can be overridden by using the AnnotationPrefix.
+
+.PP
+\fBcpushares\fP=""
+Specifies the number of CPU shares this pod has access to.
+
+.PP
+\fBcpuset\fP=""
+Specifies the cpuset this pod has access to.
+
+.SH CRIO.IMAGE TABLE
+.PP
+The \fB\fCcrio.image\fR table contains settings pertaining to the management of OCI images.
+
+.PP
+CRI\-O reads its configured registries defaults from the system wide containers\-registries.conf(5) located in /etc/containers/registries.conf. If you want to modify just CRI\-O, you can change the registries configuration in this file. Otherwise, leave \fB\fCinsecure\_registries\fR and \fB\fCregistries\fR commented out to use the system's defaults from /etc/containers/registries.conf.
+
+.PP
+\fBdefault\_transport\fP="docker://"
+  Default transport for pulling images from a remote container storage.
+
+.PP
+\fBglobal\_auth\_file\fP=""
+  The path to a file like /var/lib/kubelet/config.json holding credentials necessary for pulling images from secure registries.
+
+.PP
+\fBpause\_image\fP="k8s.gcr.io/pause:3.6"
+  The image used to instantiate infra containers. This option supports live configuration reload.
+
+.PP
+\fBpause\_image\_auth\_file\fP=""
+ The path to a file like /var/lib/kubelet/config.json holding credentials specific to pulling the pause\_image from above. This option supports live configuration reload.
+
+.PP
+\fBpause\_command\fP="/pause"
+  The command to run to have a container stay in the paused state. This option supports live configuration reload.
+
+.PP
+\fBsignature\_policy\fP=""
+  Path to the file which decides what sort of policy we use when deciding whether or not to trust an image that we've pulled. It is not recommended that this option be used, as the default behavior of using the system\-wide default policy (i.e., /etc/containers/policy.json) is most often preferred. Please refer to containers\-policy.json(5) for more details.
+
+.PP
+\fBimage\_volumes\fP="mkdir"
+  Controls how image volumes are handled. The valid values are mkdir, bind and ignore; the latter will ignore volumes entirely.
+
+.PP
+\fBinsecure\_registries\fP=[]
+  List of registries to skip TLS verification for pulling images.
+
+.PP
+\fBregistries\fP=["docker.io"]
+  List of registries to be used when pulling an unqualified image. Note support for this option has been dropped and it has no effect. Please refer to \fB\fCcontainers\-registries.conf(5)\fR for configuring unqualified\-search registries.
+
+.PP
+\fBbig\_files\_temporary\_dir\fP=""
+  Path to the temporary directory to use for storing big files, used to store image blobs and data streams related to containers image management.
+
+.PP
+\fBseparate\_pull\_cgroup\fP=""
+  [EXPERIMENTAL] If its value is set, then images are pulled into the specified cgroup.  If its value is set to "pod", then the pod's cgroup is used.  It is currently supported only with the systemd cgroup manager.
+
+.SH CRIO.NETWORK TABLE
+.PP
+The \fB\fCcrio.network\fR table containers settings pertaining to the management of CNI plugins.
+
+.PP
+\fBcni\_default\_network\fP=""
+  The default CNI network name to be selected. If not set or "", then CRI\-O will pick\-up the first one found in network\_dir.
+
+.PP
+\fBnetwork\_dir\fP="/etc/cni/net.d/"
+  Path to the directory where CNI configuration files are located.
+
+.PP
+\fBplugin\_dirs\fP=["/opt/cni/bin/",]
+  List of paths to directories where CNI plugin binaries are located.
+
+.SH CRIO.METRICS TABLE
+.PP
+The \fB\fCcrio.metrics\fR table containers settings pertaining to the Prometheus based metrics retrieval.
+
+.PP
+\fBenable\_metrics\fP=false
+  Globally enable or disable metrics support.
+
+.PP
+\fBenable\_custom\_shm\_size\fP=false
+If set to true, enable users to set a custom shm size instead of using the default value of 64M. The shm size can be set through K8S annotation with the key "io.kubernetes.cri\-o.ShmSize", and the value representing the size in human readable format. For example: "io.kubernetes.cri\-o.ShmSize: 128Mi"
+
+.PP
+\fBmetrics\_collectors\fP=["operations", "operations\_latency\_microseconds\_total", "operations\_latency\_microseconds", "operations\_errors", "image\_pulls\_by\_digest", "image\_pulls\_by\_name", "image\_pulls\_by\_name\_skipped", "image\_pulls\_failures", "image\_pulls\_successes", "image\_pulls\_layer\_size", "image\_layer\_reuse", "containers\_oom\_total", "containers\_oom", "processes\_defunct"]
+  Enabled metrics collectors
+
+.PP
+\fBmetrics\_port\fP=9090
+  The port on which the metrics server will listen.
+
+.PP
+\fBmetrics\_socket\fP=""
+  The socket on which the metrics server will listen.
+
+.PP
+\fBmetrics\_cert\fP=""
+  The certificate for the secure metrics server.
+
+.PP
+\fBmetrics\_key\fP=""
+  The certificate key for the secure metrics server.
+
+.SH CRIO.TRACING TABLE
+.PP
+[EXPERIMENTAL] The \fB\fCcrio.tracing\fR table containers settings pertaining to the export of OpenTelemetry trace data.
+
+.PP
+\fBenable\_tracing\fP=false
+  Globally enable or disable OpenTelemetry trace data exporting.
+
+.PP
+\fBtracing\_endpoint\fP="0.0.0.0:4317"
+  Address on which the gRPC trace collector will listen.
+
+.PP
+\fBtracing\_sampling\_rate\_per\_million\fP=""
+  Number of samples to collect per million OpenTelemetry spans.
+
+.SH CRIO.STATS TABLE
+.PP
+The \fB\fCcrio.stats\fR table specifies all necessary configuration for reporting container and pod stats.
+
+.PP
+\fBstats\_collection\_period\fP=0
+  The number of seconds between collecting pod and container stats. If set to 0, the stats are collected on\-demand instead.
+
+
+.SH SEE ALSO
+.PP
+crio.conf.d(5), containers\-storage.conf(5), containers\-policy.json(5), containers\-registries.conf(5), crio(8)
+
+
+.SH HISTORY
+.PP
+Aug 2018, Update to the latest state by Valentin Rothberg 
+\[la]vrothberg@suse.com\[ra]
+
+.PP
+Oct 2016, Originally compiled by Aleksa Sarai 
+\[la]asarai@suse.de\[ra]
