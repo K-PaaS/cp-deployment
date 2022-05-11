@@ -4,8 +4,15 @@
   shell: "echo $HOME"
   register: home_dir_path
 
-- name: cri-o install
-  shell: "{{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/cri-o/install"
+- name: cri-o download
+  shell: |
+    wget https://storage.googleapis.com/cri-o/artifacts/cri-o.arm64.c0b2474b80fd0844b883729bda88961bed7b472b.tar.gz
+    tar zxvf cri-o.arm64.c0b2474b80fd0844b883729bda88961bed7b472b.tar.gz
+    cd cri-o
+    ./install
+
+- name: delete cri-o download file
+  shell: rm -rf cri-o*
 
 - name: enable crio.service
   shell: |
