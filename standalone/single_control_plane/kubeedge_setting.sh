@@ -1,5 +1,6 @@
 #!/bin/bash
 
+find inventory/mycluster/hosts.yaml -exec sed -i -r -e "/etcd:/i\    cloudcore_node:\n      hosts:\n        $MASTER_NODE_HOSTNAME" {} \;
 find inventory/mycluster/hosts.yaml -exec sed -i -r -e "/etcd:/i\    edge_node:\n      hosts:\n" {} \;
 
 for ((i=0;i<$EDGE_NODE_CNT;i++))
@@ -16,3 +17,5 @@ sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER_NODE_PUBLIC_IP/g" roles/paasta-cp/edge
 sed -i "s/{MASTER_NODE_PRIVATE_IP}/$MASTER_NODE_PRIVATE_IP/g" roles/paasta-cp/edge/keadm_init/defaults/main.yml
 
 sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER_NODE_PUBLIC_IP/g" roles/paasta-cp/edge/keadm_join/defaults/main.yml
+
+sed -i "s/{MASTER_HOSTNAME}/$MASTER_NODE_HOSTNAME/g" ../../edge/edgemesh/server/06-deployment.yaml

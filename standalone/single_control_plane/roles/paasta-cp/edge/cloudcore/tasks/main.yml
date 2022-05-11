@@ -1,0 +1,18 @@
+---
+- name: modify cloudcore
+  shell: | 
+    sed -i '44s/false/true/g' /etc/kubeedge/config/cloudcore.yaml
+    sed -i '66s/false/true/g' /etc/kubeedge/config/cloudcore.yaml
+
+- name: enable logs
+  shell: |
+    cd /etc/kubeedge
+    wget https://raw.githubusercontent.com/kubeedge/kubeedge/master/build/tools/certgen.sh
+    chmod +x certgen.sh
+    /etc/kubeedge/certgen.sh stream
+    iptables -t nat -A OUTPUT -p tcp --dport 10350 -j DNAT --to $CLOUDCOREIPS:10003
+
+- name: restart cloudcore
+  shell: |
+    pkill cloudcore
+    nohup cloudcore > cloudcore.log 2>&1 &

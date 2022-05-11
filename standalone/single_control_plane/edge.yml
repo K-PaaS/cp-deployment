@@ -1,4 +1,4 @@
-- hosts: kube_control_plane
+- hosts: cloudcore_node
   gather_facts: False
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
@@ -14,7 +14,7 @@
     - { role: kubespray-defaults }
     - { role: paasta-cp/edge/keadm_arm64 }
 
-- hosts: kube_control_plane
+- hosts: cloudcore_node
   gather_facts: False
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
@@ -30,3 +30,27 @@
     - { role: kubespray-defaults }
     - { role: paasta-cp/edge/crio_install }
     - { role: paasta-cp/edge/keadm_join }
+
+- hosts: cloudcore_node
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: paasta-cp/edge/cloudcore }
+
+- hosts: edge_node
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: paasta-cp/edge/edgecore }
+
+- hosts: cloudcore_node
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: paasta-cp/edge/edgemesh }

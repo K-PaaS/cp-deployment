@@ -1,0 +1,6 @@
+---
+- name: apply edgemesh server
+  shell: kubectl apply -f edgemesh/server/
+
+- name: apply edgemesh server
+  shell: kubectl apply -f edgemesh/agent/
