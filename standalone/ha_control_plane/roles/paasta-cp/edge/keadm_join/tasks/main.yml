@@ -15,7 +15,11 @@
   args:
     executable: /bin/bash
 
+- name: apt-get update
+  shell: apt-get update
+
 - name: keadm join
+  become_method: sudo
   shell: "nohup keadm join --cloudcore-ipport={{ master_node_public_ip }}:10000 --token={{ keadm_token.stdout }} --cgroupdriver systemd --remote-runtime-endpoint unix:///var/run/crio/crio.sock --runtimetype remote --kubeedge-version 1.10.0"
 
 - name: remove keadm token file

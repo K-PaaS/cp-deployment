@@ -54,3 +54,19 @@
   roles:
     - { role: kubespray-defaults }
     - { role: paasta-cp/edge/edgemesh }
+
+- hosts: cloudcore_node
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: paasta-cp/cve_cce }
+
+- hosts: edge_node
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: paasta-cp/cve_cce }

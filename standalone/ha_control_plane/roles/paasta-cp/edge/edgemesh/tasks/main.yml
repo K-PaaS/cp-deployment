@@ -1,0 +1,11 @@
+---
+- name: get home dir path
+  become_user: ubuntu
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: apply edgemesh server
+  shell: "kubectl apply -f {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/edgemesh/server/"
+
+- name: apply edgemesh server
+  shell: "kubectl apply -f {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/edgemesh/agent/"
