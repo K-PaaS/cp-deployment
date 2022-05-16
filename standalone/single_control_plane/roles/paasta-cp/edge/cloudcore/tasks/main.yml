@@ -11,6 +11,8 @@
     chmod +x certgen.sh
     /etc/kubeedge/certgen.sh stream
     iptables -t nat -A OUTPUT -p tcp --dport 10350 -j DNAT --to $CLOUDCOREIPS:10003
+  environment:
+    CLOUDCOREIPS: "{{ cloudcoreips }}"
 
 - name: restart cloudcore
   shell: |

@@ -18,4 +18,6 @@ sed -i "s/{MASTER_NODE_PRIVATE_IP}/$MASTER_NODE_PRIVATE_IP/g" roles/paasta-cp/ed
 
 sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER_NODE_PUBLIC_IP/g" roles/paasta-cp/edge/keadm_join/defaults/main.yml
 
+sed -i "s/{CLOUDCOREIPS}/$CLOUDCOREIPS/g" roles/paasta-cp/edge/cloudcore/defaults/main.yml
+
 sed -i "s/{MASTER_HOSTNAME}/$MASTER_NODE_HOSTNAME/g" ../../edge/edgemesh/server/06-deployment.yaml
