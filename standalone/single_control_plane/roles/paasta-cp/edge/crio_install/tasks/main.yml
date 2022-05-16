@@ -6,8 +6,9 @@
 
 - name: cri-o download
   shell: |
-    cd {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/cri-o
-    chmod +x install
+    wget https://storage.googleapis.com/cri-o/artifacts/cri-o.arm64.c0b2474b80fd0844b883729bda88961bed7b472b.tar.gz
+    tar zxvf cri-o.arm64.c0b2474b80fd0844b883729bda88961bed7b472b.tar.gz
+    cd cri-o
     ./install
 
 - name: enable crio.service
