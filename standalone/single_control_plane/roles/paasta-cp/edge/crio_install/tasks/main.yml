@@ -1,15 +1,12 @@
 ---
-- name: get home dir path
-  become_user: ubuntu
-  shell: "echo $HOME"
-  register: home_dir_path
-
 - name: cri-o download
   shell: |
-    wget https://storage.googleapis.com/cri-o/artifacts/cri-o.arm64.c0b2474b80fd0844b883729bda88961bed7b472b.tar.gz
-    tar zxvf cri-o.arm64.c0b2474b80fd0844b883729bda88961bed7b472b.tar.gz
-    cd cri-o
-    ./install
+    echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+    echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.22/xUbuntu_20.04/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:1.22.list
+    curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:1.22/xUbuntu_20.04/Release.key | apt-key add -
+    curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/Release.key | apt-key add -
+    apt-get update
+    apt-get install -y cri-o cri-o-runc
 
 - name: enable crio.service
   shell: |
