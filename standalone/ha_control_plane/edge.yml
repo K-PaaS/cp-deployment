@@ -61,7 +61,7 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/cve_cce }
+    - { role: paasta-cp/cve_cce/amd64 }
 
 - hosts: edge_node
   gather_facts: False
@@ -69,4 +69,4 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/cve_cce }
+    - { role: paasta-cp/cve_cce/arm64 }

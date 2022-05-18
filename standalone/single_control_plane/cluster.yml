@@ -157,4 +157,4 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/cve_cce }
+    - { role: paasta-cp/cve_cce/amd64 }
