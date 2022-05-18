@@ -1,15 +1,15 @@
 ---
 - name: cri-o download
   shell: |
-    echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-    echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.22/xUbuntu_20.04/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:1.22.list
-    curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:1.22/xUbuntu_20.04/Release.key | apt-key add -
-    curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/Release.key | apt-key add -
-    apt-get update
-    apt-get install -y cri-o cri-o-runc
+    wget https://storage.googleapis.com/cri-o/artifacts/cri-o.arm64.d93b2dfb8d0f2ad0f8b9061d941e3b216baa5814.tar.gz
+    tar zxvf cri-o.arm64.d93b2dfb8d0f2ad0f8b9061d941e3b216baa5814.tar.gz
+    cd cri-o
+    ./install
+    rm -rf cri-o*
 
 - name: enable crio.service
   shell: |
+    echo unqualified-search-registries = [\"docker.io\", \"quay.io\"] > /etc/containers/registries.conf
     sed -i 's/,metacopy=on//g' /etc/containers/storage.conf
     systemctl daemon-reload
     systemctl enable crio.service
