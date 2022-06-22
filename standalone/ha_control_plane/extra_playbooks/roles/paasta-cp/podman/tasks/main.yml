@@ -1,6 +1,0 @@
----
-- name: Podman Package Install
-  become_method: sudo
-  shell: apt-get install -y podman
-  args:
-    warn: false

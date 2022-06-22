@@ -8,7 +8,7 @@ KubeEdge는 keadm 명령을 사용하기 위한 실행파일 1개로 구성 되�
 
 ## 가이드	
 ### KubeEdge 설치 가이드	
-- [paas-ta-container-platform-edge-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/master/install-guide/edge/paas-ta-container-platform-edge-deployment-guide-v1.3.md)	
+- [paas-ta-container-platform-edge-deployment-guide](https://github.com/PaaS-TA/paas-ta-container-platform/blob/master/install-guide/edge/paas-ta-container-platform-edge-deployment-guide-v1.2.md)	
 
 ## 릴리즈	
 - https://github.com/PaaS-TA/paas-ta-container-platform-release  

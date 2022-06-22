@@ -1,5 +1,0 @@
----
-expand_persistent_volumes: true
-storage_classes:
-  - name: standard
-    is_default: true
