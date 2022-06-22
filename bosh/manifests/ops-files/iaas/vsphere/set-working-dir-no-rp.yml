@@ -1,3 +1,0 @@
-- type: replace
-  path: /instance_groups/name=master/jobs/name=cloud-provider/properties/cloud-provider?/vsphere/working-dir
-  value: /((vcenter_dc))/vm/((vcenter_vms))
