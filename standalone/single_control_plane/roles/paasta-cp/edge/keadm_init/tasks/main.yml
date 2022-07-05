@@ -2,5 +2,9 @@
 - name: keadm init
   shell: "nohup keadm init --advertise-address={{ master_node_public_ip }} --kubeedge-version 1.10.0 --master=https://{{ master_node_private_ip }}:6443"
 
+- name: Pause keadm init
+  pause:
+    minutes: 1
+
 - name: create keadm token file
   shell: keadm gettoken > keadm_token

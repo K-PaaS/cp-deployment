@@ -1,10 +1,17 @@
 ---
+- name: Check Istio Install
+  become: false
+  shell: ls | grep istio-1.11.4
+  register: istio_dir
+  ignore_errors: true
+
 - name: Istio Install
-  become_user: ubuntu
+  become: false
   shell: |
     curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.11.4 TARGET_ARCH=x86_64 sh -
     cd istio-1.11.4
     echo "export PATH=$PWD/bin:$PATH" >> ~/.bash_profile
     . ~/.bash_profile
+  when: istio_dir.stdout == ""
   args:
     warn: false

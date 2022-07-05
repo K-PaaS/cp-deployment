@@ -1,6 +1,6 @@
 ---
 - name: get home dir path
-  become_user: ubuntu
+  become: false
   shell: "echo $HOME"
   register: home_dir_path
 
@@ -10,7 +10,7 @@
     nohup cloudcore > cloudcore.log 2>&1 &
 
 - name: apply edgemesh crds
-  shell: "kubectl apply -f {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/edgemesh/crds/istio/"
+  shell: "kubectl apply -f {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/edgemesh/crds/istio"
 
 - name: apply edgemesh server
   shell: "kubectl apply -f {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/edgemesh/server/"

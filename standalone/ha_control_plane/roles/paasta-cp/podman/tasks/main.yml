@@ -1,6 +1,10 @@
 ---
+- name: Check Podman Package Install
+  shell: dpkg -l | grep podman | awk '{print $2}'
+  register: podman_install
+
 - name: Podman Package Install
-  become_method: sudo
   shell: apt-get install -y podman
+  when: podman_install.stdout == ""
   args:
     warn: false

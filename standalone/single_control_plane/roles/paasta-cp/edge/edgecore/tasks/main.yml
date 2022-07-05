@@ -3,7 +3,6 @@
   shell: | 
     sed -i '35s/false/true/g' /etc/kubeedge/config/edgecore.yaml
     sed -i '97s/false/true/g' /etc/kubeedge/config/edgecore.yaml
-    find /etc/kubeedge/config/edgecore.yaml -exec sed -i -r -e "/modules:/a\  edgeMesh:\n    enable: false" {} \;;
 
 - name: modify edgecore.service
   shell: find /etc/kubeedge/edgecore.service -exec sed -i -r -e "/RestartSec=10/a\Environment=\"CHECK_EDGECORE_ENVIRONMENT=false\"" {} \;;    

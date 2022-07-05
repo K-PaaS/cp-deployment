@@ -1,6 +1,6 @@
 ---
 - name: modify cloudcore
-  shell: | 
+  shell: |
     sed -i '44s/false/true/g' /etc/kubeedge/config/cloudcore.yaml
     sed -i '66s/false/true/g' /etc/kubeedge/config/cloudcore.yaml
 
@@ -12,7 +12,7 @@
     /etc/kubeedge/certgen.sh stream
     iptables -t nat -A OUTPUT -p tcp --dport 10350 -j DNAT --to $CLOUDCOREIPS:10003
   environment:
-    CLOUDCOREIPS: "{{ cloudcoreips }}"
+    CLOUDCOREIPS: "{{ master_node_public_ip }}"
 
 - name: restart cloudcore
   shell: |
