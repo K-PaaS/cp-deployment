@@ -180,12 +180,12 @@
   loop: "{{ crio_registries }}"
   notify: restart crio
 
-#- name: Configure unqualified registry settings
-#  template:
-#    src: unqualified.conf.j2
-#    dest: "/etc/containers/registries.conf.d/01-unqualified.conf"
-#    mode: 0644
-#  notify: restart crio
+    #- name: Configure unqualified registry settings
+    #  template:
+    #    src: unqualified.conf.j2
+    #    dest: "/etc/containers/registries.conf.d/01-unqualified.conf"
+    #    mode: 0644
+    #  notify: restart crio
 
 - name: Write cri-o proxy drop-in
   template:

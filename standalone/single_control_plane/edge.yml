@@ -1,3 +1,4 @@
+---
 - hosts: cloudcore_node
   gather_facts: False
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"

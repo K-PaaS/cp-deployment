@@ -1,0 +1,35 @@
+---
+- name: get uid
+  become: false
+  shell: id -u
+  register: curr_uid
+
+- name: get gid
+  become: false
+  shell: id -g
+  register: curr_gid
+
+- name: get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: Create kube config dir for current/ansible become user
+  become: false
+  file:
+    path: "{{ home_dir_path.stdout }}/.kube"
+    mode: "0700"
+    state: directory
+
+- name: Copy admin kubeconfig to current/ansible become user home
+  copy:
+    src: "{{ kube_config_dir }}/admin.conf"
+    dest: "{{ home_dir_path.stdout }}/.kube/config"
+    mode: "0600"
+    remote_src: yes
+
+- name: chown kube config file
+  file:
+    path: "{{ home_dir_path.stdout }}/.kube/config"
+    owner: "{{ curr_uid.stdout }}"
+    group: "{{ curr_gid.stdout }}"
