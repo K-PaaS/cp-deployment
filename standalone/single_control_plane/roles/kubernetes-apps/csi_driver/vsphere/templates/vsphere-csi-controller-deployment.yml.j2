@@ -2,7 +2,7 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: vsphere-csi-controller
-  namespace: kube-system
+  namespace: "{{ vsphere_csi_namespace }}"
 spec:
   replicas: {{ vsphere_csi_controller_replicas }}
   strategy:
@@ -88,12 +88,11 @@ spec:
 {% endif %}
         - name: vsphere-csi-controller
           image: {{ gcr_image_repo }}/cloud-provider-vsphere/csi/release/driver:{{ vsphere_csi_controller }}
-{% if external_vsphere_version >= "7.0u1" %}
           args:
             - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
-            - "--fss-namespace=$(CSI_NAMESPACE)"
+            - "--fss-namespace={{ vsphere_csi_namespace }}"
+            - "--supervisor-fss-namespace={{ vsphere_csi_namespace }}"
             - "--use-gocsi=false"
-{% endif %}
           imagePullPolicy: {{ k8s_image_pull_policy }}
           env:
             - name: CSI_ENDPOINT
@@ -113,10 +112,6 @@ spec:
               value: "100"
             - name: INCLUSTER_CLIENT_BURST
               value: "100"
-            - name: CSI_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
 {% endif %}
           volumeMounts:
             - mountPath: /etc/cloud
@@ -154,10 +149,9 @@ spec:
           image: {{ gcr_image_repo }}/cloud-provider-vsphere/csi/release/syncer:{{ vsphere_syncer_image_tag }}
           args:
             - "--leader-election"
-{% if external_vsphere_version >= "7.0u1" %}
             - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
-            - "--fss-namespace=$(CSI_NAMESPACE)"
-{% endif %}
+            - "--fss-namespace={{ vsphere_csi_namespace }}"
+            - "--supervisor-fss-namespace={{ vsphere_csi_namespace }}"
           imagePullPolicy: {{ k8s_image_pull_policy }}
           ports:
             - containerPort: 2113
@@ -175,10 +169,6 @@ spec:
               value: "100"
             - name: INCLUSTER_CLIENT_BURST
               value: "100"
-            - name: CSI_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
 {% endif %}
           volumeMounts:
             - mountPath: /etc/cloud

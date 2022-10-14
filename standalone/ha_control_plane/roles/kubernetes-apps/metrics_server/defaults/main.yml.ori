@@ -7,5 +7,4 @@ metrics_server_limits_cpu: 100m
 metrics_server_limits_memory: 200Mi
 metrics_server_requests_cpu: 100m
 metrics_server_requests_memory: 200Mi
-
 master_node_hostname: {MASTER_NODE_HOSTNAME}

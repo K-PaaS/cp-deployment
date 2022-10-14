@@ -1,7 +1,11 @@
 apiVersion: v1
 data:
   "csi-migration": "false"
+{% if external_vsphere_version >= "7.0" %}
   "csi-auth-check": "true"
+{% else %}
+  "csi-auth-check": "false"
+{% endif %}
   "online-volume-extend": "true"
   "trigger-csi-fullsync": "false"
   "async-query-volume": "true"
@@ -17,4 +21,4 @@ data:
 kind: ConfigMap
 metadata:
   name: internal-feature-states.csi.vsphere.vmware.com
-  namespace: kube-system
+  namespace: "{{ vsphere_csi_namespace }}"

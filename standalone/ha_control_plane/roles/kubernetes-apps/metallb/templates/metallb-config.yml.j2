@@ -31,8 +31,11 @@ data:
 {% for ip_range in metallb_ip_range %}
       - {{ ip_range }}
 {% endfor %}
-{% if matallb_auto_assign == false %}
+{% if metallb_auto_assign == false %}
       auto-assign: false
+{% endif %}
+{% if metallb_avoid_buggy_ips == true %}
+      avoid-buggy-ips: true
 {% endif %}
 {% if metallb_additional_address_pools is defined %}{% for pool in metallb_additional_address_pools %}
     - name: {{ pool }}
@@ -41,6 +44,11 @@ data:
 {% for ip_range in metallb_additional_address_pools[pool].ip_range %}
       - {{ ip_range }}
 {% endfor %}
+{% if metallb_additional_address_pools[pool].auto_assign is defined %}
       auto-assign: {{ metallb_additional_address_pools[pool].auto_assign }}
+{% endif %}
+{% if metallb_additional_address_pools[pool].avoid_buggy_ips is defined %}
+      avoid-buggy-ips: {{ metallb_additional_address_pools[pool].avoid_buggy_ips }}
+{% endif %}
 {% endfor %}
 {% endif %}

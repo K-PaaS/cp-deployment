@@ -2,7 +2,7 @@ kind: DaemonSet
 apiVersion: apps/v1
 metadata:
   name: vsphere-csi-node
-  namespace: kube-system
+  namespace: "{{ vsphere_csi_namespace }}"
 spec:
   selector:
     matchLabels:
@@ -19,6 +19,10 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/os: linux
+{% if vsphere_csi_node_affinity %}
+      affinity:
+        {{ vsphere_csi_node_affinity | to_nice_yaml | indent(width=8) }}
+{% endif %}
       serviceAccountName: vsphere-csi-node
       hostNetwork: true
       dnsPolicy: "ClusterFirstWithHostNet"
@@ -55,12 +59,11 @@ spec:
       - name: vsphere-csi-node
         image: {{ gcr_image_repo }}/cloud-provider-vsphere/csi/release/driver:{{ vsphere_csi_driver_image_tag }}
         imagePullPolicy: {{ k8s_image_pull_policy }}
-{% if external_vsphere_version >= "7.0u1" %}
         args:
           - "--fss-name=internal-feature-states.csi.vsphere.vmware.com"
-          - "--fss-namespace=$(CSI_NAMESPACE)"
+          - "--fss-namespace={{ vsphere_csi_namespace }}"
+          - "--supervisor-fss-namespace={{ vsphere_csi_namespace }}"
           - "--use-gocsi=false"
-{% endif %}
         imagePullPolicy: "Always"
         env:
         - name: NODE_NAME
@@ -81,12 +84,6 @@ spec:
           value: "true"
         - name: LOGGER_LEVEL
           value: "PRODUCTION" # Options: DEVELOPMENT, PRODUCTION
-{% if external_vsphere_version >= "7.0u1" %}
-        - name: CSI_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-{% endif %}
         - name: NODEGETINFO_WATCH_TIMEOUT_MINUTES
           value: "1"
         securityContext:

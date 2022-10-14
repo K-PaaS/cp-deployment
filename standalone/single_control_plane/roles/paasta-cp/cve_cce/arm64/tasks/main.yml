@@ -5,18 +5,15 @@
   register: home_dir_path
 
 - name: copy security.bin
-  become: false
   copy:
     src: "{{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/security.bin"
     dest: "security.bin"
     mode: 0755
 
 - name: run security.bin
-  become: false
   shell: "./security.bin"
 
 - name: delete security.bin
-  become: false
   file:
     path: "security.bin"
     state: absent

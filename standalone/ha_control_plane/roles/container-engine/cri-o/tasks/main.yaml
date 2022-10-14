@@ -39,9 +39,6 @@
   import_tasks: "crio_repo.yml"
   when: crio_add_repos
 
-- include_role:  # noqa unnamed-task
-    name: container-engine/crictl
-
 - name: Build a list of crio runtimes with Katacontainers runtimes
   set_fact:
     crio_runtimes: "{{ crio_runtimes + kata_runtimes  }}"
@@ -98,6 +95,16 @@
     - ansible_distribution == "Debian"
     - ansible_distribution_version == "10"
 
+- name: Remove dpkg hold
+  dpkg_selections:
+    name: "{{ item | split ('=') | first }}"
+    selection: install
+  when:
+    - ansible_pkg_mgr == 'apt'
+  changed_when: false
+  with_items:
+    - "{{ crio_packages }}"
+
 - name: Install cri-o packages
   package:
     name: "{{ item }}"
@@ -108,6 +115,17 @@
   until: package_install is succeeded
   retries: 4
   delay: "{{ retry_stagger | d(3) }}"
+
+# This is required to ensure any apt upgrade will not break kubernetes
+- name: Tell Debian hosts not to change the cri-o version with apt upgrade
+  dpkg_selections:
+    name: "{{ item | split ('=') | first }}"
+    selection: hold
+  when:
+    - ansible_pkg_mgr == 'apt'
+  changed_when: false
+  with_items:
+    - "{{ crio_packages }}"
 
 - name: Check if already installed
   stat:
@@ -180,12 +198,12 @@
   loop: "{{ crio_registries }}"
   notify: restart crio
 
-    #- name: Configure unqualified registry settings
-    #  template:
-    #    src: unqualified.conf.j2
-    #    dest: "/etc/containers/registries.conf.d/01-unqualified.conf"
-    #    mode: 0644
-    #  notify: restart crio
+  #- name: Configure unqualified registry settings
+  #  template:
+  #    src: unqualified.conf.j2
+  #    dest: "/etc/containers/registries.conf.d/01-unqualified.conf"
+  #    mode: 0644
+  #  notify: restart crio
 
 - name: Write cri-o proxy drop-in
   template:

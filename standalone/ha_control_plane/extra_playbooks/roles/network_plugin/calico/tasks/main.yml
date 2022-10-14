@@ -1,6 +1,0 @@
----
-- import_tasks: pre.yml
-
-- import_tasks: repos.yml
-
-- include_tasks: install.yml
