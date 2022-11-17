@@ -44,23 +44,19 @@ EOF
 done
 
 cat << EOF > roles/paasta-cp/edge/keadm_init/defaults/main.yml
-master_node_public_ip: {MASTER_NODE_PUBLIC_IP}
-master_node_private_ip: {MASTER_NODE_PRIVATE_IP}
+cloudcore1_node_hostname: {CLOUDCORE1_NODE_HOSTNAME}
+cloudcore2_node_hostname: {CLOUDCORE2_NODE_HOSTNAME}
 EOF
 
 cat << EOF > roles/paasta-cp/edge/keadm_join/defaults/main.yml
-master_node_public_ip: {MASTER_NODE_PUBLIC_IP}
+cloudcore_vip: {CLOUDCORE_VIP}
 EOF
 
-cat << EOF > roles/paasta-cp/edge/cloudcore/defaults/main.yml
-master_node_public_ip: {MASTER_NODE_PUBLIC_IP}
-EOF
+sed -i "s/{CLOUDCORE1_NODE_HOSTNAME}/$CLOUDCORE1_NODE_HOSTNAME/g" roles/paasta-cp/edge/keadm_init/defaults/main.yml
+sed -i "s/{CLOUDCORE2_NODE_HOSTNAME}/$CLOUDCORE2_NODE_HOSTNAME/g" roles/paasta-cp/edge/keadm_init/defaults/main.yml
 
-sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER_NODE_PUBLIC_IP/g" roles/paasta-cp/edge/keadm_init/defaults/main.yml
-sed -i "s/{MASTER_NODE_PRIVATE_IP}/$MASTER_NODE_PRIVATE_IP/g" roles/paasta-cp/edge/keadm_init/defaults/main.yml
+sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" roles/paasta-cp/edge/keadm_join/defaults/main.yml
 
-sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER_NODE_PUBLIC_IP/g" roles/paasta-cp/edge/keadm_join/defaults/main.yml
+sed -i "s/{MASTER_NODE_HOSTNAME}/$MASTER_NODE_HOSTNAME/g" ../../edge/edgemesh/gateway/05-deployment.yaml
 
-sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER_NODE_PUBLIC_IP/g" roles/paasta-cp/edge/cloudcore/defaults/main.yml
-
-sed -i "s/{MASTER_NODE_HOSTNAME}/$MASTER_NODE_HOSTNAME/g" ../../edge/edgemesh/server/05-deployment.yaml
+sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" ../../edge/ha-cloudcore/02-ha-configmap.yaml

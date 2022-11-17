@@ -2,7 +2,7 @@ kind: ServiceAccount
 apiVersion: v1
 metadata:
   name: vsphere-csi-controller
-  namespace: kube-system
+  namespace: "{{ vsphere_csi_namespace }}"
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -41,7 +41,6 @@ rules:
   - apiGroups: ["storage.k8s.io"]
     resources: ["volumeattachments"]
     verbs: ["get", "list", "watch", "patch", "update"]
-{% if external_vsphere_version >= "7.0u1" %}
   - apiGroups: ["cns.vmware.com"]
     resources: ["triggercsifullsyncs"]
     verbs: ["create", "get", "update", "watch", "list"]
@@ -57,7 +56,6 @@ rules:
   - apiGroups: [ "cns.vmware.com" ]
     resources: [ "csinodetopologies" ]
     verbs: ["get", "update", "watch", "list"]
-{% endif %}
   - apiGroups: ["storage.k8s.io"]
     resources: ["volumeattachments/status"]
     verbs: ["patch"]
@@ -81,7 +79,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: vsphere-csi-controller
-    namespace: kube-system
+    namespace: "{{ vsphere_csi_namespace }}"
 roleRef:
   kind: ClusterRole
   name: vsphere-csi-controller-role

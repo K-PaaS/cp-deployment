@@ -1,6 +1,23 @@
 ---
-- name: keadm init
-  shell: "nohup keadm init --advertise-address={{ master_node_public_ip }} --kubeedge-version 1.10.0 --master=https://{{ master_node_private_ip }}:6443"
+- name: get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: change kube-proxy config
+  shell: |
+    kubectl patch daemonset kube-proxy -n kube-system --patch-file {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/ha-cloudcore/kube-proxy.yaml
+
+- name: add cloudcore node label
+  shell: |
+    kubectl label nodes {{ cloudcore1_node_hostname }} kubeedge-cloudcore=cloudcore-node
+    kubectl label nodes {{ cloudcore2_node_hostname }} kubeedge-cloudcore=cloudcore-node
+
+- name: deploy ha cloudcore
+  shell: |
+    kubectl apply -f {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/ha-cloudcore/01-ha-prepare.yaml
+    kubectl apply -f {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/ha-cloudcore/02-ha-configmap.yaml
+    kubectl apply -f {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/ha-cloudcore/03-ha-deployment.yaml
 
 - name: Pause keadm init
   pause:

@@ -1,13 +1,22 @@
 ---
 - name: modify edgecore
   shell: | 
-    sed -i '35s/false/true/g' /etc/kubeedge/config/edgecore.yaml
-    sed -i '97s/false/true/g' /etc/kubeedge/config/edgecore.yaml
-
-- name: modify edgecore.service
-  shell: find /etc/kubeedge/edgecore.service -exec sed -i -r -e "/RestartSec=10/a\Environment=\"CHECK_EDGECORE_ENVIRONMENT=false\"" {} \;;    
+    sed -i '161s/false/true/g' /etc/kubeedge/config/edgecore.yaml
+    sed -i 's@remoteImageEndpoint: unix:///var/run/dockershim.sock@remoteImageEndpoint: unix:///var/run/crio/crio.sock@g' /etc/kubeedge/config/edgecore.yaml
+    sed -i 's@remoteRuntimeEndpoint: unix:///var/run/dockershim.sock@remoteRuntimeEndpoint: unix:///var/run/crio/crio.sock@g' /etc/kubeedge/config/edgecore.yaml
+    sed -i 's@podSandboxImage: kubeedge/pause:3.1@podSandboxImage: k8s.gcr.io/pause:3.2@g' /etc/kubeedge/config/edgecore.yaml
+    sed -i 's/containerRuntime: docker/containerRuntime: remote/g' /etc/kubeedge/config/edgecore.yaml
 
 - name: restart edgecore
   shell: |
     systemctl daemon-reload
     systemctl restart edgecore.service
+
+- name: delete Docker
+  shell: |
+    apt-get remove -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+- name: delete docker0 cni bridge
+  shell: |
+    ip link set dev docker0 down
+

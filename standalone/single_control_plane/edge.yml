@@ -29,16 +29,8 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/edge/crio_install }
+    - { role: paasta-cp/edge/cri_install }
     - { role: paasta-cp/edge/keadm_join }
-
-- hosts: cloudcore_node
-  gather_facts: False
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  environment: "{{ proxy_disable_env }}"
-  roles:
-    - { role: kubespray-defaults }
-    - { role: paasta-cp/edge/cloudcore }
 
 - hosts: edge_node
   gather_facts: False

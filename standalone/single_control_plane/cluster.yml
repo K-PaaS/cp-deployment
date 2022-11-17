@@ -35,7 +35,7 @@
     - { role: "container-engine", tags: "container-engine", when: deploy_container_engine }
     - { role: download, tags: download, when: "not skip_downloads" }
 
-- hosts: etcd
+- hosts: etcd:kube_control_plane
   gather_facts: False
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
@@ -59,7 +59,10 @@
       vars:
         etcd_cluster_setup: false
         etcd_events_cluster_setup: false
-      when: etcd_deployment_type != "kubeadm"
+      when:
+        - etcd_deployment_type != "kubeadm"
+        - kube_network_plugin in ["calico", "flannel", "canal", "cilium"] or cilium_deploy_additionally | default(false) | bool
+        - kube_network_plugin != "calico" or calico_datastore == "etcd"
 
 - hosts: k8s_cluster
   gather_facts: False
@@ -133,6 +136,14 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
+    - { role: paasta-cp/kube_config }
+
+- hosts: kube_control_plane
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
     - { role: paasta-cp/istio }
 
 - hosts: k8s_cluster
@@ -151,13 +162,13 @@
     - { role: kubespray-defaults }
     - { role: paasta-cp/podman }
 
-- hosts: k8s_cluster
+- hosts: kube_control_plane
   gather_facts: False
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/cve_cce/amd64 }
+    - { role: paasta-cp/ingress-nginx }
 
 - hosts: kube_control_plane
   gather_facts: False
@@ -165,4 +176,28 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/kube_config }
+    - { role: paasta-cp/storage }
+
+- hosts: kube_control_plane
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: paasta-cp/kubeflow }
+
+- hosts: kube_control_plane
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: paasta-cp/vault }
+
+- hosts: k8s_cluster
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: paasta-cp/cve_cce/amd64 }

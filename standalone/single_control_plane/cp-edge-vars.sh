@@ -1,5 +1,10 @@
 #!/bin/bash
 
+export CLOUDCORE_VIP=
+
+export CLOUDCORE1_NODE_HOSTNAME=
+export CLOUDCORE2_NODE_HOSTNAME=
+
 ## Edge Node Count Info
 export EDGE_NODE_CNT=
 

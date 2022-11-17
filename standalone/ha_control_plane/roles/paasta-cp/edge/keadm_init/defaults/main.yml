@@ -1,2 +1,2 @@
-master_node_public_ip: {MASTER_NODE_PUBLIC_IP}
-master_node_private_ip: {MASTER_NODE_PRIVATE_IP}
+cloudcore1_node_hostname: {CLOUDCORE1_NODE_HOSTNAME}
+cloudcore2_node_hostname: {CLOUDCORE2_NODE_HOSTNAME}
