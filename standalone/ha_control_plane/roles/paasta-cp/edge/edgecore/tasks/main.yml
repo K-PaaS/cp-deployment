@@ -6,6 +6,7 @@
     sed -i 's@remoteRuntimeEndpoint: unix:///var/run/dockershim.sock@remoteRuntimeEndpoint: unix:///var/run/crio/crio.sock@g' /etc/kubeedge/config/edgecore.yaml
     sed -i 's@podSandboxImage: kubeedge/pause:3.1@podSandboxImage: k8s.gcr.io/pause:3.2@g' /etc/kubeedge/config/edgecore.yaml
     sed -i 's/containerRuntime: docker/containerRuntime: remote/g' /etc/kubeedge/config/edgecore.yaml
+    sed -i 's/cgroupDriver: cgroupfs/cgroupDriver: systemd/g' /etc/kubeedge/config/edgecore.yaml
 
 - name: restart edgecore
   shell: |
