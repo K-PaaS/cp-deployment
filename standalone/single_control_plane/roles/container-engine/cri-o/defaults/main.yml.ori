@@ -81,7 +81,7 @@ youki_runtime:
 crio_add_repos: true
 
 # Allow crio offline installation
-crio_download_base: "download.opensuse.org/repositories/devel:kubic:libcontainers:stable"
+crio_download_base: "download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable"
 
 # Allow crio offline installation
 crio_download_crio: "http://{{ crio_download_base }}:/cri-o:/"
