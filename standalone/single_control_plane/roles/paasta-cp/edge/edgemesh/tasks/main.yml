@@ -4,11 +4,14 @@
   shell: "echo $HOME"
   register: home_dir_path
 
+- name: Remove the taint of the K8s master nodes
+  shell: "kubectl taint nodes --all node-role.kubernetes.io/master-"
+
+- name: Add filter labels to Kubernetes API services
+  shell: "kubectl label services kubernetes service.edgemesh.kubeedge.io/service-proxy-name=\"\""
+
 - name: apply edgemesh crds
   shell: "kubectl apply -f {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/edgemesh/crds/istio"
-
-- name: apply edgemesh server
-  shell: "kubectl apply -f {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/edgemesh/gateway/"
 
 - name: apply edgemesh server
   shell: "kubectl apply -f {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/edge/edgemesh/agent/"
