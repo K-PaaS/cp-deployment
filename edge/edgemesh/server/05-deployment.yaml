@@ -22,7 +22,7 @@ spec:
       nodeName: {MASTER_NODE_HOSTNAME}
       containers:
       - name: edgemesh-server
-        image: kubeedge/edgemesh-server:latest
+        image: kubeedge/edgemesh-server:v1.10.0
         env:
         - name: MY_NODE_NAME
           valueFrom:
