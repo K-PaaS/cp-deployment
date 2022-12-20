@@ -58,6 +58,6 @@ sed -i "s/{CLOUDCORE2_NODE_HOSTNAME}/$CLOUDCORE2_NODE_HOSTNAME/g" roles/paasta-c
 sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" roles/paasta-cp/edge/keadm_join/defaults/main.yml
 
 sed -i "s/{MASTER_NODE_HOSTNAME}/$MASTER_NODE_HOSTNAME/g" ../../edge/edgemesh/agent/04-configmap.yaml
-sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER_NODE_PUBLIC_IP/g" ../../edge/edgemesh/agent/04-configmap.yaml
+sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" ../../edge/edgemesh/agent/04-configmap.yaml
 
 sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" ../../edge/ha-cloudcore/02-ha-configmap.yaml

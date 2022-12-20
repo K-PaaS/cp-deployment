@@ -6,6 +6,8 @@
 
 - name: Remove the taint of the K8s master nodes
   shell: "kubectl taint nodes --all node-role.kubernetes.io/master-"
+  args:
+    warn: false
 
 - name: Add filter labels to Kubernetes API services
   shell: "kubectl label services kubernetes service.edgemesh.kubeedge.io/service-proxy-name=\"\""
