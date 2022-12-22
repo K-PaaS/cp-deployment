@@ -129,7 +129,9 @@ kube_pod_security_exemptions_namespaces:
   - cert-manager
   - istio-system
   - knative-eventing
+  - knative-serving
   - kubeflow
+  - kubeflow-user-example-com
   - kubeedge
   - cp-pipeline
 
