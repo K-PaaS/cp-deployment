@@ -15,13 +15,13 @@
     kubectl apply -f {{ home_dir_path.stdout }}//paas-ta-container-platform-deployment/standalone/applications/nfs-provisioner-4.0.0/deployment.yaml
     kubectl apply -f {{ home_dir_path.stdout }}//paas-ta-container-platform-deployment/standalone/applications/nfs-provisioner-4.0.0/storageclass.yaml
     kubectl patch storageclass paasta-cp-storageclass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-  when: storage_type.stdout == "nfs"
+  when: storage_type == "nfs"
 
 - name: Deploy Rook Operator
   shell: | 
     cd {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/standalone/applications/rook-1.10.3/deploy/examples
     kubectl apply -f crds.yaml -f common.yaml -f operator.yaml
-  when: storage_type.stdout == "rook-ceph"
+  when: storage_type == "rook-ceph"
 
 - name: check rook-ceph-operator status
   shell: |
@@ -30,13 +30,13 @@
   until: status.stdout == "Running"
   retries: 20
   delay: 30
-  when: storage_type.stdout == "rook-ceph"
+  when: storage_type == "rook-ceph"
 
 - name: Deploy Rook Cluster
   shell: |
     cd {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/standalone/applications/rook-1.10.3/deploy/examples
     kubectl create -f cluster.yaml
-  when: storage_type.stdout == "rook-ceph"
+  when: storage_type == "rook-ceph"
 
 - name: check rook-ceph-osd-0 status
   shell: |
@@ -45,13 +45,13 @@
   until: status.stdout == "Running"
   retries: 60
   delay: 30
-  when: storage_type.stdout == "rook-ceph"
+  when: storage_type == "rook-ceph"
 
 - name: Deploy Ceph Toolbox
   shell: |
     cd {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/standalone/applications/rook-1.10.3/deploy/examples
     kubectl create -f toolbox.yaml
-  when: storage_type.stdout == "rook-ceph"
+  when: storage_type == "rook-ceph"
 
 - name: Deploy Ceph FileSystem, StorageClass
   shell: |
@@ -59,4 +59,4 @@
     kubectl create -f filesystem.yaml
     kubectl create -f csi/cephfs/storageclass.yaml
     kubectl patch storageclass paasta-cp-storageclass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-  when: storage_type.stdout == "rook-ceph"
+  when: storage_type == "rook-ceph"

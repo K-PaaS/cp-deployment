@@ -19,7 +19,7 @@
   shell: apt-get update
 
 - name: keadm join
-  shell: "nohup keadm join --cloudcore-ipport={{ cloudcore_vip }}:10000 --token={{ keadm_token.stdout }} --kubeedge-version 1.12.0"
+  shell: "nohup keadm join --cloudcore-ipport={{ cloudcore_vip }}:30000 --token={{ keadm_token.stdout }} --kubeedge-version 1.12.0"
 
 - name: remove keadm token file
   file:

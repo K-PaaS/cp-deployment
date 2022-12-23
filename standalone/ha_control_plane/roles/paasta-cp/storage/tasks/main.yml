@@ -20,7 +20,7 @@
     kubectl apply -f {{ home_dir_path.stdout }}//paas-ta-container-platform-deployment/standalone/applications/nfs-provisioner-4.0.0/storageclass.yaml
     kubectl patch storageclass paasta-cp-storageclass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
   when:
-    - storage_type.stdout == "nfs"
+    - storage_type == "nfs"
     - inventory_hostname == groups['kube_control_plane'][0]
 
 - name: Deploy Rook Operator
@@ -28,7 +28,7 @@
     cd {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/standalone/applications/rook-1.10.3/deploy/examples
     kubectl apply -f crds.yaml -f common.yaml -f operator.yaml
   when:
-    - storage_type.stdout == "rook-ceph"
+    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
 
 - name: check rook-ceph-operator status
@@ -39,7 +39,7 @@
   retries: 20
   delay: 30
   when:
-    - storage_type.stdout == "rook-ceph"
+    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
 
 - name: Deploy Rook Cluster
@@ -47,7 +47,7 @@
     cd {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/standalone/applications/rook-1.10.3/deploy/examples
     kubectl create -f cluster.yaml
   when:
-    - storage_type.stdout == "rook-ceph"
+    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
 
 - name: check rook-ceph-osd-0 status
@@ -58,7 +58,7 @@
   retries: 60
   delay: 30
   when:
-    - storage_type.stdout == "rook-ceph"
+    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
 
 - name: Deploy Ceph Toolbox
@@ -66,7 +66,7 @@
     cd {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/standalone/applications/rook-1.10.3/deploy/examples
     kubectl create -f toolbox.yaml
   when:
-    - storage_type.stdout == "rook-ceph"
+    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
 
 - name: Deploy Ceph FileSystem, StorageClass
@@ -76,5 +76,5 @@
     kubectl create -f csi/cephfs/storageclass.yaml
     kubectl patch storageclass paasta-cp-storageclass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
   when:
-    - storage_type.stdout == "rook-ceph"
+    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
