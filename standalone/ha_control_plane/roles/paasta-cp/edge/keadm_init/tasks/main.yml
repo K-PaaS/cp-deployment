@@ -26,7 +26,7 @@
 - name: create keadm token file
   shell: keadm gettoken > keadm_token
 
-name: deploy kubeedge crd
+- name: deploy kubeedge crd
   shell: |
     kubectl apply -f https://raw.githubusercontent.com/kubeedge/kubeedge/master/build/crds/router/router_v1_ruleEndpoint.yaml
     kubectl apply -f https://raw.githubusercontent.com/kubeedge/kubeedge/master/build/crds/router/router_v1_rule.yaml
