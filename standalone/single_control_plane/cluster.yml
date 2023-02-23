@@ -202,6 +202,14 @@
     - { role: kubespray-defaults }
     - { role: paasta-cp/vault }
 
+- hosts: kube_control_plane
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: paasta-cp/csr }
+
 - hosts: k8s_cluster
   gather_facts: False
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
