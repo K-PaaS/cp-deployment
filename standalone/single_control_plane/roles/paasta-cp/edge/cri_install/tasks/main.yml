@@ -24,9 +24,14 @@
     cd cri-o
     ./install
 
+- name: remove cri-o tar file
+  file:
+    path: "{{ home_dir_path.stdout }}/cri-o.arm64.d93b2dfb8d0f2ad0f8b9061d941e3b216baa5814.tar.gz"
+    state: absent
+
 - name: remove cri-o dir
   file:
-    path: "{{ home_dir_path.stdout }}/cri-o*"
+    path: "{{ home_dir_path.stdout }}/cri-o"
     state: absent
 
 - name: enable crio.service

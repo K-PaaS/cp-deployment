@@ -9,7 +9,7 @@
 - name: get storage type
   become: false
   shell: "echo {{ storage_type }}"
-  register: storage_type
+  register: storage_type_reg
   when:
     - inventory_hostname == groups['kube_control_plane'][0]
 
@@ -20,16 +20,16 @@
     kubectl apply -f {{ home_dir_path.stdout }}//paas-ta-container-platform-deployment/standalone/applications/nfs-provisioner-4.0.0/storageclass.yaml
     kubectl patch storageclass paasta-cp-storageclass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
   when:
-    - storage_type == "nfs"
     - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "nfs"
 
 - name: Deploy Rook Operator
   shell: |
     cd {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/standalone/applications/rook-1.10.3/deploy/examples
     kubectl apply -f crds.yaml -f common.yaml -f operator.yaml
   when:
-    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"
 
 - name: check rook-ceph-operator status
   shell: |
@@ -39,16 +39,16 @@
   retries: 20
   delay: 30
   when:
-    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"
 
 - name: Deploy Rook Cluster
   shell: |
     cd {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/standalone/applications/rook-1.10.3/deploy/examples
     kubectl create -f cluster.yaml
   when:
-    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"
 
 - name: check rook-ceph-osd-0 status
   shell: |
@@ -58,16 +58,16 @@
   retries: 60
   delay: 30
   when:
-    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"
 
 - name: Deploy Ceph Toolbox
   shell: |
     cd {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/standalone/applications/rook-1.10.3/deploy/examples
     kubectl create -f toolbox.yaml
   when:
-    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"
 
 - name: Deploy Ceph FileSystem, StorageClass
   shell: |
@@ -76,5 +76,5 @@
     kubectl create -f csi/cephfs/storageclass.yaml
     kubectl patch storageclass paasta-cp-storageclass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
   when:
-    - storage_type == "rook-ceph"
     - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"

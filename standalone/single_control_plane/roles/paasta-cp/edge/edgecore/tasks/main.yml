@@ -1,9 +1,21 @@
 ---
+- name: delete Docker
+  shell: |
+    apt-get remove -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+- name: delete docker0 cni bridge
+  shell: |
+    ip link set dev docker0 down
+
+- name: install mosquitto
+  shell: |
+    apt-get install -y mosquitto
+
 - name: modify edgecore
-  shell: | 
-    sed -i '161s/false/true/g' /etc/kubeedge/config/edgecore.yaml
+  shell: |
+    sed -i '164s/false/true/g' /etc/kubeedge/config/edgecore.yaml
     sed -i 's@remoteImageEndpoint: unix:///var/run/dockershim.sock@remoteImageEndpoint: unix:///var/run/crio/crio.sock@g' /etc/kubeedge/config/edgecore.yaml
-    sed -i 's@remoteRuntimeEndpoint: unix:///var/run/dockershim.sock@remoteRuntimeEndpoint: unix:///var/run/crio/crio.sock@g' /etc/kubeedge/config/edgecore.yaml
+    sed -i 's@remoteRuntimeEndpoint: unix:///var/run/dockershim.sock@remoteRuntimeEndpoint: unix:////var/run/crio/crio.sock@g' /etc/kubeedge/config/edgecore.yaml
     sed -i 's@podSandboxImage: kubeedge/pause:3.1@podSandboxImage: k8s.gcr.io/pause:3.2@g' /etc/kubeedge/config/edgecore.yaml
     sed -i 's/containerRuntime: docker/containerRuntime: remote/g' /etc/kubeedge/config/edgecore.yaml
     sed -i 's/cgroupDriver: cgroupfs/cgroupDriver: systemd/g' /etc/kubeedge/config/edgecore.yaml
@@ -16,12 +28,3 @@
   shell: |
     systemctl daemon-reload
     systemctl restart edgecore.service
-
-- name: delete Docker
-  shell: |
-    apt-get remove -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
-- name: delete docker0 cni bridge
-  shell: |
-    ip link set dev docker0 down
-
