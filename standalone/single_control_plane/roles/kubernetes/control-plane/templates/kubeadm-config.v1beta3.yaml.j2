@@ -243,6 +243,7 @@ apiServer:
   - name: {{ audit_policy_name }}
     hostPath: {{ audit_policy_hostpath }}
     mountPath: {{ audit_policy_mountpath }}
+    readOnly: true
 {% if audit_log_path != "-" %}
   - name: {{ audit_log_name }}
     hostPath: {{ audit_log_hostpath }}
