@@ -89,7 +89,11 @@ kube_apiserver_pod_eviction_not_ready_timeout_seconds: "300"
 kube_apiserver_pod_eviction_unreachable_timeout_seconds: "300"
 
 # 1.10+ admission plugins
-kube_apiserver_enable_admission_plugins: ['AlwaysPullImages,NodeRestriction,PodSecurity,EventRateLimit']
+kube_apiserver_enable_admission_plugins:
+  - AlwaysPullImages
+  - NodeRestriction
+  - PodSecurity
+  - EventRateLimit
 
 # enable admission plugins configuration
 kube_apiserver_admission_control_config_file: true

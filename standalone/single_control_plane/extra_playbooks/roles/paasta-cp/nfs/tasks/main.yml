@@ -1,0 +1,10 @@
+---
+- name: Check NFS Common Package Install
+  shell: dpkg -l | grep nfs-common | awk '{print $2}'
+  register: nfs_install
+
+- name: NFS Common Package Install
+  shell: apt-get install -y nfs-common
+  when: nfs_install.stdout == ""
+  args:
+    warn: false

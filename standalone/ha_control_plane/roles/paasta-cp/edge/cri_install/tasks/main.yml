@@ -1,6 +1,6 @@
 ---
 - name: get home dir path
-  become: false
+  become: true
   shell: "echo $HOME"
   register: home_dir_path
 

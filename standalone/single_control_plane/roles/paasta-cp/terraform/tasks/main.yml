@@ -19,3 +19,9 @@
   file:
     path: "{{ home_dir_path.stdout }}/terraform"
     state: absent
+
+
+- name: delete Terraform Zip
+  file:
+    path: "{{ home_dir_path.stdout }}/terraform_1.3.4_linux_amd64.zip"
+    state: absent

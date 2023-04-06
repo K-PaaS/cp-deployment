@@ -515,8 +515,6 @@ spec:
       - name: webhook-cert
         secret:
           secretName: ingress-nginx-admission
-      securityContext:
-        fsGroup: 101
 ---
 apiVersion: batch/v1
 kind: Job

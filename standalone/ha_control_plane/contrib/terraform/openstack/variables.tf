@@ -257,6 +257,12 @@ variable "worker_allowed_ports" {
   ]
 }
 
+variable "bastion_allowed_ports" {
+  type = list(any)
+
+  default = []
+}
+
 variable "use_access_ip" {
   default = 1
 }
@@ -292,6 +298,13 @@ variable "k8s_masters" {
 
 variable "k8s_nodes" {
   default = {}
+}
+
+variable "additional_server_groups" {
+  default = {}
+  type = map(object({
+    policy = string
+  }))
 }
 
 variable "extra_sec_groups" {
