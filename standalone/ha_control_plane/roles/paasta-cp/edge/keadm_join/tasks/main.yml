@@ -27,7 +27,7 @@
   lineinfile:
     path: /etc/kubeedge/config/edgecore.yaml
     insertafter: "tailoredKubeletConfig:"
-    line: "{{ item }}"
+    line: "{{ items }}"
   with_items:
     - "      clusterDomain: cluster.local"
     - "        - {{ cloudcore_vip }}"

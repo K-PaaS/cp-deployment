@@ -12,6 +12,7 @@
   shell: |
     kubectl label nodes {{ cloudcore1_node_hostname }} kubeedge-cloudcore=cloudcore-node
     kubectl label nodes {{ cloudcore2_node_hostname }} kubeedge-cloudcore=cloudcore-node
+  ignore_errors: true
 
 - name: deploy ha cloudcore
   shell: |

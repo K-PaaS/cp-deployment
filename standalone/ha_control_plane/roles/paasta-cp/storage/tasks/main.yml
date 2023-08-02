@@ -27,7 +27,7 @@
   shell: |
     cd {{ home_dir_path.stdout }}/paas-ta-container-platform-deployment/standalone/applications/rook-1.10.3/deploy/examples
     kubectl apply -f crds.yaml -f common.yaml -f operator.yaml
-  when:
+  when: 
     - inventory_hostname == groups['kube_control_plane'][0]
     - storage_type_reg.stdout == "rook-ceph"
 

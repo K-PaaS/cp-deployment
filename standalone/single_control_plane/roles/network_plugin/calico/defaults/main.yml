@@ -51,6 +51,10 @@ calico_bpf_log_level: ""
 # Valid option for service mode: Tunnel (default), DSR=Direct Server Return
 calico_bpf_service_mode: Tunnel
 
+# Calico floatingIPs support
+# Valid option for floatingIPs: Disabled (default), Enabled
+calico_felix_floating_ips: Disabled
+
 # Limits for apps
 calico_node_memory_limit: 500M
 calico_node_cpu_limit: 300m
@@ -108,6 +112,10 @@ calico_wireguard_repo: https://download.copr.fedorainfracloud.org/results/jdoss/
 # calico_ip_auto_method: "interface=eth.*"
 # calico_ip6_auto_method: "interface=eth.*"
 
+# Set FELIX_MTUIFACEPATTERN, Pattern used to discover the host’s interface for MTU auto-detection.
+# see https://projectcalico.docs.tigera.io/reference/felix/configuration
+# calico_felix_mtu_iface_pattern: "^((en|wl|ww|sl|ib)[opsx].*|(eth|wlan|wwan).*)"
+
 calico_baremetal_nodename: "{{ kube_override_hostname | default(inventory_hostname) }}"
 
 kube_etcd_cacert_file: ca.pem
@@ -156,6 +164,5 @@ calico_ipam_maxblocksperhost: 0
 # Calico apiserver (only with kdd)
 calico_apiserver_enabled: false
 
-# Calico feature detect override, set "ChecksumOffloadBroken=true" to
-# solve the https://github.com/projectcalico/calico/issues/3145
+# Calico feature detect override
 calico_feature_detect_override: ""

@@ -1,0 +1,6 @@
+---
+- name: reset kubeedge
+  shell: |
+    keadm reset --force
+    rm -rf /etc/kubeedge
+    rm -rf /etc/apt/keyrings
