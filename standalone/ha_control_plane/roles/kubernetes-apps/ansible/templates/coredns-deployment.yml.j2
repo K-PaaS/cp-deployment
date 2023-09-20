@@ -22,9 +22,11 @@ spec:
       labels:
         k8s-app: kube-dns{{ coredns_ordinal_suffix }}
       annotations:
-        seccomp.security.alpha.kubernetes.io/pod: 'runtime/default'
         createdby: 'kubespray'
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       nodeSelector:
         {{ coredns_deployment_nodeselector }}
       priorityClassName: system-cluster-critical
@@ -63,6 +65,9 @@ spec:
           # guaranteed class. Currently, this container falls into the
           # "burstable" category so the kubelet doesn't backoff from restarting it.
           limits:
+{% if dns_cpu_limit is defined %}
+            cpu: {{ dns_cpu_limit }}
+{% endif %}
             memory: {{ dns_memory_limit }}
           requests:
             cpu: {{ dns_cpu_requests }}

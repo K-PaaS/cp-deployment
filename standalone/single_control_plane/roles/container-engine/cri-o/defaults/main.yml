@@ -10,26 +10,23 @@ crio_pause_image: "{{ pod_infra_image_repo }}:{{ pod_infra_version }}"
 # Registries defined within cri-o.
 # By default unqualified images are not allowed for security reasons
 crio_registries:
+  - insecure: true
+    location: {MASTER_NODE_PUBLIC_IP}:30002
+    unqualified: false
+  - location: docker.io
+    unqualified: true
+  - location: quay.io
+    unqualified: true
 #  - prefix: docker.io
-#    insecure: true
+#    insecure: false
 #    blocked: false
-#    location: {MASTER_NODE_PUBLIC_IP}:30002
+#    location: registry-1.docker.io ## REQUIRED
 #    unqualified: false
 #    mirrors:
 #      - location: 172.20.100.52:5000
 #        insecure: true
 #      - location: mirror.gcr.io
 #        insecure: false
-
-  - insecure: true
-    location: {MASTER_NODE_PUBLIC_IP}:30002
-    unqualified: false
-
-  - location: docker.io
-    unqualified: true
-
-  - location: quay.io
-    unqualified: true
 
 crio_registry_auth: []
 #  - registry: 10.0.0.2:5000
@@ -80,12 +77,8 @@ youki_runtime:
   root: /run/youki
 
 # TODO(cristicalin): remove this after 2.21
-crio_download_base: "download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable"
+crio_download_base: "download.opensuse.org/repositories/devel:kubic:libcontainers:stable"
 crio_download_crio: "http://{{ crio_download_base }}:/cri-o:/"
-
-# Configure the cri-o pids limit, increase this for heavily multi-threaded workloads
-# see https://github.com/cri-o/cri-o/issues/1921
-crio_pids_limit: 1024
 
 # Reserve 16M uids and gids for user namespaces (256 pods * 65536 uids/gids)
 # at the end of the uid/gid space

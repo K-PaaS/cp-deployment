@@ -79,18 +79,22 @@ spec:
           - secret:
               name: hubble-relay-client-certs
               items:
+                - key: ca.crt
+                  path: hubble-server-ca.crt
                 - key: tls.crt
                   path: client.crt
                 - key: tls.key
                   path: client.key
-          - configMap:
-              name: hubble-ca-cert
+          - secret:
+              name: hubble-server-certs
               items:
-                - key: ca.crt
-                  path: hubble-server-ca.crt
+                - key: tls.crt
+                  path: server.crt
+                - key: tls.key
+                  path: server.key
         name: tls
 ---
-# Source: cilium/templates/hubble-ui-deployment.yaml
+# Source: cilium/templates/hubble-ui/deployment.yaml
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -118,8 +122,14 @@ spec:
           image: "{{ cilium_hubble_ui_image_repo }}:{{ cilium_hubble_ui_image_tag }}"
           imagePullPolicy: {{ k8s_image_pull_policy }}
           ports:
-            - containerPort: 8080
+            - containerPort: 8081
               name: http
+          volumeMounts:
+            - name: hubble-ui-nginx-conf
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: nginx.conf
+            - name: tmp-dir
+              mountPath: /tmp
           resources:
             {}
         - name: backend
@@ -128,34 +138,49 @@ spec:
           env:
             - name: EVENTS_SERVER_PORT
               value: "8090"
+            {% if cilium_hubble_tls_generate -%}
+            - name: TLS_TO_RELAY_ENABLED
+              value: "true"
+            - name: FLOWS_API_ADDR
+              value: "hubble-relay:443"
+            - name: TLS_RELAY_SERVER_NAME
+              value: ui.{{ cilium_cluster_name }}.hubble-grpc.cilium.io
+            - name: TLS_RELAY_CA_CERT_FILES
+              value: /var/lib/hubble-ui/certs/hubble-server-ca.crt
+            - name: TLS_RELAY_CLIENT_CERT_FILE
+              value: /var/lib/hubble-ui/certs/client.crt
+            - name: TLS_RELAY_CLIENT_KEY_FILE
+              value: /var/lib/hubble-ui/certs/client.key
+            {% else -%}
             - name: FLOWS_API_ADDR
               value: "hubble-relay:80"
+            {% endif %}
+
+          volumeMounts:
+            - name: tls
+              mountPath: /var/lib/hubble-ui/certs
+              readOnly: true
           ports:
             - containerPort: 8090
               name: grpc
           resources:
             {}
-        - name: proxy
-          image: "{{ cilium_hubble_envoy_image_repo }}:{{ cilium_hubble_envoy_image_tag }}"
-          imagePullPolicy: {{ k8s_image_pull_policy }}
-          ports:
-            - containerPort: 8081
-              name: http
-          resources:
-            {}
-          command: ["envoy"]
-          args:
-            [
-              "-c",
-              "/etc/envoy.yaml",
-              "-l",
-              "info"
-            ]
-          volumeMounts:
-            - name: hubble-ui-envoy-yaml
-              mountPath: /etc/envoy.yaml
-              subPath: envoy.yaml
       volumes:
-        - name: hubble-ui-envoy-yaml
-          configMap:
-            name: hubble-ui-envoy
+        - configMap:
+            defaultMode: 420
+            name: hubble-ui-nginx
+          name: hubble-ui-nginx-conf
+        - projected:
+            sources:
+            - secret:
+                name: hubble-relay-client-certs
+                items:
+                  - key: ca.crt
+                    path: hubble-server-ca.crt
+                  - key: tls.crt
+                    path: client.crt
+                  - key: tls.key
+                    path: client.key
+          name: tls
+        - emptyDir: {}
+          name: tmp-dir

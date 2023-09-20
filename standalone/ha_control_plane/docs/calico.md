@@ -187,7 +187,7 @@ The inventory above will deploy the following topology assuming that calico's
 
 ### Optional : Define default endpoint to host action
 
-By default Calico blocks traffic from endpoints to the host itself by using an iptables DROP action. When using it in kubernetes the action has to be changed to RETURN (default in kubespray) or ACCEPT (see <https://github.com/projectcalico/felix/issues/660> and <https://github.com/projectcalico/calicoctl/issues/1389).> Otherwise all network packets from pods (with hostNetwork=False) to services endpoints (with hostNetwork=True) within the same node are dropped.
+By default Calico blocks traffic from endpoints to the host itself by using an iptables DROP action. When using it in kubernetes the action has to be changed to RETURN (default in kubespray) or ACCEPT (see <https://docs.tigera.io/calico/latest/network-policy/hosts/protect-hosts#control-default-behavior-of-workload-endpoint-to-host-traffic> ) Otherwise all network packets from pods (with hostNetwork=False) to services endpoints (with hostNetwork=True) within the same node are dropped.
 
 To re-define default action please set the following variable in your inventory:
 
@@ -376,12 +376,7 @@ Calico node, typha and kube-controllers need to be able to talk to the kubernete
 
 Kubespray sets up the `kubernetes-services-endpoint` configmap based on the contents of the `loadbalancer_apiserver` inventory variable documented in [HA Mode](/docs/ha-mode.md).
 
-If no external loadbalancer is used, Calico eBPF can also use the localhost loadbalancer option. In this case Calico Automatic Host Endpoints need to be enabled to allow services like `coredns` and `metrics-server` to communicate with the kubernetes host endpoint. See [this blog post](https://www.projectcalico.org/securing-kubernetes-nodes-with-calico-automatic-host-endpoints/) on enabling automatic host endpoints.
-
-```yaml
-loadbalancer_apiserver_localhost: true
-use_localhost_as_kubeapi_loadbalancer: true
-```
+If no external loadbalancer is used, Calico eBPF can also use the localhost loadbalancer option. We are able to do so only if you use the same port for the localhost apiserver loadbalancer and the kube-apiserver. In this case Calico Automatic Host Endpoints need to be enabled to allow services like `coredns` and `metrics-server` to communicate with the kubernetes host endpoint. See [this blog post](https://www.projectcalico.org/securing-kubernetes-nodes-with-calico-automatic-host-endpoints/) on enabling automatic host endpoints.
 
 ### Tunneled versus Direct Server Return
 

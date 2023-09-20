@@ -51,19 +51,19 @@ cat << EOF >> inventory/mycluster/edge-hosts.yaml
 EOF
 done
 
-cat << EOF > roles/paasta-cp/edge/keadm_init/defaults/main.yml
+cat << EOF > roles/cp/edge/keadm_init/defaults/main.yml
 cloudcore1_node_hostname: {CLOUDCORE1_NODE_HOSTNAME}
 cloudcore2_node_hostname: {CLOUDCORE2_NODE_HOSTNAME}
 EOF
 
-cat << EOF > roles/paasta-cp/edge/keadm_join/defaults/main.yml
+cat << EOF > roles/cp/edge/keadm_join/defaults/main.yml
 cloudcore_vip: {CLOUDCORE_VIP}
 EOF
 
-sed -i "s/{CLOUDCORE1_NODE_HOSTNAME}/$CLOUDCORE1_NODE_HOSTNAME/g" roles/paasta-cp/edge/keadm_init/defaults/main.yml
-sed -i "s/{CLOUDCORE2_NODE_HOSTNAME}/$CLOUDCORE2_NODE_HOSTNAME/g" roles/paasta-cp/edge/keadm_init/defaults/main.yml
+sed -i "s/{CLOUDCORE1_NODE_HOSTNAME}/$CLOUDCORE1_NODE_HOSTNAME/g" roles/cp/edge/keadm_init/defaults/main.yml
+sed -i "s/{CLOUDCORE2_NODE_HOSTNAME}/$CLOUDCORE2_NODE_HOSTNAME/g" roles/cp/edge/keadm_init/defaults/main.yml
 
-sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" roles/paasta-cp/edge/keadm_join/defaults/main.yml
+sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" roles/cp/edge/keadm_join/defaults/main.yml
 
 sed -i "s/{MASTER_NODE_HOSTNAME}/$MASTER_NODE_HOSTNAME/g" ../../edge/edgemesh/agent/04-configmap.yaml
 sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" ../../edge/edgemesh/agent/04-configmap.yaml

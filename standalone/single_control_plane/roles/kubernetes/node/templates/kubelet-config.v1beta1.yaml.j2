@@ -1,7 +1,7 @@
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 nodeStatusUpdateFrequency: "{{ kubelet_status_update_frequency }}"
-failSwapOn: {{ kubelet_fail_swap_on|default(true) }}
+failSwapOn: {{ kubelet_fail_swap_on }}
 authentication:
   anonymous:
     enabled: false
@@ -16,7 +16,7 @@ authorization:
   mode: AlwaysAllow
 {% endif %}
 {% if kubelet_enforce_node_allocatable is defined and kubelet_enforce_node_allocatable != "\"\"" %}
-{% set kubelet_enforce_node_allocatable_list = kubelet_enforce_node_allocatable.split() %}
+{% set kubelet_enforce_node_allocatable_list = kubelet_enforce_node_allocatable.split(",") %}
 enforceNodeAllocatable:
 {% for item in kubelet_enforce_node_allocatable_list %}
 - {{ item }}
@@ -140,12 +140,18 @@ eventRecordQPS: {{ kubelet_event_record_qps }}
 {% endif %}
 shutdownGracePeriod: {{ kubelet_shutdown_grace_period }}
 shutdownGracePeriodCriticalPods: {{ kubelet_shutdown_grace_period_critical_pods }}
-{% if not kubelet_fail_swap_on|default(true) %}
+{% if not kubelet_fail_swap_on %}
 memorySwap:
-  swapBehavior: {{ kubelet_swap_behavior|default("LimitedSwap") }}
+  swapBehavior: {{ kubelet_swap_behavior }}
 {% endif %}
 {% if kubelet_streaming_connection_idle_timeout is defined %}
 streamingConnectionIdleTimeout: {{ kubelet_streaming_connection_idle_timeout }}
+{% endif %}
+{% if kubelet_image_gc_high_threshold is defined %}
+imageGCHighThresholdPercent: {{ kubelet_image_gc_high_threshold }}
+{% endif %}
+{% if kubelet_image_gc_low_threshold is defined %}
+imageGCLowThresholdPercent: {{ kubelet_image_gc_low_threshold }}
 {% endif %}
 {% if kubelet_make_iptables_util_chains is defined %}
 makeIPTablesUtilChains: {{ kubelet_make_iptables_util_chains | bool }}

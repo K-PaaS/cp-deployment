@@ -100,7 +100,6 @@ kube_apiserver_admission_control_config_file: true
 
 # data structure to configure EventRateLimit admission plugin
 # this should have the following structure:
-# kube_apiserver_admission_event_rate_limits:
 # <limit_name>:
 #   type: <limit_type>
 #   qps: <qps_value>

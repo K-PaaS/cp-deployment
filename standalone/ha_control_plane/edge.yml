@@ -5,7 +5,7 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/edge/keadm_amd64 }
+    - { role: cp/edge/keadm_amd64 }
 
 - hosts: edge_node
   gather_facts: False
@@ -13,7 +13,7 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/edge/keadm_arm64 }
+    - { role: cp/edge/keadm_arm64 }
 
 - hosts: cloudcore_node
   gather_facts: False
@@ -21,7 +21,7 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/edge/keadm_init }
+    - { role: cp/edge/keadm_init }
 
 - hosts: edge_node
   gather_facts: False
@@ -29,8 +29,8 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/edge/cri_install }
-    - { role: paasta-cp/edge/keadm_join }
+    - { role: cp/edge/cri_install }
+    - { role: cp/edge/keadm_join }
 
 - hosts: edge_node
   gather_facts: False
@@ -38,7 +38,7 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/edge/edgecore }
+    - { role: cp/edge/edgecore }
 
 - hosts: cloudcore_node
   gather_facts: False
@@ -46,7 +46,7 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/edge/edgemesh }
+    - { role: cp/edge/edgemesh }
 
 - hosts: cloudcore_node
   gather_facts: False
@@ -54,7 +54,7 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/cve_cce/amd64 }
+    - { role: cp/cve_cce/amd64 }
 
 - hosts: edge_node
   gather_facts: False
@@ -62,4 +62,4 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/cve_cce/arm64 }
+    - { role: cp/cve_cce/arm64 }

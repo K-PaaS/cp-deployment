@@ -1,0 +1,25 @@
+---
+- name: get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: Check Istio Install
+  become: false
+  shell: ls | grep istio-1.16.0
+  register: istio_dir
+  ignore_errors: true
+
+- name: Istio Install
+  become: false
+  shell: |
+    curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.16.0 TARGET_ARCH=x86_64 sh -
+  when: istio_dir.stdout == ""
+  args:
+    warn: false
+
+- name: Copy istioctl
+  copy:
+    src: "{{ home_dir_path.stdout }}/istio-1.16.0/bin/istioctl"
+    dest: "/usr/bin/istioctl"
+    mode: 0755

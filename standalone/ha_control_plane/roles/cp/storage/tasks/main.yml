@@ -1,0 +1,78 @@
+---
+- name: get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+
+- name: get storage type
+  become: false
+  shell: "echo {{ storage_type }}"
+  register: storage_type_reg
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+
+- name: Deploy nfs-provisioner
+  shell: |
+    kubectl apply -f {{ home_dir_path.stdout }}/cp-deployment/standalone/applications/nfs-provisioner-4.0.0/deployment.yaml
+    kubectl patch storageclass cp-storageclass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "nfs"
+
+- name: Deploy Rook Operator
+  shell: |
+    cd {{ home_dir_path.stdout }}/cp-deployment/standalone/applications/rook-1.10.3/deploy/examples
+    kubectl apply -f crds.yaml -f common.yaml -f operator.yaml
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"
+
+- name: check rook-ceph-operator status
+  shell: |
+    kubectl get pods -n rook-ceph | grep rook-ceph-operator | awk '{print $3}'
+  register: status
+  until: status.stdout == "Running"
+  retries: 20
+  delay: 30
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"
+
+- name: Deploy Rook Cluster
+  shell: |
+    cd {{ home_dir_path.stdout }}/cp-deployment/standalone/applications/rook-1.10.3/deploy/examples
+    kubectl create -f cluster.yaml
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"
+
+- name: check rook-ceph-osd-0 status
+  shell: |
+    kubectl get pods -n rook-ceph | grep rook-ceph-osd-0 | awk '{print $3}'
+  register: status
+  until: status.stdout == "Running"
+  retries: 60
+  delay: 30
+  when: 
+    - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"
+
+- name: Deploy Ceph Toolbox
+  shell: |
+    cd {{ home_dir_path.stdout }}/cp-deployment/standalone/applications/rook-1.10.3/deploy/examples
+    kubectl create -f toolbox.yaml
+  when: 
+    - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"
+
+- name: Deploy Ceph FileSystem, StorageClass
+  shell: |
+    cd {{ home_dir_path.stdout }}/cp-deployment/standalone/applications/rook-1.10.3/deploy/examples
+    kubectl create -f filesystem.yaml
+    kubectl create -f csi/cephfs/storageclass.yaml
+    kubectl patch storageclass cp-storageclass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+  when: 
+    - inventory_hostname == groups['kube_control_plane'][0]
+    - storage_type_reg.stdout == "rook-ceph"

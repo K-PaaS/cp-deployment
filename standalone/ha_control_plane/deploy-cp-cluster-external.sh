@@ -25,9 +25,9 @@ cp roles/kubernetes/control-plane/tasks/kubeadm-setup.yml.ori roles/kubernetes/c
 cp roles/container-engine/cri-o/defaults/main.yml.ori roles/container-engine/cri-o/defaults/main.yml
 cp inventory/mycluster/group_vars/all/all.yml.ori inventory/mycluster/group_vars/all/all.yml
 cp ../applications/vault-1.11.3/payload.json.ori ../applications/vault-1.11.3/payload.json
-cp roles/paasta-cp/vault/defaults/main.yml.ori roles/paasta-cp/vault/defaults/main.yml
+cp roles/cp/vault/defaults/main.yml.ori roles/cp/vault/defaults/main.yml
 cp ../applications/nfs-provisioner-4.0.0/deployment.yaml.ori ../applications/nfs-provisioner-4.0.0/deployment.yaml
-cp roles/paasta-cp/storage/defaults/main.yml.ori roles/paasta-cp/storage/defaults/main.yml
+cp roles/cp/storage/defaults/main.yml.ori roles/cp/storage/defaults/main.yml
 
 for ((i=0;i<$WORKER_NODE_CNT;i++))
   do
@@ -77,11 +77,11 @@ sed -i "s/{ETCD3_NODE_PRIVATE_IP}/$ETCD3_NODE_PRIVATE_IP/g" inventory/mycluster/
 
 sed -i "s@{BOUND_CIDRS}@$ARRAY_BOUND_CIDRS@g" ../applications/vault-1.11.3/payload.json
 
-sed -i "s/{MASTER1_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" roles/paasta-cp/vault/defaults/main.yml
+sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" roles/cp/vault/defaults/main.yml
 
 sed -i "s/{NFS_SERVER_PRIVATE_IP}/$NFS_SERVER_PRIVATE_IP/g" ../applications/nfs-provisioner-4.0.0/deployment.yaml
 
-sed -i "s/{STORAGE_TYPE}/$STORAGE_TYPE/g" roles/paasta-cp/storage/defaults/main.yml
+sed -i "s/{STORAGE_TYPE}/$STORAGE_TYPE/g" roles/cp/storage/defaults/main.yml
 
 declare -a IPS=($MASTER1_NODE_PRIVATE_IP $MASTER2_NODE_PRIVATE_IP $MASTER3_NODE_PRIVATE_IP $ETCD1_NODE_PRIVATE_IP $ETCD2_NODE_PRIVATE_IP $ETCD3_NODE_PRIVATE_IP $ARRAY_WORKER_NODE_IP)
 CONFIG_FILE=inventory/mycluster/hosts.yaml python3 contrib/inventory_builder/inventory.py ${IPS[@]}

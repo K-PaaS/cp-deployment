@@ -1,0 +1,9 @@
+---
+- name: get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: Deploy Ingress Nginx Controller
+  shell: |
+    kubectl apply -f {{ home_dir_path.stdout }}/cp-deployment/standalone/applications/ingress-nginx-1.4.0/deploy.yaml

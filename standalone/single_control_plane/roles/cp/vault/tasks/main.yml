@@ -1,0 +1,102 @@
+---
+- name: get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: create k8sadmin service account
+  shell: |
+    kubectl create sa k8sadmin -n kube-system
+    kubectl create clusterrolebinding k8sadmin --clusterrole=cluster-admin --serviceaccount=kube-system:k8sadmin
+
+- name: get k8sadmin token
+  shell: |
+    kubectl create token k8sadmin --duration=999999h -n kube-system
+  register: cluster_token
+
+- name: install jq
+  shell: |
+    apt update && apt install -y jq
+
+- name: install vault
+  shell: |
+    kubectl create namespace vault
+    helm repo add hashicorp https://helm.releases.hashicorp.com
+    helm install vault hashicorp/vault --namespace vault --version 0.22.0 -f {{ home_dir_path.stdout }}/cp-deployment/standalone/applications/vault-1.11.3/values.yaml
+
+- name: check vault-0 status
+  shell: |
+    kubectl get pods -n vault | grep vault-0 | awk '{print $3}'
+  register: status
+  until: status.stdout == "Running"
+  retries: 20
+  delay: 30
+
+- name: Init Vault
+  shell: |
+    curl --request POST --data '{"secret_shares": 1, "secret_threshold": 1}' http://{{ master_node_public_ip }}:31654/v1/sys/init | jq >> unseal_key
+
+- name: Unseal Key Var
+  shell: |
+    echo $(cat unseal_key | jq -r .keys_base64[0])
+  register: unseal_key
+
+- name: Vault Token Var
+  shell: |
+    echo $(cat unseal_key | jq -r .root_token)
+  register: vault_token
+
+- name: delete unseal_key file
+  file:
+    path: "unseal_key"
+    state: absent
+
+- name: Unseal Vault
+  shell: |
+    curl --request POST --data '{"key": "{{ unseal_key.stdout }}"}' http://{{ master_node_public_ip }}:31654/v1/sys/unseal | jq
+
+- name: Enable AppRole
+  shell: |
+    curl --header "X-Vault-Token: {{ vault_token.stdout  }}" --request POST --data '{"type": "approle"}' http://{{ master_node_public_ip }}:31654/v1/sys/auth/approle
+
+- name: Create Secret Root Path
+  shell: |
+    curl --header "X-Vault-Token: {{ vault_token.stdout  }}" --request POST --data '{"type": "kv-v2", "options": {    "version": "2" }}' http://{{ master_node_public_ip }}:31654/v1/sys/mounts/secret
+
+- name: Create Secret
+  shell: |
+    curl --header "X-Vault-Token: {{ vault_token.stdout  }}" --request POST --data '{"data":{"clusterApiUrl":"https://{{ master_node_public_ip }}:6443", "clusterId":"host-cluster", "clusterToken":"{{ cluster_token.stdout }}"}}' http://{{ master_node_public_ip }}:31654/v1/secret/data/cluster/host-cluster
+
+- name: Create Policy
+  shell: |
+    curl --header "X-Vault-Token: {{ vault_token.stdout  }}" --request POST --data '{"policy":"path \"secret/*\" { capabilities = [\"create\", \"update\", \"delete\", \"read\"] } "}' http://{{ master_node_public_ip }}:31654/v1/sys/policy/cp_policy
+
+- name: Connect Role, Policy
+  shell: |
+    curl --header "X-Vault-Token: {{ vault_token.stdout  }}" --request POST --data @{{ home_dir_path.stdout }}/cp-deployment/standalone/applications/vault-1.11.3/payload.json http://{{ master_node_public_ip }}:31654/v1/auth/approle/role/cp_role
+
+- name: mkdir env & create cp-vault-vars
+  become: false
+  shell: |
+    mkdir -p {{ home_dir_path.stdout }}/.env
+    echo \#\!\/bin\/bash > {{ home_dir_path.stdout }}/.env/cp-vault-vars.sh
+
+- name: Save Role ID
+  shell: |
+    curl --header "X-Vault-Token: {{ vault_token.stdout  }}" http://{{ master_node_public_ip }}:31654/v1/auth/approle/role/cp_role/role-id | jq -r ".data.role_id"
+  register: role_id
+
+- name: add role_id var
+  become: false
+  shell: |
+    echo VAULT_ROLE_ID=\"{{ role_id.stdout }}\" >> {{ home_dir_path.stdout }}/.env/cp-vault-vars.sh
+
+- name: Save Secret ID
+  shell: |
+    curl --header "X-Vault-Token: {{ vault_token.stdout  }}" --request POST http://{{ master_node_public_ip }}:31654/v1/auth/approle/role/cp_role/secret-id | jq -r ".data.secret_id"
+  register: secret_id
+
+- name: Secret ID var
+  become: false
+  shell: |
+    echo VAULT_SECRET_ID=\"{{ secret_id.stdout }}\" >> {{ home_dir_path.stdout }}/.env/cp-vault-vars.sh
