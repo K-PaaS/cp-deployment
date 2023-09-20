@@ -7,7 +7,7 @@ bootstrapTokens:
   ttl: "24h"
 {% endif %}
 localAPIEndpoint:
-  advertiseAddress: {{ ip | default(fallback_ips[inventory_hostname]) }}
+  advertiseAddress: {{ kube_apiserver_address }}
   bindPort: {{ kube_apiserver_port }}
 {% if kubeadm_certificate_key is defined %}
 certificateKey: {{ kubeadm_certificate_key }}
@@ -351,6 +351,7 @@ scheduler:
 {% if kube_scheduler_feature_gates or kube_feature_gates %}
     feature-gates: "{{ kube_scheduler_feature_gates | default(kube_feature_gates, true) | join(',') }}"
 {% endif %}
+    profiling: "{{ kube_profiling }}"
 {% if kube_kubeadm_scheduler_extra_args|length > 0 %}
 {% for key in kube_kubeadm_scheduler_extra_args %}
     {{ key }}: "{{ kube_kubeadm_scheduler_extra_args[key] }}"
@@ -417,7 +418,6 @@ mode: {{ kube_proxy_mode }}
 nodePortAddresses: {{ kube_proxy_nodeport_addresses }}
 oomScoreAdj: {{ kube_proxy_oom_score_adj }}
 portRange: {{ kube_proxy_port_range }}
-udpIdleTimeout: {{ kube_proxy_udp_idle_timeout }}
 {% if kube_proxy_feature_gates or kube_feature_gates %}
 {% set feature_gates = ( kube_proxy_feature_gates | default(kube_feature_gates, true) ) %}
 featureGates:

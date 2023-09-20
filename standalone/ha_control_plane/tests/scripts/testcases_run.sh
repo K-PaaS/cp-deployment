@@ -47,7 +47,15 @@ if [[ "$CI_JOB_NAME" =~ "ubuntu" ]]; then
   CI_TEST_ADDITIONAL_VARS="-e ansible_python_interpreter=/usr/bin/python3"
 fi
 
+ENABLE_020_TEST="true"
+ENABLE_030_TEST="true"
 ENABLE_040_TEST="true"
+if [[ "$CI_JOB_NAME" =~ "macvlan" ]]; then
+  ENABLE_020_TEST="false"
+  ENABLE_030_TEST="false"
+  ENABLE_040_TEST="false"
+fi
+
 if [[ "$CI_JOB_NAME" =~ "hardening" ]]; then
   # TODO: We need to remove this condition by finding alternative container
   # image instead of netchecker which doesn't work at hardening environments.
@@ -57,9 +65,9 @@ fi
 # Check out latest tag if testing upgrade
 test "${UPGRADE_TEST}" != "false" && git fetch --all && git checkout "$KUBESPRAY_VERSION"
 # Checkout the CI vars file so it is available
-test "${UPGRADE_TEST}" != "false" && git checkout "${CI_BUILD_REF}" tests/files/${CI_JOB_NAME}.yml
-test "${UPGRADE_TEST}" != "false" && git checkout "${CI_BUILD_REF}" ${CI_TEST_REGISTRY_MIRROR}
-test "${UPGRADE_TEST}" != "false" && git checkout "${CI_BUILD_REF}" ${CI_TEST_SETTING}
+test "${UPGRADE_TEST}" != "false" && git checkout "${CI_COMMIT_SHA}" tests/files/${CI_JOB_NAME}.yml
+test "${UPGRADE_TEST}" != "false" && git checkout "${CI_COMMIT_SHA}" ${CI_TEST_REGISTRY_MIRROR}
+test "${UPGRADE_TEST}" != "false" && git checkout "${CI_COMMIT_SHA}" ${CI_TEST_SETTING}
 
 # Create cluster
 ansible-playbook ${ANSIBLE_LOG_LEVEL} -e @${CI_TEST_SETTING} -e @${CI_TEST_REGISTRY_MIRROR} -e @${CI_TEST_VARS} -e local_release_dir=${PWD}/downloads --limit "all:!fake_hosts" cluster.yml
@@ -68,7 +76,7 @@ ansible-playbook ${ANSIBLE_LOG_LEVEL} -e @${CI_TEST_SETTING} -e @${CI_TEST_REGIS
 if [ "${UPGRADE_TEST}" != "false" ]; then
   test "${UPGRADE_TEST}" == "basic" && PLAYBOOK="cluster.yml"
   test "${UPGRADE_TEST}" == "graceful" && PLAYBOOK="upgrade-cluster.yml"
-  git checkout "${CI_BUILD_REF}"
+  git checkout "${CI_COMMIT_SHA}"
   ansible-playbook ${ANSIBLE_LOG_LEVEL} -e @${CI_TEST_SETTING} -e @${CI_TEST_REGISTRY_MIRROR} -e @${CI_TEST_VARS} -e local_release_dir=${PWD}/downloads --limit "all:!fake_hosts" $PLAYBOOK
 fi
 
@@ -76,6 +84,39 @@ fi
 if [ "${RECOVER_CONTROL_PLANE_TEST}" != "false" ]; then
   ansible-playbook ${ANSIBLE_LOG_LEVEL} -e @${CI_TEST_SETTING} -e @${CI_TEST_REGISTRY_MIRROR} -e @${CI_TEST_VARS} -e local_release_dir=${PWD}/downloads --limit "${RECOVER_CONTROL_PLANE_TEST_GROUPS}:!fake_hosts" -e reset_confirmation=yes reset.yml
   ansible-playbook ${ANSIBLE_LOG_LEVEL} -e @${CI_TEST_SETTING} -e @${CI_TEST_REGISTRY_MIRROR} -e @${CI_TEST_VARS} -e local_release_dir=${PWD}/downloads -e etcd_retries=10 --limit etcd,kube_control_plane:!fake_hosts recover-control-plane.yml
+fi
+
+# Test collection build and install by installing our collection, emptying our repository, adding
+# cluster.yml, reset.yml, and remote-node.yml files that simply point to our collection's playbooks, and then
+# running the same tests as before
+if [[ "${CI_JOB_NAME}" =~ "collection" ]]; then
+  # Build and install collection
+  ansible-galaxy collection build
+  ansible-galaxy collection install kubernetes_sigs-kubespray-$(grep "^version:" galaxy.yml | awk '{print $2}').tar.gz
+
+  # Simply remove all of our files and directories except for our tests directory
+  # to be absolutely certain that none of our playbooks or roles
+  # are interfering with our collection
+  find -maxdepth 1 ! -name tests -exec rm -rfv {} \;
+
+  # Write cluster.yml
+cat > cluster.yml <<EOF
+- name: Install Kubernetes
+  ansible.builtin.import_playbook: kubernetes_sigs.kubespray.cluster
+EOF
+
+  # Write reset.yml
+cat > reset.yml <<EOF
+- name: Remove Kubernetes
+  ansible.builtin.import_playbook: kubernetes_sigs.kubespray.reset
+EOF
+
+  # Write remove-node.yml
+cat > remove-node.yml <<EOF
+- name: Remove node from Kubernetes
+  ansible.builtin.import_playbook: kubernetes_sigs.kubespray.remote-node
+EOF
+
 fi
 
 # Tests Cases
@@ -86,10 +127,14 @@ ansible-playbook --limit "all:!fake_hosts" -e @${CI_TEST_VARS} ${CI_TEST_ADDITIO
 ansible-playbook --limit "all:!fake_hosts" -e @${CI_TEST_VARS} ${CI_TEST_ADDITIONAL_VARS} tests/testcases/015_check-nodes-ready.yml $ANSIBLE_LOG_LEVEL
 
 ## Test that all pods are Running
+if [ "${ENABLE_020_TEST}" = "true" ]; then
 ansible-playbook --limit "all:!fake_hosts" -e @${CI_TEST_VARS} ${CI_TEST_ADDITIONAL_VARS} tests/testcases/020_check-pods-running.yml $ANSIBLE_LOG_LEVEL
+fi
 
 ## Test pod creation and ping between them
+if [ "${ENABLE_030_TEST}" = "true" ]; then
 ansible-playbook --limit "all:!fake_hosts" -e @${CI_TEST_VARS} ${CI_TEST_ADDITIONAL_VARS} tests/testcases/030_check-network.yml $ANSIBLE_LOG_LEVEL
+fi
 
 ## Advanced DNS checks
 if [ "${ENABLE_040_TEST}" = "true" ]; then

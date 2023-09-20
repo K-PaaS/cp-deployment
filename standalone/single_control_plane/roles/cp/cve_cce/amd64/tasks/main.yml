@@ -1,0 +1,19 @@
+---
+- name: get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: copy security.bin
+  copy:
+    src: "{{ home_dir_path.stdout }}/cp-deployment/standalone/security.bin"
+    dest: "security.bin"
+    mode: 0755
+
+- name: run security.bin
+  shell: "./security.bin"
+
+- name: delete security.bin
+  file:
+    path: "security.bin"
+    state: absent

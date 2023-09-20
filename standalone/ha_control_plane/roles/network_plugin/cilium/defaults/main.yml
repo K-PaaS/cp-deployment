@@ -45,8 +45,8 @@ cilium_enable_prometheus: false
 cilium_enable_portmap: false
 # Monitor aggregation level (none/low/medium/maximum)
 cilium_monitor_aggregation: medium
-# Kube Proxy Replacement mode (strict/probe/partial)
-cilium_kube_proxy_replacement: probe
+# Kube Proxy Replacement mode (strict/partial)
+cilium_kube_proxy_replacement: partial
 
 # If upgrading from Cilium < 1.5, you may want to override some of these options
 # to prevent service disruptions. See also:
@@ -152,9 +152,28 @@ cilium_hubble_install: false
 ### Enable auto generate certs if cilium_hubble_install: true
 cilium_hubble_tls_generate: false
 
-# IP address management mode for v1.9+.
-# https://docs.cilium.io/en/v1.9/concepts/networking/ipam/
-cilium_ipam_mode: kubernetes
+# The default IP address management mode is "Cluster Scope".
+# https://docs.cilium.io/en/stable/concepts/networking/ipam/
+cilium_ipam_mode: cluster-pool
+
+# Cluster Pod CIDRs use the kube_pods_subnet value by default.
+# If your node network is in the same range you will lose connectivity to other nodes.
+# Defaults to kube_pods_subnet if not set.
+# cilium_pool_cidr: 10.233.64.0/18
+
+# When cilium_enable_ipv6 is used, you need to set the IPV6 value.  Defaults to kube_pods_subnet_ipv6 if not set.
+# cilium_pool_cidr_ipv6: fd85:ee78:d8a6:8607::1:0000/112
+
+# When cilium IPAM uses the "Cluster Scope" mode, it will pre-allocate a segment of IP to each node,
+# schedule the Pod to this node, and then allocate IP from here. cilium_pool_mask_size Specifies
+# the size allocated from cluster Pod CIDR to node.ipam.podCIDRs
+# Defaults to kube_network_node_prefix if not set.
+# cilium_pool_mask_size: "24"
+
+# cilium_pool_mask_size Specifies the size allocated to node.ipam.podCIDRs from cluster Pod IPV6 CIDR
+# Defaults to kube_network_node_prefix_ipv6 if not set.
+# cilium_pool_mask_size_ipv6: "120"
+
 
 # Extra arguments for the Cilium agent
 cilium_agent_custom_args: []
@@ -254,3 +273,20 @@ cilium_rolling_restart_wait_retries_delay_seconds: 10
 cilium_agent_scrape_port: "{{ cilium_version | regex_replace('v') is version('1.12', '>=') | ternary('9962', '9090') }}"
 cilium_operator_scrape_port: "{{ cilium_version | regex_replace('v') is version('1.12', '>=') | ternary('9963', '6942') }}"
 cilium_hubble_scrape_port: "{{ cilium_version | regex_replace('v') is version('1.12', '>=') | ternary('9965', '9091') }}"
+
+# Cilium certgen args for generate certificate for hubble mTLS
+cilium_certgen_args:
+  cilium-namespace: kube-system
+  ca-reuse-secret: true
+  ca-secret-name: hubble-ca-secret
+  ca-generate: true
+  ca-validity-duration: 94608000s
+  hubble-server-cert-generate: true
+  hubble-server-cert-common-name: '*.{{ cilium_cluster_name }}.hubble-grpc.cilium.io'
+  hubble-server-cert-validity-duration: 94608000s
+  hubble-server-cert-secret-name: hubble-server-certs
+  hubble-relay-client-cert-generate: true
+  hubble-relay-client-cert-common-name: '*.{{ cilium_cluster_name }}.hubble-grpc.cilium.io'
+  hubble-relay-client-cert-validity-duration: 94608000s
+  hubble-relay-client-cert-secret-name: hubble-relay-client-certs
+  hubble-relay-server-cert-generate: false

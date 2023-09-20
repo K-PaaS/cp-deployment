@@ -5,7 +5,7 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/edge/reset }
+    - { role: cp/edge/reset }
 
 - hosts: edge_node
   gather_facts: False
@@ -13,4 +13,4 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: paasta-cp/edge/reset }
+    - { role: cp/edge/reset }

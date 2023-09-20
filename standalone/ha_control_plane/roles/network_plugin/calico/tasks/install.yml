@@ -157,6 +157,9 @@
         kubectl: "{{ bin_dir }}/kubectl"
         filename: "{{ kube_config_dir }}/kdd-crds.yml"
         state: "latest"
+      register: kubectl_result
+      until: kubectl_result is succeeded
+      retries: 5
       when:
         - inventory_hostname == groups['kube_control_plane'][0]
   when:
@@ -440,6 +443,7 @@
 - name: Wait for calico kubeconfig to be created
   wait_for:
     path: /etc/cni/net.d/calico-kubeconfig
+    timeout: "{{ calico_kubeconfig_wait_timeout }}"
   when:
     - inventory_hostname not in groups['kube_control_plane']
     - calico_datastore == "kdd"

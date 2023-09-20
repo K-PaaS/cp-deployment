@@ -3,18 +3,18 @@
 - import_tasks: 0010-swapoff.yml
   when:
     - not dns_late
-    - disable_swap
+    - kubelet_fail_swap_on
 
-- import_tasks: 0020-verify-settings.yml
+- import_tasks: 0020-set_facts.yml
+  tags:
+    - resolvconf
+    - facts
+
+- import_tasks: 0040-verify-settings.yml
   when:
     - not dns_late
   tags:
     - asserts
-
-- import_tasks: 0040-set_facts.yml
-  tags:
-    - resolvconf
-    - facts
 
 - import_tasks: 0050-create_directories.yml
   when:
@@ -74,8 +74,6 @@
     - bootstrap-os
 
 - import_tasks: 0090-etchosts.yml
-  when:
-    - not dns_late
   tags:
     - bootstrap-os
     - etchosts

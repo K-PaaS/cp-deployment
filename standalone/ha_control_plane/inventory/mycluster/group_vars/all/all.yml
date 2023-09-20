@@ -15,7 +15,6 @@ bin_dir: /usr/local/bin
 # loadbalancer_apiserver:
 #   address: 1.2.3.4
 #   port: 1234
-
 apiserver_loadbalancer_domain_name: "{LOADBALANCER_DOMAIN}"
 loadbalancer_apiserver:
   port: 6443
@@ -24,11 +23,6 @@ loadbalancer_apiserver:
 loadbalancer_apiserver_localhost: false
 # valid options are "nginx" or "haproxy"
 # loadbalancer_apiserver_type: nginx  # valid values "nginx" or "haproxy"
-
-## If the cilium is going to be used in strict mode, we can use the
-## localhost connection and not use the external LB. If this parameter is
-## not specified, the first node to connect to kubeapi will be used.
-# use_localhost_as_kubeapi_loadbalancer: true
 
 ## Local loadbalancer should use this port
 ## And must be set port 6443
@@ -142,6 +136,9 @@ ntp_servers:
 
 ## Used to control no_log attribute
 unsafe_show_logs: false
+
+## If enabled it will allow kubespray to attempt setup even if the distribution is not supported. For unsupported distributions this can lead to unexpected failures in some cases.
+allow_unsupported_distribution_setup: false
 
 etcd_access_addresses: https://{ETCD1_NODE_PRIVATE_IP}:2379,https://{ETCD2_NODE_PRIVATE_IP}:2379,https://{ETCD3_NODE_PRIVATE_IP}:2379
 etcd_client_url: https://{ETCD1_NODE_PRIVATE_IP}:2379,https://{ETCD2_NODE_PRIVATE_IP}:2379,https://{ETCD3_NODE_PRIVATE_IP}:2379
