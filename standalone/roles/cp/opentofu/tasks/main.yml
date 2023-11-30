@@ -1,0 +1,11 @@
+---
+- name: Get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: Copy tofu
+  copy:
+    src: "{{ home_dir_path.stdout }}/cp-deployment/applications/opentofu-1.6.0-alpha5/tofu"
+    dest: "/usr/bin/tofu"
+    mode: "0755"

@@ -1,2 +1,0 @@
-- name: Approve CSR Resource
-  shell: kubectl certificate approve $(kubectl get csr | grep Pending | awk '{print $1}')

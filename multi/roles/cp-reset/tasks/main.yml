@@ -1,0 +1,17 @@
+---
+- name: Get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: Chmod reset file
+  become: false
+  file:
+    path: "{{ home_dir_path.stdout }}/cp-deployment/standalone/reset-cp-cluster.sh"
+    mode: "0755"
+
+- name: Reset container platform
+  become: false
+  shell: |
+    cd {{ home_dir_path.stdout }}/cp-deployment/standalone
+    ./reset-cp-cluster.sh

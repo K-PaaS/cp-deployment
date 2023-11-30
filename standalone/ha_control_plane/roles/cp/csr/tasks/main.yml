@@ -1,4 +1,0 @@
-- name: Approve CSR Resource
-  shell: kubectl certificate approve $(kubectl get csr | grep Pending | awk '{print $1}')
-  when:
-    - inventory_hostname == groups['kube_control_plane'][0]

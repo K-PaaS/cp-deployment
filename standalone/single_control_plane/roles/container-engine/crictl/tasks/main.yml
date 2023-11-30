@@ -1,3 +1,0 @@
----
-- name: install crictl
-  include_tasks: crictl.yml

@@ -1,1 +1,0 @@
-../Storage-Configuration/ceph-teardown.md

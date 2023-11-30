@@ -1,4 +1,0 @@
-nav:
-    - ceph-object-store-crd.md
-    - ceph-object-store-user-crd.md
-    - ...

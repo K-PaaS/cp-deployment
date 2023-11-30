@@ -1,0 +1,15 @@
+---
+- name: Download helm apt key
+  shell: curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null
+
+- name: Install apt-transport-https package
+  apt:
+    name: apt-transport-https
+
+- name: Add helm apt repo
+  shell: echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+
+- name: Install helm
+  apt:
+    name: helm
+    update_cache: yes
