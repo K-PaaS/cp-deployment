@@ -1,4 +1,0 @@
----
-- name: Merge kubeconfig
-  become: false
-  shell: KUBECONFIG={{ lookup('env', 'HOME') }}/.kube/config1:{{ lookup('env', 'HOME') }}/.kube/config2 kubectl config view --flatten > {{ lookup('env', 'HOME') }}/.kube/config

@@ -1,4 +1,0 @@
----
-- name: Add iptalb prerouting
-  shell: |
-    iptables -t nat -I PREROUTING -d {{ istio_eastwest_private_ip }} -j DNAT --to-destination {{ istio_eastwest_public_ip }}
