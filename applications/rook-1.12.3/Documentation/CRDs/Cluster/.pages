@@ -1,8 +1,0 @@
-title: Cluster Configuration
-nav:
-    - ceph-cluster-crd.md
-    - host-cluster.md
-    - pvc-cluster.md
-    - stretch-cluster.md
-    - external-cluster.md
-    - ...

@@ -1,8 +1,0 @@
-nav:
-    - Getting-Started
-    - Helm-Charts
-    - Storage-Configuration
-    - CRDs
-    - Troubleshooting
-    - Upgrade
-    - Contributing
