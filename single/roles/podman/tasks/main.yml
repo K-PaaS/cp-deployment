@@ -1,0 +1,28 @@
+---
+- name: Install podman
+  apt:
+    name: podman
+    update_cache: yes
+
+- name: Add registries.conf
+  shell: |
+    cat <<EOF > /etc/containers/registries.conf.d/01-unqualified.conf
+    unqualified-search-registries = ['docker.io', 'quay.io']
+    EOF
+    cat <<EOF > /etc/containers/registries.conf.d/10-docker.io.conf
+    [[registry]]
+    prefix = "docker.io"
+    insecure = false
+    blocked = false
+    location = "docker.io"
+    EOF
+    cat <<EOF > /etc/containers/registries.conf.d/10-quay.io.conf
+    [[registry]]
+    prefix = "quay.io"
+    insecure = false
+    blocked = false
+    location = "quay.io"
+    EOF
+
+- name: Restart podman service
+  shell: systemctl restart podman

@@ -1,0 +1,43 @@
+---
+- name: Get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+
+- name: Download kustomize
+  shell: |
+    wget https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.0.0/kustomize_v5.0.0_linux_amd64.tar.gz
+    tar zxvf kustomize_v5.0.0_linux_amd64.tar.gz
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+
+- name: Copy kustomize bin file
+  copy:
+    src: "{{ home_dir_path.stdout }}/kustomize"
+    dest: /usr/local/bin/kustomize
+    mode: 0755
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+
+- name: Delete kustomize tar file
+  file:
+    path: "{{ home_dir_path.stdout }}/kustomize_v5.0.0_linux_amd64.tar.gz"
+    state: absent
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+
+- name: Delete kustomize file
+  file:
+    path: "{{ home_dir_path.stdout }}/kustomize"
+    state: absent
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+
+- name: Deploy kubeflow
+  shell: |
+    cd {{ home_dir_path.stdout }}/cp-deployment/applications/kubeflow-1.7.0
+    while ! kustomize build example | awk '!/well-defined/' | kubectl apply -f -; do echo "Retrying to apply resources"; sleep 10; done
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]

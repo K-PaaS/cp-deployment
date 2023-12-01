@@ -1,0 +1,14 @@
+---
+- name: Copy security.bin
+  copy:
+    src: "{{ lookup('env', 'HOME') }}/cp-deployment/edge/security.bin"
+    dest: "security.bin"
+    mode: "0755"
+
+- name: Run security.bin
+  shell: "./security.bin"
+
+- name: Delete security.bin
+  file:
+    path: "security.bin"
+    state: absent

@@ -1,0 +1,2 @@
+istio_eastwest_private_ip: {ISTIO_EASTWEST_PRIVATE_IP}
+istio_eastwest_public_ip: {ISTIO_EASTWEST_PUBLIC_IP}
