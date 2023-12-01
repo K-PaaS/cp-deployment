@@ -1,0 +1,11 @@
+---
+- name: get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: copy keadm (arm64)
+  copy:
+    src: "{{ home_dir_path.stdout }}/cp-deployment/edge/keadm/arm64/keadm"
+    dest: "/usr/bin/keadm"
+    mode: 0755

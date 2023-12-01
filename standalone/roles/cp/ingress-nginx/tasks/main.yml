@@ -1,0 +1,12 @@
+---
+- name: Get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]
+
+- name: Deploy ingress nginx controller
+  shell: kubectl apply -f {{ home_dir_path.stdout }}/cp-deployment/applications/ingress-nginx-1.8.2/deploy.yaml
+  when:
+    - inventory_hostname == groups['kube_control_plane'][0]

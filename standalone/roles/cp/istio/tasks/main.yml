@@ -1,0 +1,11 @@
+---
+- name: Get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: Copy istioctl
+  copy:
+    src: "{{ home_dir_path.stdout }}/cp-deployment/applications/istio-1.19.0/bin/istioctl"
+    dest: "/usr/bin/istioctl"
+    mode: 0755

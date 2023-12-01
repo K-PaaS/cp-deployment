@@ -1,0 +1,14 @@
+[all]
+
+[kube_control_plane]
+
+[etcd]
+
+[kube_node]
+
+[calico_rr]
+
+[k8s_cluster:children]
+kube_control_plane
+kube_node
+calico_rr
