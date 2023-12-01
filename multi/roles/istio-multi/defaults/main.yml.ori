@@ -1,0 +1,6 @@
+cluster1_ingress_nginx_private_ip: {CLUSTER1_INGRESS_NGINX_PRIVATE_IP}
+cluster1_istio_ingress_private_ip: {CLUSTER1_ISTIO_INGRESS_PRIVATE_IP}
+cluster1_istio_eastwest_private_ip: {CLUSTER1_ISTIO_EASTWEST_PRIVATE_IP}
+cluster2_ingress_nginx_private_ip: {CLUSTER2_INGRESS_NGINX_PRIVATE_IP}
+cluster2_istio_ingress_private_ip: {CLUSTER2_ISTIO_INGRESS_PRIVATE_IP}
+cluster2_istio_eastwest_private_ip: {CLUSTER2_ISTIO_EASTWEST_PRIVATE_IP}

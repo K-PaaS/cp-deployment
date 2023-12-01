@@ -1,0 +1,12 @@
+---
+- name: Cleanup etcd backups
+  command: /bin/true
+  notify:
+    - Remove old etcd backups
+
+- name: Remove old etcd backups
+  shell:
+    chdir: "{{ etcd_backup_prefix }}"
+    cmd: "set -o pipefail && find . -name 'etcd-*' -type d | sort -n | head -n -{{ etcd_backup_retention_count }} | xargs rm -rf"
+    executable: /bin/bash
+  when: etcd_backup_retention_count >= 0

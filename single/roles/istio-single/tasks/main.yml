@@ -1,0 +1,6 @@
+---
+- name: Patch loadbalancer svc external ip
+  become: false
+  shell: |
+    kubectl patch svc ingress-nginx-controller -p '{"spec":{"loadBalancerIP":"{{ ingress_nginx_private_ip }}"}}' -n ingress-nginx
+  ignore_errors: yes

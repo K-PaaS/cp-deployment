@@ -1,0 +1,17 @@
+---
+- name: Get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
+- name: Deployment shell permissions
+  become: false
+  file:
+    path: "{{ home_dir_path.stdout }}/cp-deployment/standalone/deploy-cp-cluster.sh"
+    mode: "0744"
+
+- name: Run container platform deployment
+  become: false
+  shell: |
+    cd {{ home_dir_path.stdout }}/cp-deployment/standalone
+    ./deploy-cp-cluster.sh > {{ home_dir_path.stdout }}/cp-deployment/standalone/deploy-result.log

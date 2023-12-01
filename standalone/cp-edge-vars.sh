@@ -1,0 +1,12 @@
+#!/bin/bash
+
+export CLOUDCORE_VIP=
+
+export CLOUDCORE1_NODE_HOSTNAME=
+export CLOUDCORE2_NODE_HOSTNAME=
+
+export EDGE_HOSTS=
+
+export EDGE1_NODE_HOSTNAME=
+export EDGE1_NODE_PRIVATE_IP=
+
