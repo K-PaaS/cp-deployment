@@ -42,7 +42,7 @@
     <td colspan=2><a href="https://github.com/K-PaaS/ap-on-demand-redis-release">Redis</a></td>
   </tr>
   <tr align=center>
-    <td colspan=2><a href="https://github.com/K-PaaS/cp-metrics-api">Terraman API</a></td>
+    <td colspan=2><a href="https://github.com/K-PaaS/cp-terraman">Terraman API</a></td>
     <td colspan=2>  </td>
     <td colspan=2><a href="https://github.com/K-PaaS/ap-source-control-release">SoureceControl</a></td>
   </tr>
