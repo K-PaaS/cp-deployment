@@ -1,5 +1,3 @@
-# K-PaaS 컨테이너 플랫폼
-
 ## Related Repositories
 
 <table>
