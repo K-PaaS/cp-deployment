@@ -2,7 +2,7 @@
 - name: Check kube-apiserver
   become: false
   shell: |
-    echo $(kubectl get pods -n kube-system | grep kube-apiserver | awk '{ print $3 }')
+    echo $(kubectl get pods -n kube-system | grep kube-apiserver | awk 'NR==1 { print $3 }')
   register: kube_status
   until: kube_status.stdout == "Running"
   retries: 15
