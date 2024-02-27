@@ -19,7 +19,7 @@ spec:
         kubeedge: cloudcore
     spec:
       nodeSelector: # configure the nodeSelector here to directly schedule pods to specific nodes
-        kubeedge-cloudcore: cloudcore-node
+        cloudcore: enable
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -38,7 +38,7 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
         - name: cloudcore
-          image: kubeedge/cloudcore:v1.12.0
+          image: kubeedge/cloudcore:v1.14.4
           imagePullPolicy: IfNotPresent
           securityContext:
             privileged: true
@@ -88,35 +88,31 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: cloudcore-svc
+  name: cloudcore
   namespace: kubeedge
 spec:
   selector:
     kubeedge: cloudcore
-  type: NodePort
+  type: LoadBalancer
+  loadBalancerIP: {CLOUDCORE_PRIVATE_VIP}
   ports:
   - name: cloudhub
     port: 10000
     protocol: TCP
     targetPort: 10000
-    nodePort: 30000
   - name: cloudhub-quic
     port: 10001
     protocol: TCP
     targetPort: 10001
-    nodePort: 30001
   - name: cloudhub-https
     port: 10002
     protocol: TCP
     targetPort: 10002
-    nodePort: 30002
   - name: cloudstream
     port: 10003
     protocol: TCP
     targetPort: 10003
-    nodePort: 30003
   - name: tunnelport
     port: 10004
     protocol: TCP
     targetPort: 10004
-    nodePort: 30004

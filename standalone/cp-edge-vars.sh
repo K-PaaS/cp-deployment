@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export CLOUDCORE_PRIVATE_VIP=
 export CLOUDCORE_VIP=
 
 export CLOUDCORE1_NODE_HOSTNAME=

@@ -4,6 +4,11 @@
   shell: "echo $HOME"
   register: home_dir_path
 
+- name: unarchive keadm
+  shell: |
+    cd {{ home_dir_path.stdout }}/cp-deployment/edge/keadm/arm64/
+    tar zcvf keadm.tar.gz
+
 - name: copy keadm (arm64)
   copy:
     src: "{{ home_dir_path.stdout }}/cp-deployment/edge/keadm/arm64/keadm"
