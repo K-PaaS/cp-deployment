@@ -29,7 +29,7 @@ parameters:
   # If omitted, default volume mounter will be used - this is determined by probing for ceph-fuse
   # or by setting the default mounter explicitly via --volumemounter command-line argument.
   # mounter: kernel
-reclaimPolicy: Delete
+reclaimPolicy: Retain
 allowVolumeExpansion: true
 mountOptions:
   # uncomment the following line for debugging

@@ -18,6 +18,7 @@ containerd_runc_runtime:
   base_runtime_spec: cri-base.json
   options:
     systemdCgroup: "{{ containerd_use_systemd_cgroup | ternary('true', 'false') }}"
+    binaryName: "{{ bin_dir }}/runc"
 
 containerd_additional_runtimes: []
 # Example for Kata Containers as additional runtime:
@@ -46,9 +47,6 @@ containerd_debug_level: "info"
 containerd_metrics_address: ""
 
 containerd_metrics_grpc_histogram: false
-
-containerd_registries:
-  "docker.io": "https://registry-1.docker.io"
 
 containerd_registries_mirrors:
   - prefix: docker.io
@@ -104,3 +102,6 @@ containerd_supported_distributions:
   - "UnionTech"
   - "UniontechOS"
   - "openEuler"
+
+# Enable container device interface
+enable_cdi: false

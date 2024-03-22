@@ -9,7 +9,7 @@
 - name: Download kustomize
   shell: |
     wget https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.0.0/kustomize_v5.0.0_linux_amd64.tar.gz
-    tar zxvf kustomize_v5.0.0_linux_amd64.tar.gz
+    tar zxf kustomize_v5.0.0_linux_amd64.tar.gz
   when:
     - inventory_hostname == groups['kube_control_plane'][0]
 
@@ -37,7 +37,7 @@
 
 - name: Deploy kubeflow
   shell: |
-    cd {{ home_dir_path.stdout }}/cp-deployment/applications/kubeflow-1.7.0
+    cd {{ home_dir_path.stdout }}/cp-deployment/applications/kubeflow-
     while ! kustomize build example | awk '!/well-defined/' | kubectl apply -f -; do echo "Retrying to apply resources"; sleep 10; done
   when:
     - inventory_hostname == groups['kube_control_plane'][0]

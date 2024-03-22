@@ -10,8 +10,8 @@
 
 - name: add cloudcore node label
   shell: |
-    kubectl label nodes {{ cloudcore1_node_hostname }} kubeedge-cloudcore=cloudcore-node
-    kubectl label nodes {{ cloudcore2_node_hostname }} kubeedge-cloudcore=cloudcore-node
+    kubectl label nodes {{ cloudcore1_node_hostname }} cloudcore=enable
+    kubectl label nodes {{ cloudcore2_node_hostname }} cloudcore=enable
   ignore_errors: true
 
 - name: deploy ha cloudcore
@@ -31,6 +31,19 @@
   shell: |
     kubectl apply -f https://raw.githubusercontent.com/kubeedge/kubeedge/master/build/crds/router/router_v1_ruleEndpoint.yaml
     kubectl apply -f https://raw.githubusercontent.com/kubeedge/kubeedge/master/build/crds/router/router_v1_rule.yaml
-    kubectl apply -f https://raw.githubusercontent.com/kubeedge/kubeedge/master/build/crds/apps/apps_v1alpha1_edgeapplication.yaml
-    kubectl apply -f https://raw.githubusercontent.com/kubeedge/kubeedge/master/build/crds/apps/apps_v1alpha1_nodegroup.yaml
-    kubectl apply -f https://raw.githubusercontent.com/kubeedge/kubeedge/master/build/crds/operations/operations_v1alpha1_nodeupgradejob.yaml
+
+- name: add cloudcore svc external ip
+  shell: |
+    cat << EOF | kubectl apply -f -
+    apiVersion: metallb.io/v1beta1
+    kind: IPAddressPool
+    metadata:
+      name: cloudcore
+      namespace: metallb-system
+    spec:
+      addresses:
+      - {{ cloudcore_private_vip }}/32
+      autoAssign: false
+    EOF
+
+    kubectl rollout restart daemonset speaker -n metallb-system

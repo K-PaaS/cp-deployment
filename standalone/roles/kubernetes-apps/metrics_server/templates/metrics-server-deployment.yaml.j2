@@ -24,6 +24,16 @@ spec:
         app.kubernetes.io/name: metrics-server
         version: {{ metrics_server_version }}
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - "{{ master_node_hostname }}"
+
       priorityClassName: system-cluster-critical
       serviceAccountName: metrics-server
       hostNetwork: {{ metrics_server_host_network | default(false) }}
@@ -32,7 +42,6 @@ spec:
         image: {{ metrics_server_image_repo }}:{{ metrics_server_image_tag }}
         imagePullPolicy: {{ k8s_image_pull_policy }}
         args:
-        - --logtostderr
         - --cert-dir=/tmp
         - --secure-port={{ metrics_server_container_port }}
 {% if metrics_server_kubelet_preferred_address_types %}
@@ -89,8 +98,6 @@ spec:
 {% if not masters_are_not_tainted or metrics_server_extra_tolerations is defined %}
       tolerations:
 {% if not masters_are_not_tainted %}
-        - key: node-role.kubernetes.io/master
-          effect: NoSchedule
         - key: node-role.kubernetes.io/control-plane
           effect: NoSchedule
 {% endif %}
@@ -99,14 +106,6 @@ spec:
 {% endif %}
 {% endif %}
       affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                - "{{ master_node_hostname }}"
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100

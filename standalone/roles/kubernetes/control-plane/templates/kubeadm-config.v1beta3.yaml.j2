@@ -19,8 +19,6 @@ nodeRegistration:
 {% if inventory_hostname in groups['kube_control_plane'] and inventory_hostname not in groups['kube_node'] %}
   taints:
   - effect: NoSchedule
-    key: node-role.kubernetes.io/master
-  - effect: NoSchedule
     key: node-role.kubernetes.io/control-plane
 {% else %}
   taints: []
@@ -116,6 +114,9 @@ certificatesDir: {{ kube_cert_dir }}
 imageRepository: {{ kube_image_repo }}
 apiServer:
   extraArgs:
+{% if kube_apiserver_etcd_compaction_interval is defined %}
+    etcd-compaction-interval: "{{ kube_apiserver_etcd_compaction_interval }}"
+{% endif %}
 {% if kube_apiserver_pod_eviction_not_ready_timeout_seconds is defined %}
     default-not-ready-toleration-seconds: "{{ kube_apiserver_pod_eviction_not_ready_timeout_seconds }}"
 {% endif %}
@@ -294,11 +295,15 @@ controllerManager:
     cluster-cidr: "{{ kube_pods_subnet }}{{ ',' + kube_pods_subnet_ipv6 if enable_dual_stack_networks else '' }}"
 {% endif %}
     service-cluster-ip-range: "{{ kube_service_addresses }}{{ ',' + kube_service_addresses_ipv6 if enable_dual_stack_networks else '' }}"
+{% if kube_network_plugin is defined and kube_network_plugin == "calico" and not calico_ipam_host_local %}
+    allocate-node-cidrs: "false"
+{% else %}
 {% if enable_dual_stack_networks %}
     node-cidr-mask-size-ipv4: "{{ kube_network_node_prefix }}"
     node-cidr-mask-size-ipv6: "{{ kube_network_node_prefix_ipv6 }}"
 {% else %}
     node-cidr-mask-size: "{{ kube_network_node_prefix }}"
+{% endif %}
 {% endif %}
     profiling: "{{ kube_profiling }}"
     terminated-pod-gc-threshold: "{{ kube_controller_terminated_pod_gc_threshold }}"

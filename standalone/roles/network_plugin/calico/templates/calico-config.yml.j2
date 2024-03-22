@@ -36,12 +36,6 @@ data:
           {% if calico_datastore == "kdd" %}
             "datastore_type": "kubernetes",
             "nodename": "__KUBERNETES_NODE_NAME__",
-          {% else %}
-          {% if cloud_provider is defined %}
-            "nodename": "{{ calico_kubelet_name.stdout }}",
-            {% else %}
-            "nodename": "{{ calico_baremetal_nodename }}",
-          {% endif %}
           {% endif %}
             "type": "calico",
             "log_level": "info",
@@ -54,7 +48,7 @@ data:
             "etcd_key_file": "{{ calico_cert_dir }}/key.pem",
             "etcd_ca_cert_file": "{{ calico_cert_dir }}/ca_cert.crt",
           {% endif %}
-          {% if calico_ipam_host_local is defined %}
+          {% if calico_ipam_host_local %}
             "ipam": {
               "type": "host-local",
               "subnet": "usePodCidr"

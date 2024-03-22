@@ -57,7 +57,7 @@ loadbalancer_apiserver_healthcheck_port: 8081
 # https_proxy: ""
 # https_proxy_cert_file: ""
 
-## Refer to roles/kubespray-defaults/defaults/main.yml before modifying no_proxy
+## Refer to roles/kubespray-defaults/defaults/main/main.yml before modifying no_proxy
 # no_proxy: ""
 
 ## Some problems may occur when downloading files over https proxy due to ansible bug
@@ -137,5 +137,4 @@ unsafe_show_logs: false
 
 ## If enabled it will allow kubespray to attempt setup even if the distribution is not supported. For unsupported distributions this can lead to unexpected failures in some cases.
 allow_unsupported_distribution_setup: false
-
 ## HA Control Plane

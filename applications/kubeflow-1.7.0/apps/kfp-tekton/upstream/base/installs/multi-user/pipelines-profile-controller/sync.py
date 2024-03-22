@@ -218,12 +218,9 @@ def server_factory(visualization_server_image,
                         "trafficPolicy": {
                             "tls": {
                                 "mode": "ISTIO_MUTUAL"
-                            },
-                            "loadBalancer": {
-                                "simple": "RANDOM"
-                            },
-                        },
-                    },
+                            }
+                        }
+                    }
                 },
                 {
                     "apiVersion": "security.istio.io/v1beta1",

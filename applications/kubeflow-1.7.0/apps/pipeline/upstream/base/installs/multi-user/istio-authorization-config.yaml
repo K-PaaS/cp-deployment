@@ -82,6 +82,7 @@ spec:
       mode: ISTIO_MUTUAL
     loadBalancer:
       simple: RANDOM
+
 ---
 apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
@@ -94,6 +95,7 @@ spec:
       mode: ISTIO_MUTUAL
     loadBalancer:
       simple: RANDOM
+
 ---
 apiVersion: "networking.istio.io/v1alpha3"
 kind: DestinationRule
@@ -106,3 +108,4 @@ spec:
       mode: ISTIO_MUTUAL
     loadBalancer:
       simple: RANDOM
+

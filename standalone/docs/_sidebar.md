@@ -13,6 +13,7 @@
 * CNI
   * [Calico](docs/calico.md)
   * [Flannel](docs/flannel.md)
+  * [Cilium](docs/cilium.md)
   * [Kube Router](docs/kube-router.md)
   * [Kube OVN](docs/kube-ovn.md)
   * [Weave](docs/weave.md)
@@ -29,7 +30,6 @@
   * [Equinix Metal](/docs/equinix-metal.md)
   * [vSphere](/docs/vsphere.md)
 * [Operating Systems](docs/bootstrap-os.md)
-  * [Debian](docs/debian.md)
   * [Flatcar Container Linux](docs/flatcar.md)
   * [Fedora CoreOS](docs/fcos.md)
   * [OpenSUSE](docs/opensuse.md)

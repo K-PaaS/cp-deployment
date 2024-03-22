@@ -148,10 +148,10 @@ for ((x=0;x<2;x++))
     fi
 
     if [ "$METALLB_IP_RANGE" == "" ]; then
-      echo "METALLB_IP_RANGE is empty. Enter a variable."
+      echo "Cluster${y} METALLB_IP_RANGE is empty. Enter a variable."
       result=2
     elif [[ ! "$METALLB_IP_RANGE" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      echo "METALLB_IP_RANGE is not a value in IP format. Enter a IP format variable."
+      echo "Cluster${y} METALLB_IP_RANGE is not a value in IP format. Enter a IP format variable."
       result=2
     fi
 
@@ -160,10 +160,10 @@ for ((x=0;x<2;x++))
     fi
 
     if [ "$INGRESS_NGINX_PRIVATE_IP" == "" ]; then
-      echo "INGRESS_NGINX_PRIVATE_IP is empty. Enter a variable."
+      echo "Cluster${y} INGRESS_NGINX_PRIVATE_IP is empty. Enter a variable."
       result=2
     elif [[ ! "$INGRESS_NGINX_PRIVATE_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      echo "INGRESS_NGINX_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
+      echo "Cluster${y} INGRESS_NGINX_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
       result=2
     fi
 
@@ -172,10 +172,10 @@ for ((x=0;x<2;x++))
     fi
 
     if [ "$ISTIO_INGRESS_PRIVATE_IP" == "" ]; then
-      echo "ISTIO_INGRESS_PRIVATE_IP is empty. Enter a variable."
+      echo "Cluster${y} ISTIO_INGRESS_PRIVATE_IP is empty. Enter a variable."
       result=2
     elif [[ ! "$ISTIO_INGRESS_PRIVATE_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      echo "ISTIO_INGRESS_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
+      echo "Cluster${y} ISTIO_INGRESS_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
       result=2
     fi
 
@@ -184,10 +184,10 @@ for ((x=0;x<2;x++))
     fi
 
     if [ "$ISTIO_EASTWEST_PRIVATE_IP" == "" ]; then
-      echo "ISTIO_EASTWEST_PRIVATE_IP is empty. Enter a variable."
+      echo "Cluster${y} ISTIO_EASTWEST_PRIVATE_IP is empty. Enter a variable."
       result=2
     elif [[ ! "$ISTIO_EASTWEST_PRIVATE_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      echo "ISTIO_EASTWEST_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
+      echo "Cluster${y} ISTIO_EASTWEST_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
       result=2
     fi
 
@@ -196,10 +196,10 @@ for ((x=0;x<2;x++))
     fi
 
     if [ "$ISTIO_EASTWEST_PUBLIC_IP" == "" ]; then
-      echo "ISTIO_EASTWEST_PUBLIC_IP is empty. Enter a variable."
+      echo "Cluster${y} ISTIO_EASTWEST_PUBLIC_IP is empty. Enter a variable."
       result=2
     elif [[ ! "$ISTIO_EASTWEST_PUBLIC_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      echo "ISTIO_EASTWEST_PUBLIC_IP is not a value in IP format. Enter a IP format variable."
+      echo "Cluster${y} ISTIO_EASTWEST_PUBLIC_IP is not a value in IP format. Enter a IP format variable."
       result=2
     fi
 

@@ -15,6 +15,9 @@ kube_apiserver_node_port_range: "30000-32767"
 # ETCD backend for k8s data
 kube_apiserver_storage_backend: etcd3
 
+# The interval of compaction requests. If 0, the compaction request from apiserver is disabled.
+kube_apiserver_etcd_compaction_interval: "5m0s"
+
 # CIS 1.2.26
 # Validate that the service account token
 # in the request is actually present in etcd.
@@ -46,7 +49,7 @@ kubernetes_audit: false
 # path to audit log file
 audit_log_path: /var/log/audit/kube-apiserver-audit.log
 # num days
-audit_log_maxage: 7
+audit_log_maxage: 30
 # the num of audit logs to retain
 audit_log_maxbackups: 10
 # the max size in MB to retain
@@ -89,14 +92,10 @@ kube_apiserver_pod_eviction_not_ready_timeout_seconds: "300"
 kube_apiserver_pod_eviction_unreachable_timeout_seconds: "300"
 
 # 1.10+ admission plugins
-kube_apiserver_enable_admission_plugins:
-  - AlwaysPullImages
-  - NodeRestriction
-  - PodSecurity
-  - EventRateLimit
+kube_apiserver_enable_admission_plugins: []
 
 # enable admission plugins configuration
-kube_apiserver_admission_control_config_file: true
+kube_apiserver_admission_control_config_file: false
 
 # data structure to configure EventRateLimit admission plugin
 # this should have the following structure:
@@ -106,19 +105,10 @@ kube_apiserver_admission_control_config_file: true
 #   qps: <qps_value>
 #   burst: <burst_value>
 #   cache_size: <cache_size_value>
-kube_apiserver_admission_event_rate_limits:
-  limit_1:
-    type: Namespace
-    qps: 50
-    burst: 100
-    cache_size: 2000
-  limit_2:
-    type: User
-    qps: 10
-    burst: 50
+kube_apiserver_admission_event_rate_limits: {}
 
-kube_pod_security_use_default: true
-kube_pod_security_default_enforce: privileged
+kube_pod_security_use_default: false
+kube_pod_security_default_enforce: baseline
 kube_pod_security_default_enforce_version: "{{ kube_major_version }}"
 kube_pod_security_default_audit: restricted
 kube_pod_security_default_audit_version: "{{ kube_major_version }}"
@@ -128,16 +118,6 @@ kube_pod_security_exemptions_usernames: []
 kube_pod_security_exemptions_runtime_class_names: []
 kube_pod_security_exemptions_namespaces:
   - kube-system
-  - rook-ceph
-  - auth
-  - cert-manager
-  - istio-system
-  - knative-eventing
-  - knative-serving
-  - kubeflow
-  - kubeflow-user-example-com
-  - kubeedge
-  - cp-pipeline
 
 # 1.10+ list of disabled admission plugins
 kube_apiserver_disable_admission_plugins: []
@@ -161,6 +141,8 @@ kube_webhook_token_auth_url_skip_tls_verify: false
 kube_webhook_authorization: false
 kube_webhook_authorization_url_skip_tls_verify: false
 
+# Default podnodeselector
+kube_apiserver_admission_plugins_podnodeselector_default_node_selector: ""
 
 ## Variables for OpenID Connect Configuration https://kubernetes.io/docs/admin/authentication/
 ## To use OpenID you have to deploy additional an OpenID Provider (e.g Dex, Keycloak, ...)
@@ -195,10 +177,10 @@ apiserver_extra_volumes: {}
 controller_manager_extra_volumes: {}
 
 ## Encrypting Secret Data at Rest
-kube_encrypt_secret_data: true
+kube_encrypt_secret_data: false
 kube_encrypt_token: "{{ lookup('password', credentials_dir + '/kube_encrypt_token.creds length=32 chars=ascii_letters,digits') }}"
 # Must be either: aescbc, secretbox or aesgcm
-kube_encryption_algorithm: "aescbc"
+kube_encryption_algorithm: "secretbox"
 # Which kubernetes resources to encrypt
 kube_encryption_resources: [secrets]
 
@@ -245,9 +227,11 @@ event_ttl_duration: "1h0m0s"
 ## Automatically renew K8S control plane certificates on first Monday of each month
 auto_renew_certificates: false
 # First Monday of each month
-auto_renew_certificates_systemd_calendar: "{{ 'Mon *-*-1,2,3,4,5,6,7 03:' ~
-  groups['kube_control_plane'].index(inventory_hostname) ~ '0:00' }}"
+auto_renew_certificates_systemd_calendar: "Mon *-*-1,2,3,4,5,6,7 03:00:00"
 # kubeadm renews all the certificates during control plane upgrade.
 # If we have requirement like without renewing certs upgrade the cluster,
 # we can opt out from the default behavior by setting kubeadm_upgrade_auto_cert_renewal to false
 kubeadm_upgrade_auto_cert_renewal: true
+
+# Bash alias of kubectl to interact with Kubernetes cluster much easier
+# kubectl_alias: k

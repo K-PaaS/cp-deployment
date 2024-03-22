@@ -10,9 +10,7 @@ metallb_controller_nodeselector:
   kubernetes.io/os: "linux"
 metallb_speaker_tolerations:
   - effect: NoSchedule
-    key: node-role.kubernetes.io/master
-    operator: Exists
-  - effect: NoSchedule
     key: node-role.kubernetes.io/control-plane
     operator: Exists
 metallb_controller_tolerations: []
+metallb_loadbalancer_class: ""

@@ -43,6 +43,11 @@ spec:
           ports:
             - name: grpc
               containerPort: 4245
+{% if cilium_enable_prometheus %}
+            - name: prometheus
+              containerPort: 9966
+              protocol: TCP
+{% endif %}
           readinessProbe:
             tcpSocket:
               port: grpc
@@ -60,7 +65,8 @@ spec:
           - mountPath: /var/lib/hubble-relay/tls
             name: tls
             readOnly: true
-          {% endif %}
+          {%- endif %}
+
       restartPolicy: Always
       serviceAccount: hubble-relay
       serviceAccountName: hubble-relay
@@ -96,7 +102,8 @@ spec:
                 - key: tls.key
                   path: server.key
         name: tls
-      {% endif %}
+      {%- endif %}
+
 ---
 # Source: cilium/templates/hubble-ui/deployment.yaml
 kind: Deployment

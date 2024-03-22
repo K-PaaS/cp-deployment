@@ -15,6 +15,12 @@ if [ "$CLOUDCORE_VIP" == "" ]; then
 elif [[ ! "$CLOUDCORE_VIP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo "CLOUDCORE_VIP is not a value in IP format. Enter a IP format variable."
   result=2
+elif [ "$CLOUDCORE_PRIVATE_VIP" == "" ]; then
+  echo "CLOUDCORE_PRIVATE_VIP is empty. Enter a variable."
+  result=2
+elif [[ ! "$CLOUDCORE_PRIVATE_VIP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "CLOUDCORE_PRIVATE_VIP is not a value in IP format. Enter a IP format variable."
+  result=2
 elif [ "$CLOUDCORE1_NODE_HOSTNAME" == "" ]; then
   echo "  is empty. Enter a variable."
   result=2
@@ -108,23 +114,21 @@ EOF
 done
 
 cat << EOF > roles/cp/edge/keadm_init/defaults/main.yml
-cloudcore1_node_hostname: {CLOUDCORE1_NODE_HOSTNAME}
-cloudcore2_node_hostname: {CLOUDCORE2_NODE_HOSTNAME}
+cloudcore1_node_hostname: $CLOUDCORE1_NODE_HOSTNAME
+cloudcore2_node_hostname: $CLOUDCORE2_NODE_HOSTNAME
+cloudcore_private_vip: $CLOUDCORE_PRIVATE_VIP
 EOF
 
 cat << EOF > roles/cp/edge/keadm_join/defaults/main.yml
-cloudcore_vip: {CLOUDCORE_VIP}
+cloudcore_vip: $CLOUDCORE_VIP
 EOF
-
-sed -i "s/{CLOUDCORE1_NODE_HOSTNAME}/$CLOUDCORE1_NODE_HOSTNAME/g" roles/cp/edge/keadm_init/defaults/main.yml
-sed -i "s/{CLOUDCORE2_NODE_HOSTNAME}/$CLOUDCORE2_NODE_HOSTNAME/g" roles/cp/edge/keadm_init/defaults/main.yml
-
-sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" roles/cp/edge/keadm_join/defaults/main.yml
 
 sed -i "s/{MASTER_NODE_HOSTNAME}/$MASTER1_NODE_HOSTNAME/g" ../edge/edgemesh/agent/04-configmap.yaml
 sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" ../edge/edgemesh/agent/04-configmap.yaml
 
 sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" ../edge/ha-cloudcore/02-ha-configmap.yaml
+
+sed -i "s/{CLOUDCORE_PRIVATE_VIP}/$CLOUDCORE_PRIVATE_VIP/g" ../edge/ha-cloudcore/03-ha-deployment.yaml
 
 # Deploy Container Platform Edge
 ansible-playbook -i inventory/mycluster/edge-hosts.yaml  --become --become-user=root playbooks/edge.yml

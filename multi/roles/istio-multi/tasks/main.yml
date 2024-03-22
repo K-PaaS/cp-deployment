@@ -7,7 +7,7 @@
 
 - name: Unarchive step
   shell: |
-    tar zxvf {{ lookup('env', 'HOME') }}/step.tar.gz
+    tar zxf {{ lookup('env', 'HOME') }}/step.tar.gz
     mv step_0.24.4/bin/step /usr/local/bin
     chmod +x /usr/local/bin/step
 

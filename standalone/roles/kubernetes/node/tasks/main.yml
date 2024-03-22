@@ -3,6 +3,7 @@
   import_tasks: facts.yml
   tags:
     - facts
+    - kubelet
 
 - name: Pre-upgrade kubelet
   import_tasks: pre_upgrade.yml
@@ -67,11 +68,16 @@
   changed_when: false
   check_mode: no
 
+# TODO: Remove once upstream issue is fixed
+# https://github.com/ansible-collections/community.general/issues/7717
 - name: Verify br_netfilter module path exists
   file:
-    path: /etc/modules-load.d
+    path: "{{ item }}"
     state: directory
     mode: 0755
+  loop:
+    - /etc/modules-load.d
+    - /etc/modprobe.d
 
 - name: Enable br_netfilter module
   community.general.modprobe:
@@ -111,39 +117,23 @@
   community.general.modprobe:
     name: "{{ item }}"
     state: present
-  with_items:
-    - ip_vs
-    - ip_vs_rr
-    - ip_vs_wrr
-    - ip_vs_sh
+    persistent: present
+  loop: "{{ kube_proxy_ipvs_modules }}"
   when: kube_proxy_mode == 'ipvs'
   tags:
     - kube-proxy
 
-- name: Modprobe nf_conntrack_ipv4
+- name: Modprobe conntrack module
   community.general.modprobe:
-    name: nf_conntrack_ipv4
+    name: "{{ item }}"
     state: present
-  register: modprobe_nf_conntrack_ipv4
+    persistent: present
+  register: modprobe_conntrack_module
   ignore_errors: true  # noqa ignore-errors
+  loop: "{{ conntrack_modules }}"
   when:
     - kube_proxy_mode == 'ipvs'
-  tags:
-    - kube-proxy
-
-- name: Persist ip_vs modules
-  copy:
-    dest: /etc/modules-load.d/kube_proxy-ipvs.conf
-    mode: 0644
-    content: |
-      ip_vs
-      ip_vs_rr
-      ip_vs_wrr
-      ip_vs_sh
-      {% if modprobe_nf_conntrack_ipv4 is success -%}
-      nf_conntrack_ipv4
-      {%-   endif -%}
-  when: kube_proxy_mode == 'ipvs'
+    - "(modprobe_conntrack_module|default({'rc': 1})).rc != 0"  # loop until first success
   tags:
     - kube-proxy
 

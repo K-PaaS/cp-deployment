@@ -26,17 +26,11 @@ spec:
         prometheus.io/port: "{{ calico_felix_prometheusmetricsport }}"
 {% endif %}
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: node-role.kubernetes.io/edge
-                operator: DoesNotExist
       nodeSelector:
         {{ calico_ds_nodeselector }}
       priorityClassName: system-node-critical
       hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       serviceAccountName: calico-node
       tolerations:
       - operator: Exists
@@ -102,6 +96,13 @@ spec:
             # Prevents the container from sleeping forever.
             - name: SLEEP
               value: "false"
+{% if calico_datastore == "etcd" %}
+            - name: ETCD_ENDPOINTS
+              valueFrom:
+                configMapKeyRef:
+                  name: calico-config
+                  key: etcd_endpoints
+{% endif %}
 {% if calico_datastore == "kdd" %}
             # Set the hostname based on the k8s node name.
             - name: KUBERNETES_NODE_NAME

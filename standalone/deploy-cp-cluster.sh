@@ -178,7 +178,7 @@ if [[ ! "$CHK_MULTI" == "" ]]; then
     echo "ISTIO_INGRESS_PRIVATE_IP is not a value in Ip format. Enter a IP format variable."
     result=2
   fi
-  
+
   if [ "$result" == 2 ]; then
     return $result
   fi
@@ -194,18 +194,6 @@ if [[ ! "$CHK_MULTI" == "" ]]; then
   if [ "$result" == 2 ]; then
     return $result
   fi
-fi
-
-if [ "$INGRESS_NGINX_PUBLIC_IP" == "" ]; then
-  echo "INGRESS_NGINX_PUBLIC_IP is empty. Enter a variable."
-  result=2
-elif [[ ! "$INGRESS_NGINX_PUBLIC_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "INGRESS_NGINX_PUBLIC_IP is not a value in IP format. Enter a IP format variable."
-  result=2
-fi
-
-if [ "$result" == 2 ]; then
-  return $result
 fi
 
 if [[ ! "$CHK_MULTI" == "" ]]; then
@@ -311,7 +299,12 @@ for ((i=0;i<$KUBE_WORKER_HOSTS;i++))
 done
 
 sed -i "s/{MASTER1_NODE_HOSTNAME}/$MASTER1_NODE_HOSTNAME/g" roles/kubernetes-apps/metrics_server/defaults/main.yml
-sed -i "s/{MASTER1_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" roles/kubernetes/control-plane/tasks/kubeadm-setup.yml
+
+if [ "$KUBE_CONTROL_HOSTS" -eq 1 ]; then
+  sed -i "s/{MASTER1_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" roles/kubernetes/control-plane/tasks/kubeadm-setup.yml
+elif [ "$KUBE_CONTROL_HOSTS" -gt 1 ]; then
+  sed -i "s/{MASTER1_NODE_PUBLIC_IP}/$LOADBALANCER_DOMAIN/g" roles/kubernetes/control-plane/tasks/kubeadm-setup.yml
+fi
 
 if [ "$KUBE_CONTROL_HOSTS" -gt 1 ]; then
   ETCD_URL="";
@@ -320,7 +313,7 @@ if [ "$KUBE_CONTROL_HOSTS" -gt 1 ]; then
   for ((i=0;i<$KUBE_CONTROL_HOSTS;i++))
     do
       j=$((i+1));
-      
+
       if [ "${j}" -eq 1 ]; then
         ETCD_URL="https://{ETCD${j}_NODE_PRIVATE_IP}:2379";
         ETCD_IPS="  - \"{ETCD${j}_NODE_PRIVATE_IP}\"";
@@ -343,7 +336,7 @@ if [ "$KUBE_CONTROL_HOSTS" -gt 1 ]; then
       if [ "$ETCD_TYPE" == "external" ]; then
         sed -i "s/{ETCD${j}_NODE_PRIVATE_IP}/$etcd_node_private_ip/g" inventory/mycluster/group_vars/all/all.yml
       elif [ "$ETCD_TYPE" == "stacked" ]; then
-	sed -i "s/{ETCD${j}_NODE_PRIVATE_IP}/$master_node_private_ip/g" inventory/mycluster/group_vars/all/all.yml
+        sed -i "s/{ETCD${j}_NODE_PRIVATE_IP}/$master_node_private_ip/g" inventory/mycluster/group_vars/all/all.yml
       fi
   done
 fi
@@ -354,8 +347,8 @@ sed -i "s/{NFS_SERVER_PRIVATE_IP}/$NFS_SERVER_PRIVATE_IP/g" ../applications/nfs-
 sed -i "s/{STORAGE_TYPE}/$STORAGE_TYPE/g" roles/cp/storage/defaults/main.yml
 
 if [[ ! "$CHK_MULTI" == "" ]]; then
-  find inventory/mycluster/group_vars/k8s_cluster/addons.yml -exec sed -i -r -e "/# Address Pool List/a\    istio-ingress:\n      ip_range:\n        - $ISTIO_INGRESS_PRIVATE_IP\/32\n      auto_assign: false\n    istio-eastwest:\n      ip_range:\n        - $ISTIO_EASTWEST_PRIVATE_IP\/32\n      auto_assign: false" {} \;;
-  find inventory/mycluster/group_vars/k8s_cluster/addons.yml -exec sed -i -r -e "/- ingress-nginx/a\    - istio-ingress\n    - istio-eastwest" {} \;;
+  find inventory/mycluster/group_vars/k8s_cluster/addons.yml -exec sed -i -r -e "/#     pool1:/i\    istio-ingress:\n      ip_range:\n        - $ISTIO_INGRESS_PRIVATE_IP\/32\n      auto_assign: false\n    istio-eastwest:\n      ip_range:\n        - $ISTIO_EASTWEST_PRIVATE_IP\/32\n      auto_assign: false" {} \;;
+  find inventory/mycluster/group_vars/k8s_cluster/addons.yml -exec sed -i -r -e "/    - ingress-nginx/a\    - istio-ingress\n    - istio-eastwest" {} \;;
 fi
 
 if [[ ! "$CHK_MULTI" == "" ]]; then

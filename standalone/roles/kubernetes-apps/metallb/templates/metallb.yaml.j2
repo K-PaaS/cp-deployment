@@ -1505,14 +1505,6 @@ rules:
   - create
   - patch
 - apiGroups:
-  - policy
-  resourceNames:
-  - controller
-  resources:
-  - podsecuritypolicies
-  verbs:
-  - use
-- apiGroups:
   - admissionregistration.k8s.io
   resourceNames:
   - metallb-webhook-configuration
@@ -1597,14 +1589,6 @@ rules:
   verbs:
   - create
   - patch
-- apiGroups:
-  - policy
-  resourceNames:
-  - speaker
-  resources:
-  - podsecuritypolicies
-  verbs:
-  - use
 {% endif %}
 
 ---
@@ -1724,6 +1708,9 @@ spec:
       - args:
         - --port={{ metallb_port }}
         - --log-level={{ metallb_log_level }}
+{% if metallb_loadbalancer_class != "" %}
+        - --lb-class={{ metallb_loadbalancer_class }}
+{% endif %}
         env:
         - name: METALLB_ML_SECRET_NAME
           value: memberlist
@@ -1810,17 +1797,13 @@ spec:
         app: metallb
         component: speaker
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: node-role.kubernetes.io/edge
-                operator: DoesNotExist
       containers:
       - args:
         - --port={{ metallb_port }}
         - --log-level={{ metallb_log_level }}
+{% if metallb_loadbalancer_class != "" %}
+        - --lb-class={{ metallb_loadbalancer_class }}
+{% endif %}
         env:
         - name: METALLB_NODE_NAME
           valueFrom:

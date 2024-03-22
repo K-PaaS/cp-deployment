@@ -54,6 +54,11 @@ kube_apiserver_enable_admission_plugins:
   - PodNodeSelector
   - PodSecurity
 kube_apiserver_admission_control_config_file: true
+# Creates config file for PodNodeSelector
+# kube_apiserver_admission_plugins_needs_configuration: [PodNodeSelector]
+# Define the default node selector, by default all the workloads will be scheduled on nodes
+# with label network=srv1
+# kube_apiserver_admission_plugins_podnodeselector_default_node_selector: "network=srv1"
 # EventRateLimit plugin configuration
 kube_apiserver_admission_event_rate_limits:
   limit_1:
@@ -115,7 +120,7 @@ kube_pod_security_default_enforce: restricted
 Let's take a deep look to the resultant **kubernetes** configuration:
 
 * The `anonymous-auth` (on `kube-apiserver`) is set to `true` by default. This is fine, because it is considered safe if you enable `RBAC` for the `authorization-mode`.
-* The `enable-admission-plugins` has not the `PodSecurityPolicy` admission plugin. This because it is going to be definitely removed from **kubernetes** `v1.25`. For this reason we decided to set the newest `PodSecurity` (for more details, please take a look here: <https://kubernetes.io/docs/concepts/security/pod-security-admission/>). Then, we set the `EventRateLimit` plugin, providing additional configuration files (that are automatically created under the hood and mounted inside the `kube-apiserver` container) to make it work.
+* The `enable-admission-plugins` includes `PodSecurity` (for more details, please take a look here: <https://kubernetes.io/docs/concepts/security/pod-security-admission/>). Then, we set the `EventRateLimit` plugin, providing additional configuration files (that are automatically created under the hood and mounted inside the `kube-apiserver` container) to make it work.
 * The `encryption-provider-config` provide encryption at rest. This means that the `kube-apiserver` encrypt data that is going to be stored before they reach `etcd`. So the data is completely unreadable from `etcd` (in case an attacker is able to exploit this).
 * The `rotateCertificates` in `KubeletConfiguration` is set to `true` along with `serverTLSBootstrap`. This could be used in alternative to `tlsCertFile` and `tlsPrivateKeyFile` parameters. Additionally it automatically generates certificates by itself. By default the CSRs are approved automatically via [kubelet-csr-approver](https://github.com/postfinance/kubelet-csr-approver). You can customize approval configuration by modifying Helm values via `kubelet_csr_approver_values`.
   See <https://kubernetes.io/docs/reference/access-authn-authz/kubelet-tls-bootstrapping/> for more information on the subject.

@@ -29,10 +29,6 @@ metallb_config:
     nodeselector:
       kubernetes.io/os: linux
     tolerations:
-    - key: "node-role.kubernetes.io/master"
-      operator: "Equal"
-      value: ""
-      effect: "NoSchedule"
     - key: "node-role.kubernetes.io/control-plane"
       operator: "Equal"
       value: ""
@@ -73,7 +69,6 @@ metallb_config:
     primary:
       ip_range:
         - 192.0.1.0-192.0.1.254
-      auto_assign: true
 
     pool1:
       ip_range:
@@ -82,8 +77,8 @@ metallb_config:
 
     pool2:
       ip_range:
-        - 192.0.2.2-192.0.2.2
-      auto_assign: false
+        - 192.0.3.0/24
+      avoid_buggy_ips: true # When set to true, .0 and .255 addresses will be avoided.
 ```
 
 ## Layer2 Mode

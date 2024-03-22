@@ -78,3 +78,4 @@ spec:
       mode: ISTIO_MUTUAL
     loadBalancer:
       simple: RANDOM
+

@@ -109,9 +109,18 @@
     - item in kube_apiserver_admission_plugins_needs_configuration
   loop: "{{ kube_apiserver_enable_admission_plugins }}"
 
+- name: Kubeadm | Configure default cluster podnodeslector
+  template:
+    src: "podnodeselector.yaml.j2"
+    dest: "{{ kube_config_dir }}/admission-controls/podnodeselector.yaml"
+    mode: 0640
+  when:
+    - kube_apiserver_admission_plugins_podnodeselector_default_node_selector is defined
+    - kube_apiserver_admission_plugins_podnodeselector_default_node_selector | length > 0
+
 - name: Kubeadm | Check apiserver.crt SANs
   vars:
-    apiserver_ips: "{{ apiserver_sans | map('ipaddr') | reject('equalto', False) | list }}"
+    apiserver_ips: "{{ apiserver_sans | map('ansible.utils.ipaddr') | reject('equalto', False) | list }}"
     apiserver_hosts: "{{ apiserver_sans | difference(apiserver_ips) }}"
   when:
     - kubeadm_already_run.stat.exists
@@ -224,12 +233,6 @@
   tags:
     - kubeadm_token
 
-- name: PodSecurityPolicy | install PodSecurityPolicy
-  include_tasks: psp-install.yml
-  when:
-    - podsecuritypolicy_enabled
-    - inventory_hostname == first_kube_control_plane
-
 - name: Kubeadm | Join other masters
   include_tasks: kubeadm-secondary.yml
 
@@ -244,7 +247,6 @@
   command: "{{ kubectl }} taint node {{ inventory_hostname }} {{ item }}"
   delegate_to: "{{ first_kube_control_plane }}"
   with_items:
-    - "node-role.kubernetes.io/master:NoSchedule-"
     - "node-role.kubernetes.io/control-plane:NoSchedule-"
   when: inventory_hostname in groups['kube_node']
   failed_when: false
