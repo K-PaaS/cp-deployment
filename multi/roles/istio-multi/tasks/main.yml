@@ -39,6 +39,24 @@
     step certificate create cluster2.intermediate.istio.io {{ lookup('env', 'HOME') }}/certs/cluster2/ca-cert.pem {{ lookup('env', 'HOME') }}/certs/cluster2/ca-key.pem --ca {{ lookup('env', 'HOME') }}/certs/root-cert.pem --ca-key {{ lookup('env', 'HOME') }}/certs/root-ca.key --profile intermediate-ca --not-after 87600h --no-password --insecure --san cluster2.intermediate.istio.io --kty RSA
     cat {{ lookup('env', 'HOME') }}/certs/cluster2/ca-cert.pem {{ lookup('env', 'HOME') }}/certs/root-cert.pem > {{ lookup('env', 'HOME') }}/certs/cluster2/cert-chain.pem
 
+- name: Check kube-apiserver (cluster1)
+  become: false
+  shell: |
+    echo $(kubectl --context=cluster1 get pods -n kube-system | grep kube-apiserver | awk 'NR==1 { print $3 }')
+  register: kube_status
+  until: kube_status.stdout == "Running"
+  retries: 15
+  delay: 30
+
+- name: Check kube-apiserver (cluster2)
+  become: false
+  shell: |
+    echo $(kubectl --context=cluster2 get pods -n kube-system | grep kube-apiserver | awk 'NR==1 { print $3 }')
+  register: kube_status
+  until: kube_status.stdout == "Running"
+  retries: 15
+  delay: 30
+
 - name: Create istio-system namespace (cluster1, cluster2)
   become: false
   shell: |
