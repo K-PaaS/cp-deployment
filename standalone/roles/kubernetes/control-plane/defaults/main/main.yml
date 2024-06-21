@@ -92,10 +92,14 @@ kube_apiserver_pod_eviction_not_ready_timeout_seconds: "300"
 kube_apiserver_pod_eviction_unreachable_timeout_seconds: "300"
 
 # 1.10+ admission plugins
-kube_apiserver_enable_admission_plugins: []
+kube_apiserver_enable_admission_plugins:
+  - AlwaysPullImages
+  - NodeRestriction
+  - PodSecurity
+  - EventRateLimit
 
 # enable admission plugins configuration
-kube_apiserver_admission_control_config_file: false
+kube_apiserver_admission_control_config_file: true
 
 # data structure to configure EventRateLimit admission plugin
 # this should have the following structure:
@@ -105,9 +109,18 @@ kube_apiserver_admission_control_config_file: false
 #   qps: <qps_value>
 #   burst: <burst_value>
 #   cache_size: <cache_size_value>
-kube_apiserver_admission_event_rate_limits: {}
+kube_apiserver_admission_event_rate_limits:
+  limit_1:
+    type: Namespace
+    qps: 50
+    burst: 100
+    cache_size: 2000
+  limit_2:
+    type: User
+    qps: 10
+    burst: 50
 
-kube_pod_security_use_default: false
+kube_pod_security_use_default: true
 kube_pod_security_default_enforce: baseline
 kube_pod_security_default_enforce_version: "{{ kube_major_version }}"
 kube_pod_security_default_audit: restricted
@@ -118,6 +131,16 @@ kube_pod_security_exemptions_usernames: []
 kube_pod_security_exemptions_runtime_class_names: []
 kube_pod_security_exemptions_namespaces:
   - kube-system
+  - rook-ceph
+  - auth
+  - cert-manager
+  - istio-system
+  - knative-eventing
+  - knative-serving
+  - kubeflow
+  - kubeflow-user-example-com
+  - kubeedge
+  - cp-pipeline
 
 # 1.10+ list of disabled admission plugins
 kube_apiserver_disable_admission_plugins: []
@@ -177,10 +200,10 @@ apiserver_extra_volumes: {}
 controller_manager_extra_volumes: {}
 
 ## Encrypting Secret Data at Rest
-kube_encrypt_secret_data: false
+kube_encrypt_secret_data: true
 kube_encrypt_token: "{{ lookup('password', credentials_dir + '/kube_encrypt_token.creds length=32 chars=ascii_letters,digits') }}"
 # Must be either: aescbc, secretbox or aesgcm
-kube_encryption_algorithm: "secretbox"
+kube_encryption_algorithm: "aescbc"
 # Which kubernetes resources to encrypt
 kube_encryption_resources: [secrets]
 

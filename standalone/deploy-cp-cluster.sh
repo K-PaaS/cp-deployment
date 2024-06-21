@@ -245,6 +245,7 @@ ARRAY_WORKER_NODE_IP=""
 if [ "$KUBE_CONTROL_HOSTS" -eq 1 ]; then
   find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[all\]/a\{MASTER1_NODE_HOSTNAME} ansible_host={MASTER1_NODE_PRIVATE_IP} ip={MASTER1_NODE_PRIVATE_IP} etcd_member_name=etcd1" {} \;;
   find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[etcd\]/i\{MASTER1_NODE_HOSTNAME}" {} \;;
+  find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[kube_node\]/i\{MASTER1_NODE_HOSTNAME}" {} \;;
 
   sed -i "s/{MASTER1_NODE_HOSTNAME}/${MASTER1_NODE_HOSTNAME}/g" inventory/mycluster/inventory.ini
   sed -i "s/{MASTER1_NODE_PRIVATE_IP}/${MASTER1_NODE_PRIVATE_IP}/g" inventory/mycluster/inventory.ini
