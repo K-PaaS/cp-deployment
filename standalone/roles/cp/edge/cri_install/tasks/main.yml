@@ -6,14 +6,14 @@
 
 - name: cri-o download
   shell: |
-    wget https://storage.googleapis.com/cri-o/artifacts/cri-o.amd64.v1.26.4.tar.gz
-    tar zxvf cri-o.amd64.v1.26.4.tar.gz
+    wget https://storage.googleapis.com/cri-o/artifacts/cri-o.arm64.v1.26.4.tar.gz
+    tar zxvf cri-o.arm64.v1.26.4.tar.gz
     cd cri-o
     ./install
 
 - name: remove cri-o tar file
   file:
-    path: "{{ home_dir_path.stdout }}/cri-o.amd64.v1.26.4.tar.gz"
+    path: "{{ home_dir_path.stdout }}/cri-o.arm64.v1.26.4.tar.gz"
     state: absent
 
 - name: remove cri-o dir
