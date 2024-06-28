@@ -121,7 +121,7 @@ kube_apiserver_admission_event_rate_limits:
     burst: 50
 
 kube_pod_security_use_default: true
-kube_pod_security_default_enforce: baseline
+kube_pod_security_default_enforce: privileged
 kube_pod_security_default_enforce_version: "{{ kube_major_version }}"
 kube_pod_security_default_audit: restricted
 kube_pod_security_default_audit_version: "{{ kube_major_version }}"
