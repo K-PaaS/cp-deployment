@@ -13,8 +13,5 @@ sed -i "s/{MASTER1_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" roles/kubernetes/c
 
 sed -i "s/metallb_enabled: true/metallb_enabled: false/g" inventory/mycluster/group_vars/k8s_cluster/addons.yml
 
-cp $HOME/.ssh/$CLUSTER_PRIVATE_KEY $HOME/.ssh/id_rsa
-cp $HOME/.ssh/$CLUSTER_PRIVATE_KEY.pub $HOME/.ssh/id_rsa.pub
-
 # Deploy container platform
-ansible-playbook -i inventory/mycluster/hosts.yaml  --become --become-user=root playbooks/cluster_terraman.yml
+ansible-playbook -i inventory/mycluster/hosts-$CLUSTER_NAME.yaml  --become --become-user=root playbooks/cluster_terraman.yml

@@ -6,3 +6,4 @@ export MASTER1_NODE_PUBLIC_IP=
 
 # Sub Cluster Private Key Name
 export CLUSTER_PRIVATE_KEY=
+export CLUSTER_NAME=

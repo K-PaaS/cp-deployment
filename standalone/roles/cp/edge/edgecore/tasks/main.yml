@@ -3,6 +3,11 @@
   shell: |
     apt-get install -y mosquitto
 
+- name: modify mosquitto config
+  shell: |
+    echo "\nfind allow_anonymous true\nbind_address 0.0.0.0" >> /etc/mosquitto/mosquitto.conf
+    systemctl restart mosquitto.service
+
 - name: modify edgecore
   shell: |
     sed -i '153s/false/true/g' /etc/kubeedge/config/edgecore.yaml
