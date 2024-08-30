@@ -6,6 +6,8 @@ ansible_ssh_common_args: "{% if 'bastion' in groups['all'] %} -o ProxyCommand='s
 # selinux state
 preinstall_selinux_state: permissive
 
+# Setting this value to false will fail
+# For details, read this comment https://github.com/kubernetes-sigs/kubespray/pull/11016#issuecomment-2004985001
 kube_api_anonymous_auth: true
 
 # Default value, but will be set to true automatically if detected
@@ -16,10 +18,10 @@ kubelet_fail_swap_on: true
 kubelet_swap_behavior: LimitedSwap
 
 ## Change this to use another Kubernetes version, e.g. a current beta release
-kube_version: v1.28.6
+kube_version: v1.29.5
 
 ## The minimum version working
-kube_version_min_required: v1.26.0
+kube_version_min_required: v1.27.0
 
 ## Kube Proxy mode One of ['iptables', 'ipvs']
 kube_proxy_mode: ipvs
@@ -49,6 +51,9 @@ kubeadm_init_phases_skip: >-
 kubeadm_join_phases_skip_default: []
 kubeadm_join_phases_skip: >-
  {{ kubeadm_join_phases_skip_default }}
+
+# Set to true to remove the role binding to anonymous users created by kubeadm
+remove_anonymous_access: false
 
 # A string slice of values which specify the addresses to use for NodePorts.
 # Values may be valid IP blocks (e.g. 1.2.3.0/24, 1.2.3.4/32).
@@ -645,9 +650,9 @@ host_os: >-
   {{ ansible_system }}
   {%- endif -%}
 
-# Sets the eventRecordQPS parameter in kubelet-config.yaml. The default value is 5 (see types.go)
+# Sets the eventRecordQPS parameter in kubelet-config.yaml.
 # Setting it to 0 allows unlimited requests per second.
-kubelet_event_record_qps: 5
+kubelet_event_record_qps: 50
 
 proxy_env_defaults:
   http_proxy: "{{ http_proxy | default('') }}"
@@ -681,3 +686,6 @@ sysctl_file_path: "/etc/sysctl.d/99-sysctl.conf"
 
 system_upgrade: false
 system_upgrade_reboot: on-upgrade  # never, always
+
+# Enables or disables the scheduler plugins.
+scheduler_plugins_enabled: false

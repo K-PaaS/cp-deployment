@@ -10,4 +10,3 @@ export EDGE_HOSTS=
 
 export EDGE1_NODE_HOSTNAME=
 export EDGE1_NODE_PRIVATE_IP=
-

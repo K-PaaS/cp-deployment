@@ -21,13 +21,15 @@ SUPPORTED_OS = {
   "flatcar-edge"        => {box: "flatcar-edge",               user: "core", box_url: FLATCAR_URL_TEMPLATE % ["edge"]},
   "ubuntu2004"          => {box: "generic/ubuntu2004",         user: "vagrant"},
   "ubuntu2204"          => {box: "generic/ubuntu2204",         user: "vagrant"},
+  "ubuntu2404"          => {box: "bento/ubuntu-24.04",         user: "vagrant"},
   "centos"              => {box: "centos/7",                   user: "vagrant"},
   "centos-bento"        => {box: "bento/centos-7.6",           user: "vagrant"},
   "centos8"             => {box: "centos/8",                   user: "vagrant"},
   "centos8-bento"       => {box: "bento/centos-8",             user: "vagrant"},
   "almalinux8"          => {box: "almalinux/8",                user: "vagrant"},
   "almalinux8-bento"    => {box: "bento/almalinux-8",          user: "vagrant"},
-  "rockylinux8"         => {box: "generic/rocky8",             user: "vagrant"},
+  "rockylinux8"         => {box: "rockylinux/8",               user: "vagrant"},
+  "rockylinux9"         => {box: "rockylinux/9",               user: "vagrant"},
   "fedora37"            => {box: "fedora/37-cloud-base",       user: "vagrant"},
   "fedora38"            => {box: "fedora/38-cloud-base",       user: "vagrant"},
   "opensuse"            => {box: "opensuse/Leap-15.4.x86_64",  user: "vagrant"},
@@ -36,6 +38,8 @@ SUPPORTED_OS = {
   "oraclelinux8"        => {box: "generic/oracle8",            user: "vagrant"},
   "rhel7"               => {box: "generic/rhel7",              user: "vagrant"},
   "rhel8"               => {box: "generic/rhel8",              user: "vagrant"},
+  "debian11"            => {box: "debian/bullseye64",          user: "vagrant"},
+  "debian12"            => {box: "debian/bookworm64",          user: "vagrant"},
 }
 
 if File.exist?(CONFIG)
@@ -77,7 +81,10 @@ $libvirt_nested ||= false
 $ansible_verbosity ||= false
 $ansible_tags ||= ENV['VAGRANT_ANSIBLE_TAGS'] || ""
 
+$vagrant_dir ||= File.join(File.dirname(__FILE__), ".vagrant")
+
 $playbook ||= "cluster.yml"
+$extra_vars ||= {}
 
 host_vars = {}
 
@@ -96,7 +103,7 @@ $inventory = File.absolute_path($inventory, File.dirname(__FILE__))
 # if $inventory has a hosts.ini file use it, otherwise copy over
 # vars etc to where vagrant expects dynamic inventory to be
 if ! File.exist?(File.join(File.dirname($inventory), "hosts.ini"))
-  $vagrant_ansible = File.join(File.dirname(__FILE__), ".vagrant", "provisioners", "ansible")
+  $vagrant_ansible = File.join(File.absolute_path($vagrant_dir), "provisioners", "ansible")
   FileUtils.mkdir_p($vagrant_ansible) if ! File.exist?($vagrant_ansible)
   $vagrant_inventory = File.join($vagrant_ansible,"inventory")
   FileUtils.rm_f($vagrant_inventory)
@@ -182,6 +189,14 @@ Vagrant.configure("2") do |config|
             lv.storage :file, :device => "hd#{driverletters[d]}", :path => "disk-#{i}-#{d}-#{DISK_UUID}.disk", :size => $kube_node_instances_with_disks_size, :bus => "scsi"
           end
         end
+        node.vm.provider :virtualbox do |vb|
+          # always make /dev/sd{a/b/c} so that CI can ensure that
+          # virtualbox and libvirt will have the same devices to use for OSDs
+          (1..$kube_node_instances_with_disks_number).each do |d|
+            vb.customize ['createhd', '--filename', "disk-#{i}-#{driverletters[d]}-#{DISK_UUID}.disk", '--size', $kube_node_instances_with_disks_size] # 10GB disk
+            vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', d, '--device', 0, '--type', 'hdd', '--medium', "disk-#{i}-#{driverletters[d]}-#{DISK_UUID}.disk", '--nonrotational', 'on', '--mtype', 'normal']
+          end
+        end
       end
 
       if $expose_docker_tcp
@@ -232,6 +247,13 @@ Vagrant.configure("2") do |config|
         SHELL
       end
 
+      # Rockylinux boxes needs UEFI
+      if ["rockylinux8", "rockylinux9"].include? $os
+        config.vm.provider "libvirt" do |domain|
+          domain.loader = "/usr/share/OVMF/x64/OVMF_CODE.fd"
+        end
+      end
+
       # Disable firewalld on oraclelinux/redhat vms
       if ["oraclelinux","oraclelinux8","rhel7","rhel8","rockylinux8"].include? $os
         node.vm.provision "shell", inline: "systemctl stop firewalld; systemctl disable firewalld"
@@ -255,7 +277,8 @@ Vagrant.configure("2") do |config|
         "kubectl_localhost": "True",
         "local_path_provisioner_enabled": "#{$local_path_provisioner_enabled}",
         "local_path_provisioner_claim_root": "#{$local_path_provisioner_claim_root}",
-        "ansible_ssh_user": SUPPORTED_OS[$os][:user]
+        "ansible_ssh_user": SUPPORTED_OS[$os][:user],
+        "unsafe_show_logs": "True"
       }
 
       # Only execute the Ansible provisioner once, when all the machines are up and ready.
@@ -274,6 +297,7 @@ Vagrant.configure("2") do |config|
           ansible.host_key_checking = false
           ansible.raw_arguments = ["--forks=#{$num_instances}", "--flush-cache", "-e ansible_become_pass=vagrant"]
           ansible.host_vars = host_vars
+          ansible.extra_vars = $extra_vars
           if $ansible_tags != ""
             ansible.tags = [$ansible_tags]
           end

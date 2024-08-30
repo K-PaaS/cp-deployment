@@ -1,6 +1,6 @@
 ---
 - name: Copy istioctl
   copy:
-    src: "{{ lookup('env', 'HOME') }}/cp-deployment/applications/istio-1.19.0/bin/istioctl"
+    src: "{{ lookup('env', 'HOME') }}/cp-deployment/applications/istio-1.22.3/bin/istioctl"
     dest: "/usr/bin/istioctl"
     mode: "0755"

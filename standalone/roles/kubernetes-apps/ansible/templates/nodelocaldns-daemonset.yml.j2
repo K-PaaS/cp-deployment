@@ -18,16 +18,9 @@ spec:
         prometheus.io/scrape: 'true'
         prometheus.io/port: '{{ nodelocaldns_prometheus_port }}'
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: node-role.kubernetes.io/edge
-                operator: DoesNotExist
       nodeSelector:
         {{ nodelocaldns_ds_nodeselector }}
-      priorityClassName: system-cluster-critical
+      priorityClassName: system-node-critical
       serviceAccountName: nodelocaldns
       hostNetwork: true
       dnsPolicy: Default  # Don't use cluster DNS.

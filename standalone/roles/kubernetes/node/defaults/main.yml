@@ -24,10 +24,11 @@ kubelet_kubelet_cgroups_cgroupfs: "/system.slice/kubelet.service"
 kubelet_systemd_hardening: false
 
 # List of secure IPs for kubelet
-kubelet_secure_addresses: >-
-  {%- for host in groups['kube_control_plane'] -%}
+kube_node_addresses: >-
+  {%- for host in (groups['kube_control_plane'] + groups['kube_node'] + groups['etcd']) | unique -%}
     {{ hostvars[host]['ip'] | default(fallback_ips[host]) }}{{ ' ' if not loop.last else '' }}
   {%- endfor -%}
+kubelet_secure_addresses: "localhost link-local {{ kube_pods_subnet }} {{ kube_node_addresses }}"
 
 # Reserve this space for kube resources
 # Set to true to reserve resources for kube daemons
@@ -66,14 +67,16 @@ eviction_hard_control_plane: {}
 kubelet_status_update_frequency: 10s
 
 # kube-vip
-kube_vip_version: v0.5.12
+kube_vip_version: v0.8.0
 
 kube_vip_arp_enabled: false
 kube_vip_interface:
 kube_vip_services_interface:
 kube_vip_cidr: 32
+kube_vip_dns_mode: first
 kube_vip_controlplane_enabled: false
 kube_vip_ddns_enabled: false
+kube_vip_cp_detect: false
 kube_vip_services_enabled: false
 kube_vip_leader_election_enabled: "{{ kube_vip_arp_enabled }}"
 kube_vip_bgp_enabled: false
@@ -87,6 +90,12 @@ kube_vip_address:
 kube_vip_enableServicesElection: false
 kube_vip_lb_enable: false
 kube_vip_lb_fwdmethod: local
+kube_vip_leasename: plndr-cp-lock
+kube_vip_svc_leasename: plndr-svcs-lock
+kube_vip_leaseduration: 5
+kube_vip_renewdeadline: 3
+kube_vip_retryperiod: 1
+kube_vip_enable_node_labeling: false
 
 # Requests for load balancer app
 loadbalancer_apiserver_memory_requests: 32M
@@ -223,7 +232,7 @@ azure_cloud: AzurePublicCloud
 #   - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
 #   - TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
 #   - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-#   - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+#   - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
 #   - TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
 #   - TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
 #   - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
@@ -231,7 +240,7 @@ azure_cloud: AzurePublicCloud
 #   - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 #   - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
 #   - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-#   - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+#   - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
 #   - TLS_ECDHE_RSA_WITH_RC4_128_SHA
 #   - TLS_RSA_WITH_3DES_EDE_CBC_SHA
 #   - TLS_RSA_WITH_AES_128_CBC_SHA
@@ -253,3 +262,9 @@ kube_proxy_ipvs_modules:
 conntrack_modules:
   - nf_conntrack
   - nf_conntrack_ipv4
+
+
+## Enable distributed tracing for kubelet
+kubelet_tracing: false
+kubelet_tracing_endpoint: 0.0.0.0:4317
+kubelet_tracing_sampling_rate_per_million: 100

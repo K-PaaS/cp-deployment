@@ -6,20 +6,8 @@ epel_enabled: false
 # Kubespray sets this to true after clusterDNS is running to apply changes to the host resolv.conf
 dns_late: false
 
-common_required_pkgs:
-  - "{{ (ansible_distribution == 'openSUSE Tumbleweed') | ternary('openssl-1_1', 'openssl') }}"
-  - curl
-  - rsync
-  - socat
-  - unzip
-  - e2fsprogs
-  - xfsprogs
-  - ebtables
-  - bash-completion
-  - tar
-
 # Set to true if your network does not support IPv6
-# This maybe necessary for pulling Docker images from
+# This may be necessary for pulling Docker images from
 # GCE docker repository
 disable_ipv6_dns: false
 
@@ -98,6 +86,13 @@ ntp_servers:
 ntp_restrict:
   - "127.0.0.1"
   - "::1"
+# Specify whether to filter interfaces
+ntp_filter_interface: false
+# Specify the interfaces
+# Only takes effect when ntp_filter_interface is true
+# ntp_interfaces:
+#   - ignore wildcard
+#   - listen xxx
 # The NTP driftfile path
 # Only takes effect when ntp_manage_config is true.
 ntp_driftfile: /var/lib/ntp/ntp.drift
@@ -105,7 +100,7 @@ ntp_driftfile: /var/lib/ntp/ntp.drift
 # Only takes effect when ntp_manage_config is true.
 ntp_tinker_panic: false
 
-# Force sync time immediately after the ntp installed, which is useful in in newly installed system.
+# Force sync time immediately after the ntp installed, which is useful in a newly installed system.
 ntp_force_sync_immediately: false
 
 # Set the timezone for your server.  eg: "Etc/UTC","Etc/GMT-8". If not set, the timezone will not change.
@@ -135,14 +130,8 @@ supported_os_distributions:
 
 # Extending some distributions into the redhat os family
 redhat_os_family_extensions:
-  - "Kylin Linux Advanced Server"
-  - "openEuler"
   - "UnionTech"
   - "UniontechOS"
-
-# Extending some distributions into the debian os family
-debian_os_family_extensions:
-  - "UnionTech OS Server 20"
 
 # Sets DNSStubListener=no, useful if you get "0.0.0.0:53: bind: address already in use"
 systemd_resolved_disable_stub_listener: "{{ ansible_os_family in ['Flatcar', 'Flatcar Container Linux by Kinvolk'] }}"

@@ -3,30 +3,35 @@ root = "{{ containerd_storage_dir }}"
 state = "{{ containerd_state_dir }}"
 oom_score = {{ containerd_oom_score }}
 
+{% if containerd_extra_args is defined %}
+{{ containerd_extra_args }}
+{% endif %}
+
 [grpc]
-  max_recv_message_size = {{ containerd_grpc_max_recv_message_size | default(16777216) }}
-  max_send_message_size = {{ containerd_grpc_max_send_message_size | default(16777216) }}
+  max_recv_message_size = {{ containerd_grpc_max_recv_message_size }}
+  max_send_message_size = {{ containerd_grpc_max_send_message_size }}
 
 [debug]
-  level = "{{ containerd_debug_level | default('info') }}"
+  level = "{{ containerd_debug_level }}"
 
 [metrics]
-  address = "{{ containerd_metrics_address | default('') }}"
-  grpc_histogram = {{ containerd_metrics_grpc_histogram | default(false) | lower }}
+  address = "{{ containerd_metrics_address }}"
+  grpc_histogram = {{ containerd_metrics_grpc_histogram | lower }}
 
 [plugins]
   [plugins."io.containerd.grpc.v1.cri"]
     sandbox_image = "{{ pod_infra_image_repo }}:{{ pod_infra_image_tag }}"
     max_container_log_line_size = {{ containerd_max_container_log_line_size }}
-    enable_unprivileged_ports = {{ containerd_enable_unprivileged_ports | default(false) | lower }}
-    enable_unprivileged_icmp = {{ containerd_enable_unprivileged_icmp | default(false) | lower }}
+    enable_unprivileged_ports = {{ containerd_enable_unprivileged_ports | lower }}
+    enable_unprivileged_icmp = {{ containerd_enable_unprivileged_icmp | lower }}
 {% if enable_cdi %}
     enable_cdi = true
     cdi_spec_dirs = ["/etc/cdi", "/var/run/cdi"]
 {% endif %}
     [plugins."io.containerd.grpc.v1.cri".containerd]
-      default_runtime_name = "{{ containerd_default_runtime | default('runc') }}"
-      snapshotter = "{{ containerd_snapshotter | default('overlayfs') }}"
+      default_runtime_name = "{{ containerd_default_runtime }}"
+      snapshotter = "{{ containerd_snapshotter }}"
+      discard_unpacked_layers = {{ containerd_discard_unpacked_layers | lower }}
       [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
 {% for runtime in [containerd_runc_runtime] + containerd_additional_runtimes %}
         [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.{{ runtime.name }}]
@@ -91,6 +96,15 @@ oom_score = {{ containerd_oom_score }}
     disable = false
 {% endif %}
 
-{% if containerd_extra_args is defined %}
-{{ containerd_extra_args }}
+{% if containerd_tracing_enabled %}
+  [plugins."io.containerd.tracing.processor.v1.otlp"]
+    endpoint = "{{ containerd_tracing_endpoint }}"
+    protocol = "{{ containerd_tracing_protocol }}"
+    {% if containerd_tracing_protocol == "grpc" %}
+    insecure = false
+    {% endif %}
+  [plugins."io.containerd.internal.v1.tracing"]
+    sampling_ratio = {{ containerd_tracing_sampling_ratio }}
+    service_name = "{{ containerd_tracing_service_name }}"
 {% endif %}
+

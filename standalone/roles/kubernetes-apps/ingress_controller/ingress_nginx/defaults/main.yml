@@ -1,6 +1,7 @@
 ---
 ingress_nginx_namespace: "ingress-nginx"
 ingress_nginx_host_network: false
+ingress_nginx_service_type: LoadBalancer
 ingress_publish_status_address: ""
 ingress_nginx_nodeselector:
   kubernetes.io/os: "linux"
@@ -18,5 +19,6 @@ ingress_nginx_without_class: true
 ingress_nginx_default: false
 ingress_nginx_webhook_enabled: false
 ingress_nginx_webhook_job_ttl: 1800
+ingress_nginx_opentelemetry_enabled: false
 
 ingress_nginx_probe_initial_delay_seconds: 10

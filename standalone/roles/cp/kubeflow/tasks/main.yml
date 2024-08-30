@@ -37,7 +37,7 @@
 
 - name: Deploy kubeflow
   shell: |
-    cd {{ home_dir_path.stdout }}/cp-deployment/applications/kubeflow-
+    cd {{ home_dir_path.stdout }}/cp-deployment/applications/kubeflow-1.7.0
     while ! kustomize build example | awk '!/well-defined/' | kubectl apply -f -; do echo "Retrying to apply resources"; sleep 10; done
   when:
     - inventory_hostname == groups['kube_control_plane'][0]

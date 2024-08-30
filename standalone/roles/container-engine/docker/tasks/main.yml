@@ -11,13 +11,6 @@
   set_fact:
     is_ostree: "{{ ostree.stat.exists }}"
 
-- name: Set docker_version for openEuler
-  set_fact:
-    docker_version: '19.03'
-  when: ansible_distribution == "openEuler"
-  tags:
-    - facts
-
 - name: Gather os specific variables
   include_vars: "{{ item }}"
   with_first_found:
@@ -67,6 +60,17 @@
   environment: "{{ proxy_env }}"
   when: ansible_pkg_mgr == 'apt'
 
+# ref to https://github.com/kubernetes-sigs/kubespray/issues/11086
+- name: Remove the archived debian apt repository
+  lineinfile:
+    path: /etc/apt/sources.list
+    regexp: 'buster-backports'
+    state: absent
+    backup: yes
+  when:
+    - ansible_os_family == 'Debian'
+    - ansible_distribution_release == "buster"
+
 - name: Ensure docker-ce repository is enabled
   apt_repository:
     repo: "{{ item }}"
@@ -96,7 +100,11 @@
     name: "{{ item }}"
     selection: install
   when: ansible_pkg_mgr == 'apt'
+  register: ret
   changed_when: false
+  failed_when:
+    - ret is failed
+    - ret.msg != ( "Failed to find package '" + item + "' to perform selection 'install'." )
   with_items:
     - "{{ containerd_package }}"
     - docker-ce
