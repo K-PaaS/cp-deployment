@@ -7,7 +7,7 @@
 - name: unarchive keadm
   shell: |
     cd {{ home_dir_path.stdout }}/cp-deployment/edge/keadm/arm64/
-    tar zcvf keadm.tar.gz
+    tar zxvf keadm.tar.gz
 
 - name: copy keadm (arm64)
   copy:
