@@ -5,7 +5,7 @@
 
 - name: modify mosquitto config
   shell: |
-    echo "\nfind allow_anonymous true\nbind_address 0.0.0.0" >> /etc/mosquitto/mosquitto.conf
+    echo "\nallow_anonymous true\nbind_address 0.0.0.0" >> /etc/mosquitto/mosquitto.conf
     systemctl restart mosquitto.service
 
 - name: modify edgecore

@@ -7,6 +7,8 @@
 - name: change kube-proxy config
   shell: |
     kubectl patch daemonset kube-proxy -n kube-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/ha-cloudcore/kube-proxy.yaml
+    kubectl patch daemonset calico-node -n kube-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/ha-cloudcore/kube-proxy.yaml
+    kubectl patch daemonset speaker -n metallb-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/ha-cloudcore/kube-proxy.yaml
 
 - name: add cloudcore node label
   shell: |
