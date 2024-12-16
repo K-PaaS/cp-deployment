@@ -8,7 +8,7 @@
   lineinfile:
     dest: /etc/yum.repos.d/amzn2-extras.repo
     line: "[amzn2extra-docker]"
-  check_mode: yes
+  check_mode: true
   register: amzn2_extras_docker_repo
   when:
     - amzn2_extras_file_stat.stat.exists
@@ -19,8 +19,8 @@
     section: amzn2extra-docker
     option: enabled
     value: "0"
-    backup: yes
-    mode: 0644
+    backup: true
+    mode: "0644"
   when:
     - amzn2_extras_file_stat.stat.exists
     - not amzn2_extras_docker_repo.changed

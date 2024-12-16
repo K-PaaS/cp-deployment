@@ -156,11 +156,11 @@ if [ "$result" == 2 ]; then
   return $result
 fi
 
-if [ "$INGRESS_NGINX_PRIVATE_IP" == "" ]; then
-  echo "INGRESS_NGINX_PRIVATE_IP is empty. Enter a variable."
+if [ "$INGRESS_NGINX_IP" == "" ]; then
+  echo "INGRESS_NGINX_IP is empty. Enter a variable."
   result=2
-elif [[ ! "$INGRESS_NGINX_PRIVATE_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "INGRESS_NGINX_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
+elif [[ ! "$INGRESS_NGINX_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "INGRESS_NGINX_IP is not a value in IP format. Enter a IP format variable."
   result=2
 fi
 
@@ -168,26 +168,14 @@ if [ "$result" == 2 ]; then
   return $result
 fi
 
-CHK_MULTI=$(grep 'ISTIO_INGRESS_PRIVATE_IP' cp-cluster-vars.sh | awk '{print $2}')
+CHK_MULTI=$(grep 'ISTIO_GATEWAY_PRIVATE_IP' cp-cluster-vars.sh | awk '{print $2}')
 
 if [[ ! "$CHK_MULTI" == "" ]]; then
-  if [ "$ISTIO_INGRESS_PRIVATE_IP" == "" ]; then
-    echo "ISTIO_INGRESS_PRIVATE_IP is empty. Enter a variable."
+  if [ "$ISTIO_GATEWAY_PRIVATE_IP" == "" ]; then
+    echo "ISTIO_GATEWAY_PRIVATE_IP is empty. Enter a variable."
     result=2
-  elif [[ ! "$ISTIO_INGRESS_PRIVATE_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "ISTIO_INGRESS_PRIVATE_IP is not a value in Ip format. Enter a IP format variable."
-    result=2
-  fi
-
-  if [ "$result" == 2 ]; then
-    return $result
-  fi
-
-  if [ "$ISTIO_EASTWEST_PRIVATE_IP" == "" ]; then
-    echo "ISTIO_EASTWEST_PRIVATE_IP is empty. Enter a variable."
-    result=2
-  elif [[ ! "$ISTIO_EASTWEST_PRIVATE_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "ISTIO_EASTWEST_PRIVATE_IP is not a value in Ip format. Enter a IP format variable."
+  elif [[ ! "$ISTIO_GATEWAY_PRIVATE_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "ISTIO_GATEWAY_PRIVATE_IP is not a value in Ip format. Enter a IP format variable."
     result=2
   fi
 
@@ -197,11 +185,11 @@ if [[ ! "$CHK_MULTI" == "" ]]; then
 fi
 
 if [[ ! "$CHK_MULTI" == "" ]]; then
-  if [ "$ISTIO_EASTWEST_PUBLIC_IP" == "" ]; then
-    echo "ISTIO_EASTWEST_PUBLIC_IP is empty. Enter a variable."
+  if [ "$ISTIO_GATEWAY_PUBLIC_IP" == "" ]; then
+    echo "ISTIO_GATEWAY_PUBLIC_IP is empty. Enter a variable."
     result=2
-  elif [[ ! "$ISTIO_EASTWEST_PUBLIC_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "ISTIO_EASTWEST_PUBLIC_IP is not a value in IP format. Enter a IP format variable."
+  elif [[ ! "$ISTIO_GATEWAY_PUBLIC_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "ISTIO_GATEWAY_PUBLIC_IP is not a value in IP format. Enter a IP format variable."
     result=2
   fi
 
@@ -223,8 +211,17 @@ fi
 PIP3_PACKAGE_INSTALL=$(pip3 freeze | grep ruamel.yaml)
 
 if [ "$PIP3_PACKAGE_INSTALL" == "" ]; then
-  sudo pip3 install -r requirements.txt
+  pip3 install -r requirements.txt
+  pip3 install -r contrib/inventory_builder/requirements.txt
+  
   echo "Python packages installation completed."
+fi
+
+NET_TOOLS_INSTALL=$(dpkg -l | grep net-tools | awk '{print $2}')
+
+if [ "$NET_TOOLS_INSTALL" == "" ]; then
+  sudo apt-get install -y net-tools
+  echo "net-tools installation completed."
 fi
 
 # Container Platform configuration settings
@@ -236,7 +233,6 @@ cp roles/cp/storage/defaults/main.yml.ori roles/cp/storage/defaults/main.yml
 cp roles/kubernetes/control-plane/tasks/kubeadm-setup.yml.ori roles/kubernetes/control-plane/tasks/kubeadm-setup.yml
 cp roles/kubernetes-apps/metrics_server/defaults/main.yml.ori roles/kubernetes-apps/metrics_server/defaults/main.yml
 cp ../applications/nfs-provisioner-4.0.2/deployment.yaml.ori ../applications/nfs-provisioner-4.0.2/deployment.yaml
-cp roles/cp/istio-setting/defaults/main.yml.ori roles/cp/istio-setting/defaults/main.yml
 
 ARRAY_MASTER_NODE_IP=""
 ARRAY_ETCD_NODE_IP=""
@@ -343,20 +339,13 @@ if [ "$KUBE_CONTROL_HOSTS" -gt 1 ]; then
 fi
 
 sed -i "s/{METALLB_IP_RANGE}/$METALLB_IP_RANGE/g" inventory/mycluster/group_vars/k8s_cluster/addons.yml
-sed -i "s/{INGRESS_NGINX_PRIVATE_IP}/$INGRESS_NGINX_PRIVATE_IP/g" inventory/mycluster/group_vars/k8s_cluster/addons.yml
+sed -i "s/{INGRESS_NGINX_IP}/$INGRESS_NGINX_IP/g" inventory/mycluster/group_vars/k8s_cluster/addons.yml
 sed -i "s/{NFS_SERVER_PRIVATE_IP}/$NFS_SERVER_PRIVATE_IP/g" ../applications/nfs-provisioner-4.0.2/deployment.yaml
 sed -i "s/{STORAGE_TYPE}/$STORAGE_TYPE/g" roles/cp/storage/defaults/main.yml
 
 if [[ ! "$CHK_MULTI" == "" ]]; then
-  find inventory/mycluster/group_vars/k8s_cluster/addons.yml -exec sed -i -r -e "/#     pool1:/i\    istio-ingress:\n      ip_range:\n        - $ISTIO_INGRESS_PRIVATE_IP\/32\n      auto_assign: false\n    istio-eastwest:\n      ip_range:\n        - $ISTIO_EASTWEST_PRIVATE_IP\/32\n      auto_assign: false" {} \;;
-  find inventory/mycluster/group_vars/k8s_cluster/addons.yml -exec sed -i -r -e "/    - ingress-nginx/a\    - istio-ingress\n    - istio-eastwest" {} \;;
-fi
-
-if [[ ! "$CHK_MULTI" == "" ]]; then
-  ISTIO_EASTWEST_PRIVATE_IPTABLE=`echo $(grep "ISTIO_EASTWEST_PRIVATE_IP" cp-cluster-vars-tmp.sh | awk '{print $2}') | cut -d '=' -f2`
-  ISTIO_EASTWEST_PUBLIC_IPTABLE=`echo $(grep "ISTIO_EASTWEST_PUBLIC_IP" cp-cluster-vars-tmp.sh | awk '{print $2}') | cut -d '=' -f2`
-  sed -i "s/{ISTIO_EASTWEST_PRIVATE_IP}/$ISTIO_EASTWEST_PRIVATE_IPTABLE/g" roles/cp/istio-setting/defaults/main.yml
-  sed -i "s/{ISTIO_EASTWEST_PUBLIC_IP}/$ISTIO_EASTWEST_PUBLIC_IPTABLE/g" roles/cp/istio-setting/defaults/main.yml
+  find inventory/mycluster/group_vars/k8s_cluster/addons.yml -exec sed -i -r -e "/#     pool1:/i\    istio-ingress:\n      ip_range:\n        - $ISTIO_GATEWAY_PRIVATE_IP\/32\n      auto_assign: false" {} \;;
+  find inventory/mycluster/group_vars/k8s_cluster/addons.yml -exec sed -i -r -e "/    - ingress-nginx/a\    - istio-ingress" {} \;;
 fi
 
 if [ "$KUBE_CONTROL_HOSTS" -eq 1 ]; then
@@ -386,6 +375,9 @@ fi
 sed -i "s/metallb_enabled: false/metallb_enabled: true/g" inventory/mycluster/group_vars/k8s_cluster/addons.yml
 
 echo "Container Platform vars setting completed."
+
+export PATH=$PATH:$HOME/.local/bin
+source $HOME/.bashrc
 
 # Deploy Container Platform
 if [ "$CHK_MULTI" == "" ]; then

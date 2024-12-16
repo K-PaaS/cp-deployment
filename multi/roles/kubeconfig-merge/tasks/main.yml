@@ -1,4 +1,15 @@
 ---
-- name: Merge kubeconfig
+- name: Add list kubeconfig file name
   become: false
-  shell: KUBECONFIG={{ lookup('env', 'HOME') }}/.kube/config1:{{ lookup('env', 'HOME') }}/.kube/config2 kubectl config view --flatten > {{ lookup('env', 'HOME') }}/.kube/config
+  shell: |
+    ls {{ lookup('env', 'HOME') }}/.kube | grep -E '^config[0-9]+$'
+  register: config_list
+
+- name: Merge kubeconfig files
+  become: false
+  vars:
+    kubeconfig_files: "{{ config_list.stdout_lines | map('regex_replace', '^(.*)$', lookup('env', 'HOME') + '/.kube/\\1') | list }}"
+  shell: |
+    export KUBECONFIG={{ kubeconfig_files | join(':') }}
+    kubectl config view --merge --flatten > {{ lookup('env', 'HOME') }}/.kube/config
+  with_items: "{{ kubeconfig_files }}"

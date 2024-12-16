@@ -1,0 +1,25 @@
+---
+- name: Get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+  
+- name: Deploy kyverno
+  shell: kubectl create -f {{ home_dir_path.stdout }}/cp-deployment/applications/kyverno-1.12.5/kyverno.yaml
+
+- name: Check kyverno
+  become: false
+  shell: |
+    echo $(kubectl get pods -n kyverno | grep kyverno-admission-controller | awk 'NR==1 { print $3 }')
+  register: kyverno_status
+  until: kyverno_status.stdout == "Running"
+  retries: 5
+  delay: 60
+
+- name: Deploy pod-security-standards (PSS)
+  shell: kubectl apply -f {{ home_dir_path.stdout }}/cp-deployment/applications/kyverno-1.12.5/pod-security-standards.yaml
+
+- name: Deploy cp-kyverno-policies
+  shell: source {{ home_dir_path.stdout }}/cp-deployment/applications/kyverno-1.12.5/deploy-cp-kyverno-policies.sh
+  args:
+    executable: /bin/bash

@@ -216,6 +216,8 @@ Stack](https://github.com/kubernetes-sigs/kubespray/blob/master/docs/dns-stack.m
   The percent is calculated by dividing this field value by 100, so the field value must be between 0 and 100, inclusive.
   When specified, the value must be less than imageGCHighThresholdPercent. Default: 80
 
+* *kubelet_max_parallel_image_pulls* - Sets the maximum number of image pulls in parallel. The value is `1` by default which means the default is serial image pulling, set it to a integer great than `1` to enable image pulling in parallel.
+
 * *kubelet_make_iptables_util_chains* - If `true`, causes the kubelet ensures a set of `iptables` rules are present on host.
 
 * *kubelet_cpu_manager_policy* -  If set to `static`, allows pods with certain resource characteristics to be granted increased CPU affinity and exclusivity on the node. And it should be set with `kube_reserved` or `system-reserved`, enable this with the following guide:[Control CPU Management Policies on the Node](https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/)
@@ -242,6 +244,10 @@ kubelet_cpu_manager_policy_options:
     The **control plane** node may have 2 interfaces with the following IP addresses: `eth0:10.0.0.110`, `eth1:192.168.1.110`.
 
     By default the `kubelet_secure_addresses` is set with the `10.0.0.110` the ansible control host uses `eth0` to  connect to the machine. In case you want to use `eth1` as the outgoing interface on which `kube-apiserver` connects to the `kubelet`s, you should override the variable in this way: `kubelet_secure_addresses: "192.168.1.110"`.
+
+* *kubelet_systemd_wants_dependencies* - List of kubelet service dependencies, other than container runtime.
+
+  If you use nfs dynamically mounted volumes, sometimes rpc-statd does not start within the kubelet. You can fix it with this parameter : `kubelet_systemd_wants_dependencies: ["rpc-statd.service"]` This will add `Wants=rpc-statd.service` in `[Unit]` section of /etc/systemd/system/kubelet.service
 
 * *node_labels* - Labels applied to nodes via `kubectl label node`.
   For example, labels can be set in the inventory as variables or more widely in group_vars.

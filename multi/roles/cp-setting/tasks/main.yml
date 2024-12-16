@@ -4,27 +4,68 @@
   shell: "echo $HOME"
   register: home_dir_path
 
-- name: Copy vars file
+- name: Copy vars tmp file
   become: false
   copy:
-    src: "{{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars{{ groups['kube_control_plane'].index(inventory_hostname)|int + 1|int }}.sh"
-    dest: "{{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars.sh"
-
-- name: Copy vars file (cluster1)
-  become: false
-  copy:
-    src: "{{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars2.sh"
+    src: "{{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars.sh"
     dest: "{{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars-tmp.sh"
-  when:
-    - inventory_hostname == groups['kube_control_plane'][0]
 
-- name: Copy vars file (cluster2)
+- name: Create vars file
   become: false
-  copy:
-    src: "{{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars1.sh"
-    dest: "{{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars-tmp.sh"
-  when:
-    - inventory_hostname == groups['kube_control_plane'][1]
+  shell: |
+    cat {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars-tmp.sh | grep CLUSTER{{ groups['kube_control_plane'].index(inventory_hostname)|int + 1|int }} > {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars.sh
+    sed -i "s/CLUSTER{{ groups['kube_control_plane'].index(inventory_hostname)|int + 1|int }}_//g" {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars.sh
+
+- name: Create istio gateway private ip vars file
+  become: false
+  shell: cat {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars-tmp.sh | grep -v CLUSTER{{ groups['kube_control_plane'].index(inventory_hostname)|int + 1|int }} | grep ISTIO_GATEWAY_PRIVATE_IP > {{ home_dir_path.stdout }}/cp-deployment/standalone/gateway-private-vars.sh
+
+- name: Create istio gateway public ip vars file
+  become: false
+  shell: cat {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars-tmp.sh | grep -v CLUSTER{{ groups['kube_control_plane'].index(inventory_hostname)|int + 1|int }} | grep ISTIO_GATEWAY_PUBLIC_IP > {{ home_dir_path.stdout }}/cp-deployment/standalone/gateway-public-vars.sh
+
+- name: Create istio-setting defaults file
+  become: false
+  shell: |
+    cp {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml.ori {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
+    cat <<EOF > {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
+    istio_gateway_private_ip:
+    EOF
+
+- name: Create istio-setting defaults file
+  become: false
+  shell: |
+    grep -oP 'CLUSTER\d+_ISTIO_GATEWAY_PRIVATE_IP=\K\d+\.\d+\.\d+\.\d+' {{ home_dir_path.stdout }}/cp-deployment/standalone/gateway-private-vars.sh | sed 's/^/  - /' >> {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
+
+- name: Create istio-setting defaults file
+  become: false
+  shell: |
+    cat <<EOF >> {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
+    istio_gateway_public_ip:
+    EOF
+
+- name: Create istio-setting defaults file
+  become: false
+  shell: |
+    grep -oP 'CLUSTER\d+_ISTIO_GATEWAY_PUBLIC_IP=\K\d+\.\d+\.\d+\.\d+' {{ home_dir_path.stdout }}/cp-deployment/standalone/gateway-public-vars.sh | sed 's/^/  - /' >> {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
+
+- name: Delete vars temp file
+  become: false
+  file:
+    path: "{{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars-tmp.sh"
+    state: absent
+
+- name: Delete vars temp file
+  become: false
+  file:
+    path: "{{ home_dir_path.stdout }}/cp-deployment/standalone/gateway-private-vars.sh"
+    state: absent
+
+- name: Delete vars temp file
+  become: false
+  file:
+    path: "{{ home_dir_path.stdout }}/cp-deployment/standalone/gateway-public-vars.sh"
+    state: absent
 
 - name: Copy key file
   become: false

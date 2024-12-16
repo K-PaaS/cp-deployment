@@ -22,7 +22,7 @@
       - "{{ os_release_dict['ID'] }}.yml"
       paths:
       - vars/
-      skip: True
+      skip: true
   - name: Include tasks
     include_tasks: "{{ included_tasks_file }}"
     with_first_found:
@@ -36,7 +36,7 @@
   file:
     path: "{{ ansible_remote_tmp | default('~/.ansible/tmp') }}"
     state: directory
-    mode: 0700
+    mode: "0700"
 
 - name: Gather facts
   setup:
@@ -61,4 +61,4 @@
     state: directory
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"

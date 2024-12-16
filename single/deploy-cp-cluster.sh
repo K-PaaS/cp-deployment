@@ -156,11 +156,11 @@ if [ "$result" == 2 ]; then
   return $result
 fi
 
-if [ "$INGRESS_NGINX_PRIVATE_IP" == "" ]; then
-  echo "INGRESS_NGINX_PRIVATE_IP is empty. Enter a variable."
+if [ "$INGRESS_NGINX_IP" == "" ]; then
+  echo "INGRESS_NGINX_IP is empty. Enter a variable."
   result=2
-elif [[ ! "$INGRESS_NGINX_PRIVATE_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "INGRESS_NGINX_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
+elif [[ ! "$INGRESS_NGINX_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "INGRESS_NGINX_IP is not a value in IP format. Enter a IP format variable."
   result=2
 fi
 
@@ -182,8 +182,16 @@ fi
 PIP3_PACKAGE_INSTALL=$(pip3 freeze | grep ruamel.yaml)
 
 if [ "$PIP3_PACKAGE_INSTALL" == "" ]; then
-  sudo pip3 install -r ../standalone/requirements.txt
+  pip3 install -r ../standalone/requirements.txt
+  pip3 install -r ../standalone/contrib/inventory_builder/requirements.txt
   echo "Python packages installation completed."
+fi
+
+NET_TOOLS_INSTALL=$(dpkg -l | grep net-tools | awk '{print $2}')
+
+if [ "$NET_TOOLS_INSTALL" == "" ]; then
+  sudo apt-get install -y net-tools
+  echo "net-tools installation completed."
 fi
 
 # Update /etc/hosts, .ssh/known_hosts
@@ -206,9 +214,9 @@ elif [ "$KUBE_CONTROL_HOSTS" -gt 1 ]; then
   sed -i "s/{MASTER1_NODE_PUBLIC_IP}/$LOADBALANCER_DOMAIN/g" roles/kubeconfig/defaults/main.yml
 fi
 
-cp roles/istio-single/defaults/main.yml.ori roles/istio-single/defaults/main.yml
+cp roles/ingress-setting/defaults/main.yml.ori roles/ingress-setting/defaults/main.yml
 
-sed -i "s/{INGRESS_NGINX_PRIVATE_IP}/$INGRESS_NGINX_PRIVATE_IP/g" roles/istio-single/defaults/main.yml
+sed -i "s/{INGRESS_NGINX_IP}/$INGRESS_NGINX_IP/g" roles/ingress-setting/defaults/main.yml
 
 rm -rf hosts.yaml
 
@@ -226,6 +234,9 @@ all:
 EOF
 
 echo "Container Platform vars setting completed."
+
+export PATH=$PATH:$HOME/.local/bin
+source $HOME/.bashrc
 
 # Deploy Container Platform
 ansible-playbook -i hosts.yaml  --become --become-user=root cluster.yml

@@ -15,27 +15,6 @@
     regexp: "server: https://127.0.0.1:6443"
     replace: "server: https://{{ master1_node_public_ip }}:6443"
 
-- name: Modify kube config file
-  become: false
-  replace:
-    path: "{{ home_dir_path.stdout }}/.kube/kubeconfig"
-    regexp: "kubernetes-admin@cluster.local"
-    replace: "cluster1"
-
-- name: Modify kube config file
-  become: false
-  replace:
-    path: "{{ home_dir_path.stdout }}/.kube/kubeconfig"
-    regexp: "cluster.local"
-    replace: "cluster1"
-
-- name: Modify kube config file
-  become: false
-  replace:
-    path: "{{ home_dir_path.stdout }}/.kube/kubeconfig"
-    regexp: "kubernetes-admin"
-    replace: "cluster1"
-
 - name: Copy kube config file
   become: false
   fetch:

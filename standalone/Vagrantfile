@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # # vi: set ft=ruby :
 
-# For help on using kubespray with vagrant, check out docs/vagrant.md
+# For help on using kubespray with vagrant, check out docs/developers/vagrant.md
 
 require 'fileutils'
 
@@ -22,8 +22,6 @@ SUPPORTED_OS = {
   "ubuntu2004"          => {box: "generic/ubuntu2004",         user: "vagrant"},
   "ubuntu2204"          => {box: "generic/ubuntu2204",         user: "vagrant"},
   "ubuntu2404"          => {box: "bento/ubuntu-24.04",         user: "vagrant"},
-  "centos"              => {box: "centos/7",                   user: "vagrant"},
-  "centos-bento"        => {box: "bento/centos-7.6",           user: "vagrant"},
   "centos8"             => {box: "centos/8",                   user: "vagrant"},
   "centos8-bento"       => {box: "bento/centos-8",             user: "vagrant"},
   "almalinux8"          => {box: "almalinux/8",                user: "vagrant"},
@@ -36,7 +34,6 @@ SUPPORTED_OS = {
   "opensuse-tumbleweed" => {box: "opensuse/Tumbleweed.x86_64", user: "vagrant"},
   "oraclelinux"         => {box: "generic/oracle7",            user: "vagrant"},
   "oraclelinux8"        => {box: "generic/oracle8",            user: "vagrant"},
-  "rhel7"               => {box: "generic/rhel7",              user: "vagrant"},
   "rhel8"               => {box: "generic/rhel8",              user: "vagrant"},
   "debian11"            => {box: "debian/bullseye64",          user: "vagrant"},
   "debian12"            => {box: "debian/bookworm64",          user: "vagrant"},
@@ -278,6 +275,7 @@ Vagrant.configure("2") do |config|
         "local_path_provisioner_enabled": "#{$local_path_provisioner_enabled}",
         "local_path_provisioner_claim_root": "#{$local_path_provisioner_claim_root}",
         "ansible_ssh_user": SUPPORTED_OS[$os][:user],
+        "ansible_ssh_private_key_file": File.join(Dir.home, ".vagrant.d", "insecure_private_key"),
         "unsafe_show_logs": "True"
       }
 

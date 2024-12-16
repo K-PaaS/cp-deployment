@@ -51,4 +51,4 @@ export NFS_SERVER_PRIVATE_IP=
 export METALLB_IP_RANGE=
 
 # MetalLB Ingress Nginx Controller LoadBalancer Service External IP
-export INGRESS_NGINX_PRIVATE_IP=
+export INGRESS_NGINX_IP=

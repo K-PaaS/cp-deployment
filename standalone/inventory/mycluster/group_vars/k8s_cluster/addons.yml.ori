@@ -96,10 +96,16 @@ rbd_provisioner_enabled: false
 # rbd_provisioner_storage_class: rbd
 # rbd_provisioner_reclaim_policy: Delete
 
+# Gateway API CRDs
+gateway_api_enabled: false
+# gateway_api_experimental_channel: false
+
 # Nginx ingress controller deployment
 ingress_nginx_enabled: false
 # ingress_nginx_host_network: false
 # ingress_nginx_service_type: LoadBalancer
+# ingress_nginx_service_nodeport_http: 30080
+# ingress_nginx_service_nodeport_https: 30081
 ingress_publish_status_address: ""
 # ingress_nginx_nodeselector:
 #   kubernetes.io/os: "linux"
@@ -205,7 +211,7 @@ metallb_config:
 #       auto_assign: true
     ingress-nginx:
       ip_range:
-        - {INGRESS_NGINX_PRIVATE_IP}/32
+        - {INGRESS_NGINX_IP}/32
       auto_assign: false
 
 #     pool1:

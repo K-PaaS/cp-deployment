@@ -6,6 +6,6 @@
 
 - name: Copy tofu
   copy:
-    src: "{{ home_dir_path.stdout }}/cp-deployment/applications/opentofu-1.8.1/tofu"
+    src: "{{ home_dir_path.stdout }}/cp-deployment/applications/opentofu-1.8.3/tofu"
     dest: "/usr/bin/tofu"
     mode: "0755"

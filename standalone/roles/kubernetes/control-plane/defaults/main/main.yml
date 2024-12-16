@@ -142,6 +142,7 @@ kube_pod_security_exemptions_namespaces:
   - kubeedge
   - cp-pipeline
   - cp-source-control
+  - chaos-mesh
 
 # 1.10+ list of disabled admission plugins
 kube_apiserver_disable_admission_plugins: []

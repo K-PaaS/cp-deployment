@@ -13,5 +13,5 @@
 - name: Reset container platform
   become: false
   shell: |
-    cd {{ home_dir_path.stdout }}/cp-deployment/standalone
-    ./reset-cp-cluster.sh
+      ssh {{ hostvars[inventory_hostname].ansible_host }} 'cd {{ home_dir_path.stdout }}/cp-deployment/standalone && ./reset-cp-cluster.sh' 2>&1 | tee /dev/tty
+  delegate_to: localhost

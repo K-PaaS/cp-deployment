@@ -1,5 +1,10 @@
 ---
+- name: Check podman package installation
+  shell: dpkg -l | grep podman | awk '{print $2}'
+  register: podman_install
+
 - name: Install podman
   apt:
     name: podman
     update_cache: yes
+  when: podman_install.stdout == ""

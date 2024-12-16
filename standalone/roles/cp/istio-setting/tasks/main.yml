@@ -1,4 +1,25 @@
 ---
-- name: Add iptalb prerouting
+- name: Install iptables-persistent
+  apt:
+    name: iptables-persistent
+    update_cache: yes
+
+- name: Add iptables prerouting
   shell: |
-    iptables -t nat -I PREROUTING -d {{ istio_eastwest_private_ip }} -j DNAT --to-destination {{ istio_eastwest_public_ip }}
+    iptables -t nat -I PREROUTING -d {{ item.0 }} -j DNAT --to-destination {{ item.1 }}
+  with_together:
+    - "{{ istio_gateway_private_ip }}"
+    - "{{ istio_gateway_public_ip }}"
+  when: item.0 != item.1
+
+- name: Save iptables
+  shell: |
+    netfilter-persistent save
+    cat <<EOF > /etc/systemd/system/netfilter-persistent.service.d/iptables.conf
+    [Unit]
+    Conflicts=iptables.service ip6tables.service
+    [Service]
+    Restart=on-failure
+    RestartSec=5s
+    EOF
+    systemctl daemon-reload
