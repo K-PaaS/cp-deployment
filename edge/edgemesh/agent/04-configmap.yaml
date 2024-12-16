@@ -17,7 +17,7 @@ data:
         relayNodes:
         - nodeName: {MASTER_NODE_HOSTNAME}
           advertiseAddress:
-          - {CLOUDCORE_VIP}
+          - {MASTER_NODE_PUBLIC_IP}
         #relayNodes:
         #- nodeName: <your relay node name1>
         #  advertiseAddress:

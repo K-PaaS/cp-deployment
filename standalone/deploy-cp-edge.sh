@@ -124,7 +124,7 @@ cloudcore_vip: $CLOUDCORE_VIP
 EOF
 
 sed -i "s/{MASTER_NODE_HOSTNAME}/$MASTER1_NODE_HOSTNAME/g" ../edge/edgemesh/agent/04-configmap.yaml
-sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" ../edge/edgemesh/agent/04-configmap.yaml
+sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" ../edge/edgemesh/agent/04-configmap.yaml
 
 sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" ../edge/ha-cloudcore/02-ha-configmap.yaml
 
