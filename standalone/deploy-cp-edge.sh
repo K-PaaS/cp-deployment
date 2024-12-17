@@ -47,18 +47,18 @@ elif [ ! "$EDGE_HOSTS" == "" ]; then
     do
       j=$((i+1));
       eval "edge_node_hostname=\${EDGE${j}_NODE_HOSTNAME}";
-      eval "edge_node_private_ip=\${EDGE${j}_NODE_PRIVATE_IP}";
+      eval "edge_node_public_ip=\${EDGE${j}_NODE_PUBLIC_IP}";
 
       if [ "$edge_node_hostname" == "" ]; then
         echo "EDGE${j}_NODE_HOSTNAME is empty. Enter a variable."
         result=2
         break
-      elif [ "$edge_node_private_ip" == "" ]; then
-        echo "EDGE${j}_NODE_PRIVATE_IP is empty. Enter a variable."
+      elif [ "$edge_node_public_ip" == "" ]; then
+        echo "EDGE${j}_NODE_PUBLIC_IP is empty. Enter a variable."
         result=2
         break
-      elif [[ ! "$edge_node_private_ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        echo "EDGE${j}_NODE_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
+      elif [[ ! "$edge_node_public_ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "EDGE${j}_NODE_PUBLIC_IP is not a value in IP format. Enter a IP format variable."
         result=2
         break
       fi
@@ -83,13 +83,13 @@ for ((i=0;i<$EDGE_HOSTS;i++))
   do
     j=$((i+1));
     eval "edge_node_hostname=\${EDGE${j}_NODE_HOSTNAME}";
-    eval "edge_node_private_ip=\${EDGE${j}_NODE_PRIVATE_IP}";
+    eval "edge_node_public_ip=\${EDGE${j}_NODE_PUBLIC_IP}";
 
 cat << EOF >> inventory/mycluster/edge-hosts.yaml
     $edge_node_hostname:
-      ansible_host: $edge_node_private_ip
-      ip: $edge_node_private_ip
-      access_ip: $edge_node_private_ip
+      ansible_host: $edge_node_public_ip
+      ip: $edge_node_public_ip
+      access_ip: $edge_node_public_ip
 EOF
 done
 
@@ -106,7 +106,7 @@ for ((i=0;i<$EDGE_HOSTS;i++))
   do
     j=$((i+1));
     eval "edge_node_hostname=\${EDGE${j}_NODE_HOSTNAME}";
-    eval "edge_node_private_ip=\${EDGE${j}_NODE_PRIVATE_IP}";
+    eval "edge_node_public_ip=\${EDGE${j}_NODE_PUBLIC_IP}";
 
 cat << EOF >> inventory/mycluster/edge-hosts.yaml
         $edge_node_hostname:
