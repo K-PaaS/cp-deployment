@@ -13,5 +13,8 @@ sed -i "s/{MASTER1_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" roles/kubernetes/c
 
 sed -i "s/metallb_enabled: true/metallb_enabled: false/g" inventory/mycluster/group_vars/k8s_cluster/addons.yml
 
+export PATH=$PATH:$HOME/.local/bin
+source $HOME/.bashrc
+
 # Deploy container platform
 ansible-playbook -i inventory/mycluster/hosts-$CLUSTER_NAME.yaml  --become --become-user=root playbooks/cluster_terraman.yml
