@@ -168,6 +168,18 @@ if [ "$result" == 2 ]; then
   return $result
 fi
 
+if [ "$INSTALL_KYVERNO" == "" ]; then
+  echo "INSTALL_KYVERNO is empty, Enter a variable."
+  result=2
+elif [ ! "$INSTALL_KYVERNO" == "Y" ] && [ ! "$INSTALL_KYVERNO" == "N" ]; then
+  echo "SINSTALL_KYVERNO must be 'Y' or 'N'."
+  result=2
+fi
+
+if [ "$result" == 2 ]; then
+  return $result
+fi
+
 echo "Variable check completed."
 
 # Installing Ubuntu, PIP3 Package

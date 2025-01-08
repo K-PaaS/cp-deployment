@@ -52,3 +52,6 @@ export METALLB_IP_RANGE=
 
 # MetalLB Ingress Nginx Controller LoadBalancer Service External IP
 export INGRESS_NGINX_IP=
+
+# Install Kyverno (eg. Y, N)
+export INSTALL_KYVERNO=

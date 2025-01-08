@@ -196,7 +196,18 @@ if [[ ! "$CHK_MULTI" == "" ]]; then
   if [ "$result" == 2 ]; then
     return $result
   fi
+fi
 
+if [ "$INSTALL_KYVERNO" == "" ]; then
+  echo "INSTALL_KYVERNO is empty, Enter a variable."
+  result=2
+elif [ ! "$INSTALL_KYVERNO" == "Y" ] && [ ! "$INSTALL_KYVERNO" == "N" ]; then
+  echo "INSTALL_KYVERNO must be 'Y' or 'N'."
+  result=2
+fi
+
+if [ "$result" == 2 ]; then
+  return $result
 fi
 
 # Installing Ubuntu, PIP3 Package
@@ -233,6 +244,7 @@ cp roles/cp/storage/defaults/main.yml.ori roles/cp/storage/defaults/main.yml
 cp roles/kubernetes/control-plane/tasks/kubeadm-setup.yml.ori roles/kubernetes/control-plane/tasks/kubeadm-setup.yml
 cp roles/kubernetes-apps/metrics_server/defaults/main.yml.ori roles/kubernetes-apps/metrics_server/defaults/main.yml
 cp ../applications/nfs-provisioner-4.0.2/deployment.yaml.ori ../applications/nfs-provisioner-4.0.2/deployment.yaml
+cp roles/cp/kyverno/defaults/main.yml.ori roles/cp/kyverno/defaults/main.yml
 
 ARRAY_MASTER_NODE_IP=""
 ARRAY_ETCD_NODE_IP=""
@@ -373,6 +385,8 @@ if [ "$ETCD_TYPE" == "external" ]; then
 fi
 
 sed -i "s/metallb_enabled: false/metallb_enabled: true/g" inventory/mycluster/group_vars/k8s_cluster/addons.yml
+
+sed -i "s/{INSTALL_KYVERNO}/$INSTALL_KYVERNO/g" roles/cp/kyverno/defaults/main.yml
 
 echo "Container Platform vars setting completed."
 
