@@ -6,15 +6,35 @@
 
 - name: cri-o download
   shell: |
-    wget https://storage.googleapis.com/cri-o/artifacts/cri-o.arm64.v1.26.4.tar.gz
-    tar zxvf cri-o.arm64.v1.26.4.tar.gz
+    wget https://storage.googleapis.com/cri-o/artifacts/cri-o.amd64.v1.30.0.tar.gz
+    tar zxvf cri-o.amd64.v1.30.0.tar.gz
     cd cri-o
     ./install
+  args:
+    executable: /bin/bash
+  when: ansible_architecture == "x86_64"
+
+- name: cri-o download
+  shell: |
+    wget https://storage.googleapis.com/cri-o/artifacts/cri-o.arm64.v1.30.0.tar.gz
+    tar zxvf cri-o.arm64.v1.30.0.tar.gz
+    cd cri-o
+    ./install
+  args:
+    executable: /bin/bash
+  when: ansible_architecture == "aarch64"
 
 - name: remove cri-o tar file
   file:
-    path: "{{ home_dir_path.stdout }}/cri-o.arm64.v1.26.4.tar.gz"
+    path: "{{ home_dir_path.stdout }}/cri-o.amd64.v1.30.0.tar.gz"
     state: absent
+  when: ansible_architecture == "x86_64"
+
+- name: remove cri-o tar file
+  file:
+    path: "{{ home_dir_path.stdout }}/cri-o.arm64.v1.30.0.tar.gz"
+    state: absent
+  when: ansible_architecture == "aarch64"
 
 - name: remove cri-o dir
   file:

@@ -27,13 +27,18 @@
   hosts: "{{ node | default('kube_node') }}"
   gather_facts: false
   environment: "{{ proxy_disable_env }}"
+  pre_tasks:
+    - name: Gather information about installed services
+      service_facts:
+      when: reset_nodes | default(True) | bool
   roles:
     - { role: kubespray-defaults, when: reset_nodes | default(True) | bool }
     - { role: remove-node/pre-remove, tags: pre-remove }
-    - { role: remove-node/remove-etcd-node }
+    - role: remove-node/remove-etcd-node
+      when: "'etcd' in group_names"
     - { role: reset, tags: reset, when: reset_nodes | default(True) | bool }
 
-# Currently cannot remove first master or etcd
+# Currently cannot remove first control plane node or first etcd node
 - name: Post node removal
   hosts: "{{ node | default('kube_control_plane[1:]:etcd[1:]') }}"
   gather_facts: false

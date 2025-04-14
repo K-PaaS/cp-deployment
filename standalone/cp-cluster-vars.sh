@@ -54,4 +54,5 @@ export METALLB_IP_RANGE=
 export INGRESS_NGINX_IP=
 
 # Install Kyverno (eg. Y, N)
+# PSS(Pod Security Standards) and cp-policy(Network isolation between namespaces) implemented as Kyverno policies.
 export INSTALL_KYVERNO=

@@ -9,7 +9,7 @@ metrics_server_requests_cpu: 100m
 metrics_server_requests_memory: 200Mi
 metrics_server_host_network: false
 metrics_server_replicas: 1
-# metrics_server_extra_tolerations: []
-# metrics_server_extra_affinity: {}
-# metrics_server_nodeselector: {}
+metrics_server_extra_tolerations: []
+metrics_server_extra_affinity: {}
+metrics_server_nodeselector: {}
 master_node_hostname: {MASTER1_NODE_HOSTNAME}

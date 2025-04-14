@@ -1,0 +1,4 @@
+---
+- name: reset kubeedge
+  shell: |
+    keadm reset cloud --force

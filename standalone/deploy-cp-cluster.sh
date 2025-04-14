@@ -223,7 +223,6 @@ PIP3_PACKAGE_INSTALL=$(pip3 freeze | grep ruamel.yaml)
 
 if [ "$PIP3_PACKAGE_INSTALL" == "" ]; then
   pip3 install -r requirements.txt
-  pip3 install -r contrib/inventory_builder/requirements.txt
   
   echo "Python packages installation completed."
 fi
@@ -243,51 +242,50 @@ cp inventory/mycluster/inventory.ini.ori inventory/mycluster/inventory.ini
 cp roles/cp/storage/defaults/main.yml.ori roles/cp/storage/defaults/main.yml
 cp roles/kubernetes/control-plane/tasks/kubeadm-setup.yml.ori roles/kubernetes/control-plane/tasks/kubeadm-setup.yml
 cp roles/kubernetes-apps/metrics_server/defaults/main.yml.ori roles/kubernetes-apps/metrics_server/defaults/main.yml
-cp ../applications/nfs-provisioner-4.0.2/deployment.yaml.ori ../applications/nfs-provisioner-4.0.2/deployment.yaml
+cp ../applications/nfs-subdir-external-provisioner-4.0.18/values.yaml.ori ../applications/nfs-subdir-external-provisioner-4.0.18/values.yaml
 cp roles/cp/kyverno/defaults/main.yml.ori roles/cp/kyverno/defaults/main.yml
 
-ARRAY_MASTER_NODE_IP=""
-ARRAY_ETCD_NODE_IP=""
-ARRAY_WORKER_NODE_IP=""
-
 if [ "$KUBE_CONTROL_HOSTS" -eq 1 ]; then
-  find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[all\]/a\{MASTER1_NODE_HOSTNAME} ansible_host={MASTER1_NODE_PRIVATE_IP} ip={MASTER1_NODE_PRIVATE_IP} etcd_member_name=etcd1" {} \;;
+  find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[all\]/a\{MASTER1_NODE_HOSTNAME} ansible_host={MASTER1_NODE_PRIVATE_IP} ip={MASTER1_NODE_PRIVATE_IP} access_ip={MASTER1_NODE_PRIVATE_IP} etcd_member_name=etcd1" {} \;;
   find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[etcd\]/i\{MASTER1_NODE_HOSTNAME}" {} \;;
   find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[kube_node\]/i\{MASTER1_NODE_HOSTNAME}" {} \;;
 
   sed -i "s/{MASTER1_NODE_HOSTNAME}/${MASTER1_NODE_HOSTNAME}/g" inventory/mycluster/inventory.ini
   sed -i "s/{MASTER1_NODE_PRIVATE_IP}/${MASTER1_NODE_PRIVATE_IP}/g" inventory/mycluster/inventory.ini
-
-  ARRAY_MASTER_NODE_IP="${MASTER1_NODE_PRIVATE_IP}";
 else
   for ((i=0;i<$KUBE_CONTROL_HOSTS;i++))
     do
       j=$((i+1));
 
-      find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[all\]/a\{MASTER${j}_NODE_HOSTNAME} ansible_host={MASTER${j}_NODE_PRIVATE_IP} ip={MASTER${j}_NODE_PRIVATE_IP}" {} \;;
-      find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[kube_control_plane\]/i\{ETCD${j}_NODE_HOSTNAME} ansible_host={ETCD${j}_NODE_PRIVATE_IP} ip={ETCD${j}_NODE_PRIVATE_IP}" {} \;;
+      if [ "$ETCD_TYPE" == "external" ]; then
+        find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[all\]/a\{MASTER${j}_NODE_HOSTNAME} ansible_host={MASTER${j}_NODE_PRIVATE_IP} ip={MASTER${j}_NODE_PRIVATE_IP} access_ip={MASTER${j}_NODE_PRIVATE_IP}" {} \;;
+        find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[kube_control_plane\]/i\{ETCD${j}_NODE_HOSTNAME} ansible_host={ETCD${j}_NODE_PRIVATE_IP} ip={ETCD${j}_NODE_PRIVATE_IP} access_ip={ETCD${j}_NODE_PRIVATE_IP} etcd_member_name=etcd${j}" {} \;;
+      
+        find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[etcd\]/i\{MASTER${j}_NODE_HOSTNAME}" {} \;;
+        find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[kube_node\]/i\{ETCD${j}_NODE_HOSTNAME}" {} \;;
 
-      find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[etcd\]/i\{MASTER${j}_NODE_HOSTNAME}" {} \;;
-      find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[kube_node\]/i\{ETCD${j}_NODE_HOSTNAME}" {} \;;
+        eval "master_node_hostname=\${MASTER${j}_NODE_HOSTNAME}";
+        eval "master_node_private_ip=\${MASTER${j}_NODE_PRIVATE_IP}";
 
-      eval "master_node_hostname=\${MASTER${j}_NODE_HOSTNAME}";
-      eval "master_node_private_ip=\${MASTER${j}_NODE_PRIVATE_IP}";
+        sed -i "s/{MASTER"$j"_NODE_HOSTNAME}/$master_node_hostname/g" inventory/mycluster/inventory.ini
+        sed -i "s/{MASTER"$j"_NODE_PRIVATE_IP}/$master_node_private_ip/g" inventory/mycluster/inventory.ini
 
-      sed -i "s/{MASTER"$j"_NODE_HOSTNAME}/$master_node_hostname/g" inventory/mycluster/inventory.ini
-      sed -i "s/{MASTER"$j"_NODE_PRIVATE_IP}/$master_node_private_ip/g" inventory/mycluster/inventory.ini
+        eval "etcd_node_hostname=\${ETCD${j}_NODE_HOSTNAME}";
+        eval "etcd_node_private_ip=\${ETCD${j}_NODE_PRIVATE_IP}";
 
-      eval "etcd_node_hostname=\${ETCD${j}_NODE_HOSTNAME}";
-      eval "etcd_node_private_ip=\${ETCD${j}_NODE_PRIVATE_IP}";
+        sed -i "s/{ETCD"$j"_NODE_HOSTNAME}/$etcd_node_hostname/g" inventory/mycluster/inventory.ini
+        sed -i "s/{ETCD"$j"_NODE_PRIVATE_IP}/$etcd_node_private_ip/g" inventory/mycluster/inventory.ini
+      elif [ "$ETCD_TYPE" == "stacked" ]; then
+        find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[all\]/a\{MASTER${j}_NODE_HOSTNAME} ansible_host={MASTER${j}_NODE_PRIVATE_IP} ip={MASTER${j}_NODE_PRIVATE_IP} access_ip={MASTER${j}_NODE_PRIVATE_IP} etcd_member_name=etcd${j}" {} \;;
+        
+        find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[etcd\]/i\{MASTER${j}_NODE_HOSTNAME}" {} \;;
+        find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[kube_node\]/i\{MASTER${j}_NODE_HOSTNAME}" {} \;;
 
-      sed -i "s/{ETCD"$j"_NODE_HOSTNAME}/$etcd_node_hostname/g" inventory/mycluster/inventory.ini
-      sed -i "s/{ETCD"$j"_NODE_PRIVATE_IP}/$etcd_node_private_ip/g" inventory/mycluster/inventory.ini
+        eval "master_node_hostname=\${MASTER${j}_NODE_HOSTNAME}";
+        eval "master_node_private_ip=\${MASTER${j}_NODE_PRIVATE_IP}";
 
-      if [ "${j}" -eq 1 ]; then
-        ARRAY_MASTER_NODE_IP="${master_node_private_ip}";
-        ARRAY_ETCD_NODE_IP="${etcd_node_private_ip}";
-      else
-        ARRAY_MASTER_NODE_IP="${ARRAY_MASTER_NODE_IP} ${master_node_private_ip}";
-        ARRAY_ETCD_NODE_IP="${ARRAY_ETCD_NODE_IP} ${etcd_node_private_ip}";
+        sed -i "s/{MASTER"$j"_NODE_HOSTNAME}/$master_node_hostname/g" inventory/mycluster/inventory.ini
+        sed -i "s/{MASTER"$j"_NODE_PRIVATE_IP}/$master_node_private_ip/g" inventory/mycluster/inventory.ini
       fi
   done
 fi
@@ -295,7 +293,7 @@ fi
 for ((i=0;i<$KUBE_WORKER_HOSTS;i++))
   do
     j=$((i+1));
-    find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[kube_control_plane\]/i\{WORKER${j}_NODE_HOSTNAME} ansible_host={WORKER${j}_NODE_PRIVATE_IP} ip={WORKER${j}_NODE_PRIVATE_IP}" {} \;;
+    find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[kube_control_plane\]/i\{WORKER${j}_NODE_HOSTNAME} ansible_host={WORKER${j}_NODE_PRIVATE_IP} ip={WORKER${j}_NODE_PRIVATE_IP} access_ip={WORKER${j}_NODE_PRIVATE_IP}" {} \;;
     find inventory/mycluster/inventory.ini -exec sed -i -r -e "/\[calico_rr\]/i\{WORKER${j}_NODE_HOSTNAME}" {} \;;
 
     eval "worker_node_hostname=\${WORKER${j}_NODE_HOSTNAME}";
@@ -303,8 +301,6 @@ for ((i=0;i<$KUBE_WORKER_HOSTS;i++))
 
     sed -i "s/{WORKER"$j"_NODE_HOSTNAME}/$worker_node_hostname/g" inventory/mycluster/inventory.ini;
     sed -i "s/{WORKER"$j"_NODE_PRIVATE_IP}/$worker_node_private_ip/g" inventory/mycluster/inventory.ini;
-
-    ARRAY_WORKER_NODE_IP="${ARRAY_WORKER_NODE_IP} ${worker_node_private_ip}";
 done
 
 sed -i "s/{MASTER1_NODE_HOSTNAME}/$MASTER1_NODE_HOSTNAME/g" roles/kubernetes-apps/metrics_server/defaults/main.yml
@@ -338,7 +334,7 @@ if [ "$KUBE_CONTROL_HOSTS" -gt 1 ]; then
 
   for ((i=0;i<$KUBE_CONTROL_HOSTS;i++))
     do
-      j=$((i+1));
+      j=$((i+1));                          
       eval "etcd_node_private_ip=\${ETCD${j}_NODE_PRIVATE_IP}";
       eval "master_node_private_ip=\${MASTER${j}_NODE_PRIVATE_IP}";
 
@@ -352,36 +348,12 @@ fi
 
 sed -i "s/{METALLB_IP_RANGE}/$METALLB_IP_RANGE/g" inventory/mycluster/group_vars/k8s_cluster/addons.yml
 sed -i "s/{INGRESS_NGINX_IP}/$INGRESS_NGINX_IP/g" inventory/mycluster/group_vars/k8s_cluster/addons.yml
-sed -i "s/{NFS_SERVER_PRIVATE_IP}/$NFS_SERVER_PRIVATE_IP/g" ../applications/nfs-provisioner-4.0.2/deployment.yaml
+sed -i "s/{NFS_SERVER_PRIVATE_IP}/$NFS_SERVER_PRIVATE_IP/g" ../applications/nfs-subdir-external-provisioner-4.0.18/values.yaml
 sed -i "s/{STORAGE_TYPE}/$STORAGE_TYPE/g" roles/cp/storage/defaults/main.yml
 
 if [[ ! "$CHK_MULTI" == "" ]]; then
   find inventory/mycluster/group_vars/k8s_cluster/addons.yml -exec sed -i -r -e "/#     pool1:/i\    istio-ingress:\n      ip_range:\n        - $ISTIO_GATEWAY_PRIVATE_IP\/32\n      auto_assign: false" {} \;;
   find inventory/mycluster/group_vars/k8s_cluster/addons.yml -exec sed -i -r -e "/    - ingress-nginx/a\    - istio-ingress" {} \;;
-fi
-
-if [ "$KUBE_CONTROL_HOSTS" -eq 1 ]; then
-  declare -a IPS=($ARRAY_MASTER_NODE_IP $ARRAY_WORKER_NODE_IP)
-elif [ "$KUBE_CONTROL_HOSTS" -gt 1 ]; then
-  if [ "$ETCD_TYPE" == "external" ]; then
-    declare -a IPS=($ARRAY_MASTER_NODE_IP $ARRAY_ETCD_NODE_IP $ARRAY_WORKER_NODE_IP)
-  elif [ "$ETCD_TYPE" == "stacked" ]; then
-    declare -a IPS=($ARRAY_MASTER_NODE_IP $ARRAY_WORKER_NODE_IP)
-  fi
-fi
-CONFIG_FILE=inventory/mycluster/hosts.yaml python3 contrib/inventory_builder/inventory.py ${IPS[@]}
-
-if [ "$ETCD_TYPE" == "external" ]; then
-  for ((i=0;i<$KUBE_CONTROL_HOSTS;i++))
-    do
-      j=$((i+1));
-      eval "master_node_hostname=\${MASTER${j}_NODE_HOSTNAME}";
-      eval "etcd_node_hostname=\${ETCD${j}_NODE_HOSTNAME}";
-
-      sed -i "/kube_node:/,/etcd:/s/$etcd_node_hostname://g" inventory/mycluster/hosts.yaml
-      sed -i "/^ *$/d" inventory/mycluster/hosts.yaml
-      sed -i "/etcd:/,/k8s_cluster:/s/$master_node_hostname:/$etcd_node_hostname:/g" inventory/mycluster/hosts.yaml
-  done
 fi
 
 sed -i "s/metallb_enabled: false/metallb_enabled: true/g" inventory/mycluster/group_vars/k8s_cluster/addons.yml
@@ -395,7 +367,7 @@ source $HOME/.bashrc
 
 # Deploy Container Platform
 if [ "$CHK_MULTI" == "" ]; then
-  ansible-playbook -i inventory/mycluster/hosts.yaml  --become --become-user=root cluster.yml
+  ansible-playbook -i inventory/mycluster/inventory.ini  --become --become-user=root cluster.yml
 else
-  ansible-playbook -i inventory/mycluster/hosts.yaml  --become --become-user=root playbooks/cluster_multi.yml
+  ansible-playbook -i inventory/mycluster/inventory.ini  --become --become-user=root playbooks/cluster_multi.yml
 fi

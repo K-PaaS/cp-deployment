@@ -4,6 +4,11 @@
   shell: "echo $HOME"
   register: home_dir_path
 
+- name: remove keadm token file
+  file:
+    path: "{{ home_dir_path.stdout }}/keadm_token"
+    state: absent
+
 - name: Add filter labels to Kubernetes API services
   shell: |
     kubectl label services kubernetes service.edgemesh.kubeedge.io/service-proxy-name=""
@@ -14,3 +19,7 @@
 
 - name: apply edgemesh server
   shell: "kubectl apply -f {{ home_dir_path.stdout }}/cp-deployment/edge/edgemesh/agent/"
+
+- name: patch edgemesh-agent
+  shell: |
+    kubectl patch daemonset edgemesh-agent -n kubeedge --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/tolerations.yaml

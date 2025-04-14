@@ -147,14 +147,6 @@
   environment: "{{ proxy_disable_env }}"
   roles:
     - { role: kubespray-defaults }
-    - { role: cp/ingress-nginx }
-
-- hosts: kube_control_plane[0]
-  gather_facts: False
-  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
-  environment: "{{ proxy_disable_env }}"
-  roles:
-    - { role: kubespray-defaults }
     - { role: cp/storage }
 
 - hosts: k8s_cluster

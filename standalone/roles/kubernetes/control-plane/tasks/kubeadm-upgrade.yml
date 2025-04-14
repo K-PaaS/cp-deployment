@@ -1,24 +1,24 @@
 ---
 - name: Kubeadm | Check api is up
   uri:
-    url: "https://{{ ip | default(fallback_ips[inventory_hostname]) }}:{{ kube_apiserver_port }}/healthz"
+    url: "https://{{ ip | default(fallback_ip) }}:{{ kube_apiserver_port }}/healthz"
     validate_certs: false
-  when: inventory_hostname in groups['kube_control_plane']
+  when: ('kube_control_plane' in group_names)
   register: _result
   retries: 60
   delay: 5
   until: _result.status == 200
 
-- name: Kubeadm | Upgrade first master
+- name: Kubeadm | Upgrade first control plane node
   command: >-
     timeout -k 600s 600s
     {{ bin_dir }}/kubeadm
     upgrade apply -y {{ kube_version }}
     --certificate-renewal={{ kubeadm_upgrade_auto_cert_renewal }}
-    --ignore-preflight-errors=all
+    --ignore-preflight-errors={{ kubeadm_ignore_preflight_errors | join(',') }}
     --allow-experimental-upgrades
-    --etcd-upgrade={{ (etcd_deployment_type == "kubeadm") | bool | lower }}
-    {% if kubeadm_patches is defined and kubeadm_patches.enabled %}--patches={{ kubeadm_patches.dest_dir }}{% endif %}
+    --etcd-upgrade={{ (etcd_deployment_type == "kubeadm") | lower }}
+    {% if kubeadm_patches | length > 0 %}--patches={{ kubeadm_patches_dir }}{% endif %}
     --force
   register: kubeadm_upgrade
   # Retry is because upload config sometimes fails
@@ -28,18 +28,18 @@
   failed_when: kubeadm_upgrade.rc != 0 and "field is immutable" not in kubeadm_upgrade.stderr
   environment:
     PATH: "{{ bin_dir }}:{{ ansible_env.PATH }}"
-  notify: Master | restart kubelet
+  notify: Control plane | restart kubelet
 
-- name: Kubeadm | Upgrade other masters
+- name: Kubeadm | Upgrade other control plane nodes
   command: >-
     timeout -k 600s 600s
     {{ bin_dir }}/kubeadm
     upgrade apply -y {{ kube_version }}
     --certificate-renewal={{ kubeadm_upgrade_auto_cert_renewal }}
-    --ignore-preflight-errors=all
+    --ignore-preflight-errors={{ kubeadm_ignore_preflight_errors | join(',') }}
     --allow-experimental-upgrades
-    --etcd-upgrade={{ (etcd_deployment_type == "kubeadm") | bool | lower }}
-    {% if kubeadm_patches is defined and kubeadm_patches.enabled %}--patches={{ kubeadm_patches.dest_dir }}{% endif %}
+    --etcd-upgrade={{ (etcd_deployment_type == "kubeadm") | lower }}
+    {% if kubeadm_patches | length > 0 %}--patches={{ kubeadm_patches_dir }}{% endif %}
     --force
   register: kubeadm_upgrade
   # Retry is because upload config sometimes fails
@@ -49,7 +49,7 @@
   failed_when: kubeadm_upgrade.rc != 0 and "field is immutable" not in kubeadm_upgrade.stderr
   environment:
     PATH: "{{ bin_dir }}:{{ ansible_env.PATH }}"
-  notify: Master | restart kubelet
+  notify: Control plane | restart kubelet
 
 - name: Kubeadm | Remove binding to anonymous user
   command: "{{ kubectl }} -n kube-public delete rolebinding kubeadm:bootstrap-signer-clusterinfo --ignore-not-found"

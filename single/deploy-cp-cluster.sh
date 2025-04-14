@@ -195,7 +195,6 @@ PIP3_PACKAGE_INSTALL=$(pip3 freeze | grep ruamel.yaml)
 
 if [ "$PIP3_PACKAGE_INSTALL" == "" ]; then
   pip3 install -r ../standalone/requirements.txt
-  pip3 install -r ../standalone/contrib/inventory_builder/requirements.txt
   echo "Python packages installation completed."
 fi
 

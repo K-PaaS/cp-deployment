@@ -9,23 +9,17 @@ source cp-edge-vars.sh
 
 result=0
 
-if [ "$CLOUDCORE_VIP" == "" ]; then
-  echo "CLOUDCORE_VIP is empty. Enter a variable."
+if [ "$CLOUDCORE_PRIVATE_IP" == "" ]; then
+  echo "CLOUDCORE_PRIVATE_IP is empty. Enter a variable."
   result=2
-elif [[ ! "$CLOUDCORE_VIP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "CLOUDCORE_VIP is not a value in IP format. Enter a IP format variable."
+elif [[ ! "$CLOUDCORE_PRIVATE_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "CLOUDCORE_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
   result=2
-elif [ "$CLOUDCORE_PRIVATE_VIP" == "" ]; then
-  echo "CLOUDCORE_PRIVATE_VIP is empty. Enter a variable."
+elif [ "$CLOUDCORE_PUBLIC_IP" == "" ]; then
+  echo "CLOUDCORE_PUBLIC_IP is empty. Enter a variable."
   result=2
-elif [[ ! "$CLOUDCORE_PRIVATE_VIP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "CLOUDCORE_PRIVATE_VIP is not a value in IP format. Enter a IP format variable."
-  result=2
-elif [ "$CLOUDCORE1_NODE_HOSTNAME" == "" ]; then
-  echo "  is empty. Enter a variable."
-  result=2
-elif [ "$CLOUDCORE2_NODE_HOSTNAME" == "" ]; then
-  echo "  is empty. Enter a variable."
+elif [[ ! "$CLOUDCORE_PUBLIC_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "CLOUDCORE_PUBLIC_IP is not a value in IP format. Enter a IP format variable."
   result=2
 fi
 
@@ -114,21 +108,16 @@ EOF
 done
 
 cat << EOF > roles/cp/edge/keadm_init/defaults/main.yml
-cloudcore1_node_hostname: $CLOUDCORE1_NODE_HOSTNAME
-cloudcore2_node_hostname: $CLOUDCORE2_NODE_HOSTNAME
-cloudcore_private_vip: $CLOUDCORE_PRIVATE_VIP
+cloudcore_private_ip: $CLOUDCORE_PRIVATE_IP
+cloudcore_public_ip: $CLOUDCORE_PUBLIC_IP
 EOF
 
 cat << EOF > roles/cp/edge/keadm_join/defaults/main.yml
-cloudcore_vip: $CLOUDCORE_VIP
+cloudcore_public_ip: $CLOUDCORE_PUBLIC_IP
 EOF
 
 sed -i "s/{MASTER_NODE_HOSTNAME}/$MASTER1_NODE_HOSTNAME/g" ../edge/edgemesh/agent/04-configmap.yaml
 sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" ../edge/edgemesh/agent/04-configmap.yaml
-
-sed -i "s/{CLOUDCORE_VIP}/$CLOUDCORE_VIP/g" ../edge/ha-cloudcore/02-ha-configmap.yaml
-
-sed -i "s/{CLOUDCORE_PRIVATE_VIP}/$CLOUDCORE_PRIVATE_VIP/g" ../edge/ha-cloudcore/03-ha-deployment.yaml
 
 # Deploy Container Platform Edge
 ansible-playbook -i inventory/mycluster/edge-hosts.yaml  --become --become-user=root playbooks/edge.yml

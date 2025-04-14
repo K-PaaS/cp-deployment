@@ -168,7 +168,7 @@
 - name: Patch loadbalancer svc external ip
   become: false
   shell: |
-    kubectl --context=cluster{{ item }} patch svc ingress-nginx-controller -p '{"spec":{"loadBalancerIP":"{{ ingress_nginx_ip[item | int - 1] }}"}}' -n ingress-nginx
+    kubectl --context=cluster{{ item }} patch svc ingress-nginx -p '{"spec":{"loadBalancerIP":"{{ ingress_nginx_ip[item | int - 1] }}"}}' -n ingress-nginx
     kubectl --context=cluster{{ item }} patch svc istio-ingressgateway -p '{"spec":{"loadBalancerIP":"{{ istio_gateway_private_ip[item | int - 1] }}"}}' -n istio-system
   ignore_errors: yes
   with_sequence: start=1 end={{ cluster_count }} format=%d

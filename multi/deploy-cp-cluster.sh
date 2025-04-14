@@ -76,8 +76,8 @@ for ((x=0;x<${CLUSTER_CNT};x++))
           do
             j=$((i+1));
 
-            ETCD_NODE_HOSTNAME="ETCD${j}_NODE_HOSTNAME"
-            ETCD_NODE_PRIVATE_IP="ETCD${j}_NODE_PRIVATE_IP"
+            ETCD_NODE_HOSTNAME="CLUSTER${y}_ETCD${j}_NODE_HOSTNAME"
+            ETCD_NODE_PRIVATE_IP="CLUSTER${y}_ETCD${j}_NODE_PRIVATE_IP"
 
             if [ "${!ETCD_NODE_HOSTNAME}" == "" ]; then
               echo "CLUSTER${y}_ETCD${j}_NODE_HOSTNAME is empty. Enter a variable."
@@ -232,7 +232,6 @@ PIP3_PACKAGE_INSTALL=$(pip3 freeze | grep ruamel.yaml)
 
 if [ "$PIP3_PACKAGE_INSTALL" == "" ]; then
   pip3 install -r ../standalone/requirements.txt
-  pip3 install -r ../standalone/contrib/inventory_builder/requirements.txt
   echo "Python packages installation completed."
 fi
 
@@ -261,10 +260,6 @@ for ((i=0;i<${CLUSTER_CNT};i++))
 done
 
 echo "Update /etc/hosts, .ssh/known_hosts file."
-
-# Container Platform configuration settings
-#cp roles/kubeconfig1/defaults/main.yml.ori roles/kubeconfig1/defaults/main.yml
-#cp roles/kubeconfig2/defaults/main.yml.ori roles/kubeconfig2/defaults/main.yml
 
 cat <<EOF > roles/kubeconfig/defaults/main.yml
 master1_node_public_ip:

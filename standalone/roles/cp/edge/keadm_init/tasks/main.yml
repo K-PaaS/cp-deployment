@@ -4,35 +4,14 @@
   shell: "echo $HOME"
   register: home_dir_path
 
-- name: change kube-proxy config
+- name: change nodeAffinity config
   shell: |
-    kubectl patch daemonset kube-proxy -n kube-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/ha-cloudcore/kube-proxy.yaml
-    kubectl patch daemonset calico-node -n kube-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/ha-cloudcore/kube-proxy.yaml
-    kubectl patch daemonset speaker -n metallb-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/ha-cloudcore/kube-proxy.yaml
-
-- name: add cloudcore node label
-  shell: |
-    kubectl label nodes {{ cloudcore1_node_hostname }} cloudcore=enable
-    kubectl label nodes {{ cloudcore2_node_hostname }} cloudcore=enable
-  ignore_errors: true
-
-- name: deploy ha cloudcore
-  shell: |
-    kubectl apply -f {{ home_dir_path.stdout }}/cp-deployment/edge/ha-cloudcore/01-ha-prepare.yaml
-    kubectl apply -f {{ home_dir_path.stdout }}/cp-deployment/edge/ha-cloudcore/02-ha-configmap.yaml
-    kubectl apply -f {{ home_dir_path.stdout }}/cp-deployment/edge/ha-cloudcore/03-ha-deployment.yaml
-
-- name: Pause keadm init
-  pause:
-    minutes: 1
-
-- name: create keadm token file
-  shell: keadm gettoken > keadm_token
-
-- name: deploy kubeedge crd
-  shell: |
-    kubectl apply -f https://raw.githubusercontent.com/kubeedge/kubeedge/master/build/crds/router/router_v1_ruleEndpoint.yaml
-    kubectl apply -f https://raw.githubusercontent.com/kubeedge/kubeedge/master/build/crds/router/router_v1_rule.yaml
+    kubectl patch daemonset kube-proxy -n kube-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
+    kubectl patch daemonset calico-node -n kube-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
+    kubectl patch daemonset speaker -n metallb-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
+    kubectl patch daemonset ingress-nginx-controller -n ingress-nginx --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
+    kubectl patch deployment nfs-subdir-external-provisioner --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
+    kubectl patch deployment controller -n metallb-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
 
 - name: add cloudcore svc external ip
   shell: |
@@ -44,8 +23,31 @@
       namespace: metallb-system
     spec:
       addresses:
-      - {{ cloudcore_private_vip }}/32
+      - {{ cloudcore_private_ip }}/32
       autoAssign: false
     EOF
 
-    kubectl rollout restart daemonset speaker -n metallb-system
+- name: deploy cloudcore
+  shell: |
+    nohup keadm init --advertise-address={{ cloudcore_public_ip }} --set cloudCore.modules.dynamicController.enable=true
+
+- name: modify cloudcore svc
+  shell: |
+    kubectl patch svc cloudcore -n kubeedge -p '{"spec": {"type": "LoadBalancer"}}'
+    kubectl patch svc cloudcore -n kubeedge -p '{"spec": {"loadBalancerIP": "{{ cloudcore_private_ip }}"}}'
+    kubectl patch svc cloudcore -n kubeedge --type='json' -p '[{"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30000}]'
+    kubectl patch svc cloudcore -n kubeedge --type='json' -p '[{"op": "replace", "path": "/spec/ports/1/nodePort", "value": 30001}]'
+    kubectl patch svc cloudcore -n kubeedge --type='json' -p '[{"op": "replace", "path": "/spec/ports/2/nodePort", "value": 30002}]'
+    kubectl patch svc cloudcore -n kubeedge --type='json' -p '[{"op": "replace", "path": "/spec/ports/3/nodePort", "value": 30003}]'
+    kubectl patch svc cloudcore -n kubeedge --type='json' -p '[{"op": "replace", "path": "/spec/ports/4/nodePort", "value": 30004}]'
+
+- name: patch cloud-iptables-manager
+  shell: |
+    kubectl patch daemonset cloud-iptables-manager -n kubeedge --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/tolerations.yaml
+    
+- name: Pause keadm init
+  pause:
+    minutes: 1
+
+- name: create keadm token file
+  shell: keadm gettoken > keadm_token

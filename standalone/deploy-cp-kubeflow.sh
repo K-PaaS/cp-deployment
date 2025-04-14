@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ansible-playbook -i inventory/mycluster/hosts.yaml  --become --become-user=root playbooks/kubeflow.yml
+ansible-playbook -i inventory/mycluster/inventory.ini  --become --become-user=root playbooks/kubeflow.yml

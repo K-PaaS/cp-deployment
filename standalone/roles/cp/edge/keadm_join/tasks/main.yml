@@ -16,7 +16,7 @@
     executable: /bin/bash
 
 - name: keadm join
-  shell: "nohup keadm join --cgroupdriver systemd --cloudcore-ipport {{ cloudcore_vip }}:10000 --kubeedge-version 1.14.4 --remote-runtime-endpoint unix:///var/run/crio/crio.sock --token {{ keadm_token.stdout }} --with-mqtt=false"
+  shell: "nohup keadm join --cloudcore-ipport {{ cloudcore_public_ip }}:10000 --cgroupdriver systemd --kubeedge-version v1.20.0 --remote-runtime-endpoint unix:///var/run/crio/crio.sock --token {{ keadm_token.stdout }}"
 
 - name: remove keadm token file
   file:
@@ -31,3 +31,12 @@
   with_items:
     - "        - 169.254.96.16"
     - "      clusterDNS:"
+
+- name: modify edgecore
+  shell: |
+    sed -i '165s/false/true/g' /etc/kubeedge/config/edgecore.yaml
+
+- name: restart edgecore
+  shell: |
+    systemctl daemon-reload
+    systemctl restart edgecore.service
