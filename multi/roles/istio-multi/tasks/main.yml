@@ -152,7 +152,7 @@
 - name: Expose service
   become: false
   shell: |
-    kubectl --context=cluster{{ item }}  apply -f {{ lookup('env', 'HOME') }}/cp-deployment/applications/istio-1.23.2/samples/multicluster/expose-services.yaml -n istio-system
+    kubectl --context=cluster{{ item }}  apply -f {{ lookup('env', 'HOME') }}/cp-deployment/applications/istio-1.24.3/samples/multicluster/expose-services.yaml -n istio-system
   ignore_errors: yes
   with_sequence: start=1 end={{ cluster_count }} format=%d
 
