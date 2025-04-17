@@ -9,7 +9,6 @@
     kubectl patch daemonset kube-proxy -n kube-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
     kubectl patch daemonset calico-node -n kube-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
     kubectl patch daemonset speaker -n metallb-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
-    kubectl patch daemonset ingress-nginx-controller -n ingress-nginx --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
     kubectl patch deployment nfs-subdir-external-provisioner --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
     kubectl patch deployment controller -n metallb-system --patch-file {{ home_dir_path.stdout }}/cp-deployment/edge/patch/node-affinity.yaml
 
