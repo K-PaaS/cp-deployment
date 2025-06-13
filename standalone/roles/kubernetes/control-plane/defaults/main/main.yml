@@ -6,7 +6,7 @@ upgrade_cluster_setup: false
 # listen on a specific address/interface.
 # NOTE: If you specific address/interface and use loadbalancer_apiserver_localhost
 # loadbalancer_apiserver_localhost (nginx/haproxy) will deploy on control plane nodes on 127.0.0.1:{{ loadbalancer_apiserver_port | default(kube_apiserver_port) }} too.
-kube_apiserver_bind_address: 0.0.0.0
+kube_apiserver_bind_address: "::"
 
 # A port range to reserve for services with NodePort visibility.
 # Inclusive at both ends of the range.
@@ -29,7 +29,7 @@ kube_etcd_key_file: node-{{ inventory_hostname }}-key.pem
 
 # Associated interfaces must be reachable by the rest of the cluster, and by
 # CLI/web clients.
-kube_controller_manager_bind_address: 127.0.0.1
+kube_controller_manager_bind_address: "::"
 
 # Leader election lease durations and timeouts for controller-manager
 kube_controller_manager_leader_elect_lease_duration: 15s
@@ -122,11 +122,11 @@ kube_apiserver_admission_event_rate_limits:
 ## PodSecurityAdmission plugin configuration
 kube_pod_security_use_default: true
 kube_pod_security_default_enforce: privileged
-kube_pod_security_default_enforce_version: "{{ kube_major_version }}"
+kube_pod_security_default_enforce_version: "v{{ kube_major_version }}"
 kube_pod_security_default_audit: restricted
-kube_pod_security_default_audit_version: "{{ kube_major_version }}"
+kube_pod_security_default_audit_version: "v{{ kube_major_version }}"
 kube_pod_security_default_warn: restricted
-kube_pod_security_default_warn_version: "{{ kube_major_version }}"
+kube_pod_security_default_warn_version: "v{{ kube_major_version }}"
 kube_pod_security_exemptions_usernames: []
 kube_pod_security_exemptions_runtime_class_names: []
 kube_pod_security_exemptions_namespaces:
@@ -266,11 +266,14 @@ kubeadm_upgrade_auto_cert_renewal: true
 
 ## Enable distributed tracing for kube-apiserver
 kube_apiserver_tracing: false
-kube_apiserver_tracing_endpoint: 0.0.0.0:4317
+kube_apiserver_tracing_endpoint: "[::]:4317"
 kube_apiserver_tracing_sampling_rate_per_million: 100
 
 # Enable kubeadm file discovery if anonymous access has been removed
 kubeadm_use_file_discovery: "{{ remove_anonymous_access }}"
+
+# imagePullSerial specifies if image pulling performed by kubeadm must be done serially or in parallel. Default: true
+kubeadm_image_pull_serial: true
 
 # Supported asymmetric encryption algorithm types for the cluster's keys and certificates.
 # can be one of RSA-2048(default), RSA-3072, RSA-4096, ECDSA-P256

@@ -23,7 +23,6 @@
   * [Aws](/docs/cloud_providers/aws.md)
   * [Azure](/docs/cloud_providers/azure.md)
   * [Cloud](/docs/cloud_providers/cloud.md)
-  * [Equinix-metal](/docs/cloud_providers/equinix-metal.md)
 * CNI
   * [Calico](/docs/CNI/calico.md)
   * [Cilium](/docs/CNI/cilium.md)
@@ -52,9 +51,7 @@
   * [Test Cases](/docs/developers/test_cases.md)
   * [Vagrant](/docs/developers/vagrant.md)
 * External Storage Provisioners
-  * [Cephfs Provisioner](/docs/external_storage_provisioners/cephfs_provisioner.md)
   * [Local Volume Provisioner](/docs/external_storage_provisioners/local_volume_provisioner.md)
-  * [Rbd Provisioner](/docs/external_storage_provisioners/rbd_provisioner.md)
   * [Scheduler Plugins](/docs/external_storage_provisioners/scheduler_plugins.md)
 * Getting Started
   * [Comparisons](/docs/getting_started/comparisons.md)
@@ -68,7 +65,6 @@
 * Operating Systems
   * [Amazonlinux](/docs/operating_systems/amazonlinux.md)
   * [Bootstrap-os](/docs/operating_systems/bootstrap-os.md)
-  * [Centos](/docs/operating_systems/centos.md)
   * [Fcos](/docs/operating_systems/fcos.md)
   * [Flatcar](/docs/operating_systems/flatcar.md)
   * [Kylinlinux](/docs/operating_systems/kylinlinux.md)
@@ -83,6 +79,7 @@
   * [Ha-mode](/docs/operations/ha-mode.md)
   * [Hardening](/docs/operations/hardening.md)
   * [Integration](/docs/operations/integration.md)
+  * [Kernel-requirements](/docs/operations/kernel-requirements.md)
   * [Large-deployments](/docs/operations/large-deployments.md)
   * [Mirror](/docs/operations/mirror.md)
   * [Nodes](/docs/operations/nodes.md)

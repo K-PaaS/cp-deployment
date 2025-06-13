@@ -4,5 +4,5 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/kubeflow }

@@ -11,5 +11,5 @@
 
 - name: Install helm
   apt:
-    name: helm
+    name: helm=3.17.0-1
     update_cache: yes

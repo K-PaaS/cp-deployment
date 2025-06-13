@@ -68,8 +68,8 @@ containerd_runc_runtime:
   engine: ""
   root: ""
   options:
-    systemdCgroup: "false"
-    binaryName: /usr/local/bin/my-runc
+    SystemdCgroup: "false"
+    BinaryName: /usr/local/bin/my-runc
   base_runtime_spec: cri-base.json
 ```
 
@@ -96,7 +96,7 @@ You can tune many more [settings][runtime-spec] by supplying your own file name 
 containerd_base_runtime_specs:
   cri-spec-custom.json: |
     {
-      "ociVersion": "1.0.2-dev",
+      "ociVersion": "1.1.0",
       "process": {
         "user": {
           "uid": 0,

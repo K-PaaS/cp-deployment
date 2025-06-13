@@ -2,11 +2,10 @@
 - name: Hosts | create hosts list from inventory
   set_fact:
     etc_hosts_inventory_block: |-
-      {% for item in (groups['k8s_cluster'] + groups['etcd'] | default([]) + groups['calico_rr'] | default([])) | unique -%}
-      {% if 'access_ip' in hostvars[item] or 'ip' in hostvars[item] or 'ansible_default_ipv4' in hostvars[item] -%}
-      {{ hostvars[item]['access_ip'] | default(hostvars[item]['ip'] | default(hostvars[item]['ansible_default_ipv4']['address'])) }}
-      {%- if ('ansible_hostname' in hostvars[item] and item != hostvars[item]['ansible_hostname']) %} {{ hostvars[item]['ansible_hostname'] }}.{{ dns_domain }} {{ hostvars[item]['ansible_hostname'] }} {% else %} {{ item }}.{{ dns_domain }} {{ item }} {% endif %}
-
+      {% for item in (groups['k8s_cluster'] + groups['etcd'] | default([]) + groups['calico_rr'] | default([])) | unique %}
+      {{ hostvars[item]['main_access_ip'] }} {{ hostvars[item]['ansible_hostname'] | default(item) }}.{{ dns_domain }} {{ hostvars[item]['ansible_hostname'] | default(item) }}
+      {% if ipv4_stack and ipv6_stack %}
+      {{ hostvars[item]['access_ip6'] | default(hostvars[item]['ip6'] | default(hostvars[item]['ansible_default_ipv6']['address'])) }} {{ hostvars[item]['ansible_hostname'] | default(item) }}.{{ dns_domain }} {{ hostvars[item]['ansible_hostname'] | default(item) }}
       {% endif %}
       {% endfor %}
   delegate_to: localhost
@@ -20,7 +19,7 @@
     block: "{{ hostvars.localhost.etc_hosts_inventory_block }}"
     state: "{{ 'present' if populate_inventory_to_hosts_file else 'absent' }}"
     create: true
-    backup: true
+    backup: "{{ leave_etc_backup_files }}"
     unsafe_writes: true
     marker: "# Ansible inventory hosts {mark}"
     mode: "0644"
@@ -31,7 +30,7 @@
     regexp: ".*{{ apiserver_loadbalancer_domain_name }}$"
     line: "{{ loadbalancer_apiserver.address }} {{ apiserver_loadbalancer_domain_name }}"
     state: present
-    backup: true
+    backup: "{{ leave_etc_backup_files }}"
     unsafe_writes: true
   when:
     - populate_loadbalancer_apiserver_to_hosts_file
@@ -69,7 +68,7 @@
         line: "{{ item.key }} {{ item.value | join(' ') }}"
         regexp: "^{{ item.key }}.*$"
         state: present
-        backup: true
+        backup: "{{ leave_etc_backup_files }}"
         unsafe_writes: true
       loop: "{{ etc_hosts_localhosts_dict_target | default({}) | dict2items }}"
 

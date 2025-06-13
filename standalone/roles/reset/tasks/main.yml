@@ -189,7 +189,7 @@
     - nat
     - mangle
     - raw
-  when: flush_iptables | bool
+  when: flush_iptables | bool and ipv4_stack
   tags:
     - iptables
 
@@ -203,7 +203,7 @@
     - nat
     - mangle
     - raw
-  when: flush_iptables | bool and enable_dual_stack_networks
+  when: flush_iptables | bool and ipv6_stack
   tags:
     - ip6tables
 
@@ -347,9 +347,6 @@
     - /etc/bash_completion.d/kubectl.sh
     - /etc/bash_completion.d/crictl
     - /etc/bash_completion.d/nerdctl
-    - /etc/bash_completion.d/krew
-    - /etc/bash_completion.d/krew.sh
-    - "{{ krew_root_dir }}"
     - /etc/modules-load.d/kube_proxy-ipvs.conf
     - /etc/modules-load.d/kubespray-br_netfilter.conf
     - /etc/modules-load.d/kubespray-kata-containers.conf

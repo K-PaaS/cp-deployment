@@ -4,7 +4,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/edge/keadm_amd64 }
 
 - hosts: edge_node
@@ -12,7 +12,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/edge/keadm_amd64, when: ansible_architecture == "x86_64" }
     - { role: cp/edge/keadm_arm64, when: ansible_architecture == "aarch64" }
 
@@ -21,7 +21,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/edge/keadm_init }
 
 - hosts: edge_node
@@ -29,7 +29,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/edge/cri_install }
     - { role: cp/edge/keadm_join }
 
@@ -38,7 +38,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/edge/edgemesh }
 
 - hosts: cloudcore_node
@@ -46,7 +46,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/cve_cce/amd64 }
 
 - hosts: edge_node
@@ -54,6 +54,6 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/cve_cce/amd64, when: ansible_architecture == "x86_64" }
     - { role: cp/cve_cce/arm64, when: ansible_architecture == "aarch64" }

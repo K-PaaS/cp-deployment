@@ -4,7 +4,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/edge/reset_cloud }
 
 - hosts: edge_node
@@ -12,5 +12,5 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/edge/reset_edge }

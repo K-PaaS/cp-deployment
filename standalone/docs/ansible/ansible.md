@@ -62,10 +62,9 @@ The following tags are defined in playbooks:
 | aws-ebs-csi-driver             | Configuring csi driver: aws-ebs                       |
 | azure-csi-driver               | Configuring csi driver: azure                         |
 | bastion                        | Setup ssh config for bastion                          |
-| bootstrap-os                   | Anything related to host OS configuration             |
+| bootstrap_os                   | Anything related to host OS configuration             |
 | calico                         | Network plugin Calico                                 |
 | calico_rr                      | Configuring Calico route reflector                    |
-| cephfs-provisioner             | Configuring CephFS                                    |
 | cert-manager                   | Configuring certificate manager for K8s               |
 | cilium                         | Network plugin Cilium                                 |
 | cinder-csi-driver              | Configuring csi driver: cinder                        |
@@ -106,7 +105,6 @@ The following tags are defined in playbooks:
 | iptables                       | Flush and clear iptable when resetting                |
 | k8s-pre-upgrade                | Upgrading K8s cluster                                 |
 | kata-containers                | Configuring kata-containers runtime                   |
-| krew                           | Install and manage krew                               |
 | kubeadm                        | Roles linked to kubeadm tasks                         |
 | kube-apiserver                 | Configuring static pod kube-apiserver                 |
 | kube-controller-manager        | Configuring static pod kube-controller-manager        |
@@ -148,7 +146,6 @@ The following tags are defined in playbooks:
 | registry                       | Configuring local docker registry                     |
 | reset                          | Tasks running doing the node reset                    |
 | resolvconf                     | Configuring /etc/resolv.conf for hosts/apps           |
-| rbd-provisioner                | Configure External provisioner: rdb                   |
 | services                       | Remove services (etcd, kubelet etc...) when resetting |
 | snapshot                       | Enabling csi snapshot                                 |
 | snapshot-controller            | Configuring csi snapshot controller                   |
@@ -170,7 +167,7 @@ Example command to filter and apply only DNS configuration tasks and skip
 everything else related to host OS configuration and downloading images of containers:
 
 ```ShellSession
-ansible-playbook -i inventory/sample/hosts.ini cluster.yml --tags preinstall,facts --skip-tags=download,bootstrap-os
+ansible-playbook -i inventory/sample/hosts.ini cluster.yml --tags preinstall,facts --skip-tags=download,bootstrap_os
 ```
 
 And this play only removes the K8s cluster DNS resolver IP from hosts' /etc/resolv.conf files:
@@ -209,11 +206,11 @@ You will then need to use [bind mounts](https://docs.docker.com/storage/bind-mou
 to access the inventory and SSH key in the container, like this:
 
 ```ShellSession
-git checkout v2.26.0
-docker pull quay.io/kubespray/kubespray:v2.26.0
+git checkout v2.27.0
+docker pull quay.io/kubespray/kubespray:v2.27.0
 docker run --rm -it --mount type=bind,source="$(pwd)"/inventory/sample,dst=/inventory \
   --mount type=bind,source="${HOME}"/.ssh/id_rsa,dst=/root/.ssh/id_rsa \
-  quay.io/kubespray/kubespray:v2.26.0 bash
+  quay.io/kubespray/kubespray:v2.27.0 bash
 # Inside the container you may now run the kubespray playbooks:
 ansible-playbook -i /inventory/inventory.ini --private-key /root/.ssh/id_rsa cluster.yml
 ```

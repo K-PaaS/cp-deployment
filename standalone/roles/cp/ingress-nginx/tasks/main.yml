@@ -5,4 +5,4 @@
   register: home_dir_path
 
 - name: Deploy ingress nginx controller
-  shell: kubectl apply -f {{ home_dir_path.stdout }}/cp-deployment/applications/ingress-nginx-1.12.0/deploy.yaml
+  shell: kubectl apply -f {{ home_dir_path.stdout }}/cp-deployment/applications/ingress-nginx-1.12.1/deploy.yaml

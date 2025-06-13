@@ -11,12 +11,15 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: kubernetes/preinstall, tags: preinstall }
     - { role: "container-engine", tags: "container-engine", when: deploy_container_engine }
     - { role: download, tags: download, when: "not skip_downloads" }
 
 - name: Install etcd
+  vars:
+    etcd_cluster_setup: true
+    etcd_events_cluster_setup: "{{ etcd_events_cluster_enabled }}"
   import_playbook: install_etcd.yml
 
 - name: Install Kubernetes nodes
@@ -25,7 +28,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: kubernetes/node, tags: node }
 
 - name: Install the control plane
@@ -34,7 +37,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: kubernetes/control-plane, tags: master }
     - { role: kubernetes/client, tags: client }
     - { role: kubernetes-apps/cluster_roles, tags: cluster-roles }
@@ -45,12 +48,16 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: kubernetes/kubeadm, tags: kubeadm}
     - { role: kubernetes/node-label, tags: node-label }
     - { role: kubernetes/node-taint, tags: node-taint }
+    - role: kubernetes-apps/gateway_api
+      when: gateway_api_enabled
+      tags: gateway_api
+      delegate_to: "{{ groups['kube_control_plane'][0] }}"
+      run_once: true
     - { role: network_plugin, tags: network }
-    - { role: kubernetes-apps/kubelet-csr-approver, tags: kubelet-csr-approver }
 
 - name: Install Calico Route Reflector
   hosts: calico_rr
@@ -58,7 +65,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: network_plugin/calico/rr, tags: ['network', 'calico_rr'] }
 
 - name: Patch Kubernetes for Windows
@@ -67,7 +74,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: win_nodes/kubernetes_patch, tags: ["master", "win_nodes"] }
 
 - name: Install Kubernetes apps
@@ -76,7 +83,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: kubernetes-apps/external_cloud_controller, tags: external-cloud-controller }
     - { role: kubernetes-apps/network_plugin, tags: network }
     - { role: kubernetes-apps/policy_controller, tags: policy-controller }
@@ -90,7 +97,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: kubernetes/preinstall, when: "dns_mode != 'none' and resolvconf_mode == 'host_resolvconf'", tags: resolvconf, dns_late: true }
 
 - hosts: kube_control_plane
@@ -98,7 +105,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/kube_config }
 
 - hosts: kube_control_plane
@@ -106,7 +113,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/istio }
 
 - hosts: k8s_cluster
@@ -114,7 +121,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/nfs }
 
 - hosts: k8s_cluster
@@ -122,7 +129,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/podman }
 
 - hosts: kube_control_plane
@@ -130,7 +137,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/opentofu }
 
 - hosts: kube_control_plane[0]
@@ -138,7 +145,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/csr }
 
 - hosts: kube_control_plane[0]
@@ -146,7 +153,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/ingress-nginx }
 
 - hosts: kube_control_plane[0]
@@ -154,7 +161,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/storage }
 
 - hosts: k8s_cluster
@@ -162,7 +169,7 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/istio-setting }
 
 - hosts: k8s_cluster
@@ -170,5 +177,5 @@
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
   roles:
-    - { role: kubespray-defaults }
+    - { role: kubespray_defaults }
     - { role: cp/cve_cce/amd64 }
