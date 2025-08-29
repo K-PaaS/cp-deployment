@@ -116,8 +116,8 @@ cat << EOF > roles/cp/edge/keadm_join/defaults/main.yml
 cloudcore_public_ip: $CLOUDCORE_PUBLIC_IP
 EOF
 
-sed -i "s/{MASTER_NODE_HOSTNAME}/$MASTER1_NODE_HOSTNAME/g" ../edge/edgemesh/agent/04-configmap.yaml
-sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" ../edge/edgemesh/agent/04-configmap.yaml
+sed -i "s/{MASTER_NODE_HOSTNAME}/$MASTER1_NODE_HOSTNAME/" ../edge/edgemesh/agent/04-configmap.yaml
+sed -i "s/{MASTER_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/" ../edge/edgemesh/agent/04-configmap.yaml
 
 # Deploy Container Platform Edge
 ansible-playbook -i inventory/mycluster/edge-hosts.yaml  --become --become-user=root playbooks/edge.yml

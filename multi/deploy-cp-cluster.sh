@@ -160,60 +160,96 @@ for ((x=0;x<${CLUSTER_CNT};x++))
       return $result
     fi
 
-    METALLB_IP_RANGE="CLUSTER${y}_METALLB_IP_RANGE"
+    CSP_TYPE="CLUSTER${y}_CSP_TYPE"
 
-    if [ "${!METALLB_IP_RANGE}" == "" ]; then
-      echo "CLUSTER${y}_METALLB_IP_RANGE is empty. Enter a variable."
-      result=2
-    elif [[ ! "${!METALLB_IP_RANGE}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      echo "CLUSTER${y}_METALLB_IP_RANGE is not a value in IP format. Enter a IP format variable."
-      result=2
+    if [[ ! "${!CSP_TYPE}" == "NHN" ]]; then
+      METALLB_IP_RANGE="CLUSTER${y}_METALLB_IP_RANGE"
+
+      if [ "${!METALLB_IP_RANGE}" == "" ]; then
+        echo "CLUSTER${y}_METALLB_IP_RANGE is empty. Enter a variable."
+        result=2
+      elif [[ ! "${!METALLB_IP_RANGE}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "CLUSTER${y}_METALLB_IP_RANGE is not a value in IP format. Enter a IP format variable."
+        result=2
+      fi
+
+      if [ "$result" == 2 ]; then
+        return $result
+      fi
     fi
 
-    if [ "$result" == 2 ]; then
-      return $result
+    if [[ ! "${!CSP_TYPE}" == "NHN" ]]; then
+      INGRESS_NGINX_IP="CLUSTER${y}_INGRESS_NGINX_IP"
+
+      if [ "${!INGRESS_NGINX_IP}" == "" ]; then
+        echo "CLUSTER${y}_INGRESS_NGINX_IP is empty. Enter a variable."
+        result=2
+      elif [[ ! "${!INGRESS_NGINX_IP}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "CLUSTER${y}_INGRESS_NGINX_IP is not a value in IP format. Enter a IP format variable."
+        result=2
+      fi
+
+      if [ "$result" == 2 ]; then
+        return $result
+      fi
     fi
 
-    INGRESS_NGINX_IP="CLUSTER${y}_INGRESS_NGINX_IP"
+    if [[ ! "${!CSP_TYPE}" == "NHN" ]]; then
+      ISTIO_GATEWAY_PRIVATE_IP="CLUSTER${y}_ISTIO_GATEWAY_PRIVATE_IP"
 
-    if [ "${!INGRESS_NGINX_IP}" == "" ]; then
-      echo "CLUSTER${y}_INGRESS_NGINX_IP is empty. Enter a variable."
-      result=2
-    elif [[ ! "${!INGRESS_NGINX_IP}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      echo "CLUSTER${y}_INGRESS_NGINX_IP is not a value in IP format. Enter a IP format variable."
-      result=2
+      if [ "${!ISTIO_GATEWAY_PRIVATE_IP}" == "" ]; then
+        echo "CLUSTER${y}_ISTIO_GATEWAY_PRIVATE_IP is empty. Enter a variable."
+        result=2
+      elif [[ ! "${!ISTIO_GATEWAY_PRIVATE_IP}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "CLUSTER${y}_ISTIO_GATEWAY_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
+        result=2
+      fi
+
+      if [ "$result" == 2 ]; then
+        return $result
+      fi
     fi
 
-    if [ "$result" == 2 ]; then
-      return $result
+    if [[ ! "${!CSP_TYPE}" == "NHN" ]]; then
+      ISTIO_GATEWAY_PUBLIC_IP="CLUSTER${y}_ISTIO_GATEWAY_PUBLIC_IP"
+
+      if [ "${!ISTIO_GATEWAY_PUBLIC_IP}" == "" ]; then
+        echo "CLUSTER${y}_ISTIO_GATEWAY_PUBLIC_IP is empty. Enter a variable."
+        result=2
+      elif [[ ! "${!ISTIO_GATEWAY_PUBLIC_IP}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "CLUSTER${y}_ISTIO_GATEWAY_PUBLIC_IP is not a value in IP format. Enter a IP format variable."
+        result=2
+      fi
+
+      if [ "$result" == 2 ]; then
+        return $result
+      fi
     fi
 
-    ISTIO_GATEWAY_PRIVATE_IP="CLUSTER${y}_ISTIO_GATEWAY_PRIVATE_IP"
+    CSP_TYPE="CLUSTER${y}_CSP_TYPE"
+    NHN_USERNAME="CLUSTER${y}_NHN_USERNAME"
+    NHN_PASSWORD="CLUSTER${y}_NHN_PASSWORD"
+    NHN_TENANT_ID="CLUSTER${y}_NHN_TENANT_ID"
+    NHN_VIP_SUBNET_ID="CLUSTER${y}_NHN_VIP_SUBNET_ID"
 
-    if [ "${!ISTIO_GATEWAY_PRIVATE_IP}" == "" ]; then
-      echo "CLUSTER${y}_ISTIO_GATEWAY_PRIVATE_IP is empty. Enter a variable."
-      result=2
-    elif [[ ! "${!ISTIO_GATEWAY_PRIVATE_IP}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      echo "CLUSTER${y}_ISTIO_GATEWAY_PRIVATE_IP is not a value in IP format. Enter a IP format variable."
-      result=2
-    fi
+    if [ "${!CSP_TYPE}" == "NHN" ]; then
+      if [ "${!NHN_USERNAME}" == "" ]; then
+        echo "CLUSTER${y}_NHN_USERNAME is empty, Enter a variable."
+        result=2
+      elif [ "${!NHN_PASSWORD}" == "" ]; then
+        echo "CLUSTER${y}_NHN_PASSWORD is empty, Enter a variable."
+        result=2
+      elif [ "${!NHN_TENANT_ID}" == "" ]; then
+        echo "CLUSTER${y}_NHN_TENANT_ID is empty, Enter a variable."
+        result=2
+      elif [ "${!NHN_VIP_SUBNET_ID}" == "" ]; then
+        echo "CLUSTER${y}_NHN_VIP_SUBNET_ID is empty, Enter a variable."
+        result=2
+      fi
 
-    if [ "$result" == 2 ]; then
-      return $result
-    fi
-
-    ISTIO_GATEWAY_PUBLIC_IP="CLUSTER${y}_ISTIO_GATEWAY_PUBLIC_IP"
-
-    if [ "${!ISTIO_GATEWAY_PUBLIC_IP}" == "" ]; then
-      echo "CLUSTER${y}_ISTIO_GATEWAY_PUBLIC_IP is empty. Enter a variable."
-      result=2
-    elif [[ ! "${!ISTIO_GATEWAY_PUBLIC_IP}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      echo "CLUSTER${y}_ISTIO_GATEWAY_PUBLIC_IP is not a value in IP format. Enter a IP format variable."
-      result=2
-    fi
-
-    if [ "$result" == 2 ]; then
-      return $result
+      if [ "$result" == 2 ]; then
+        return $result
+      fi
     fi
 done
 
@@ -221,16 +257,25 @@ echo "Variable check completed."
 
 # Installing Ubuntu, PIP3 Package
 PIP3_INSTALL=$(dpkg -l | grep python3-pip | awk '{print $2}')
+OS_VERSION=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | awk -F '=' '{print $2}')
 
 if [ "$PIP3_INSTALL" == "" ]; then
   sudo apt-get update
-  sudo apt-get install -y python3-pip
+  if [ "$OS_VERSION" == "22.04" ]; then
+    sudo apt-get install -y python3-pip
+  elif [ "$OS_VERSION" == "24.04" ]; then
+    sudo apt-get install -y python3-pip python3-venv
+  fi
   echo "pip3 installation completed."
 fi
 
 PIP3_PACKAGE_INSTALL=$(pip3 freeze | grep ruamel.yaml)
 
 if [ "$PIP3_PACKAGE_INSTALL" == "" ]; then
+  if [ "$OS_VERSION" == "24.04" ]; then
+    python3 -m venv ~/kpaas-venv
+    source ~/kpaas-venv/bin/activate
+  fi
   pip3 install -r ../standalone/requirements.txt
   echo "Python packages installation completed."
 fi
@@ -240,6 +285,13 @@ NET_TOOLS_INSTALL=$(dpkg -l | grep net-tools | awk '{print $2}')
 if [ "$NET_TOOLS_INSTALL" == "" ]; then
   sudo apt-get install -y net-tools
   echo "net-tools installation completed."
+fi
+
+JQ_INSTALL=$(dpkg -l | grep jq | awk '{print $2}')
+
+if [ "$JQ_INSTALL" == "" ]; then
+  sudo apt-get install -y jq
+  echo "jq installation completed."
 fi
 
 # Update /etc/hosts, .ssh/known_hosts
@@ -294,11 +346,18 @@ for ((i=0;i<${CLUSTER_CNT};i++))
   do
     j=$((i+1));
     
+    CSP_TYPE="CLUSTER${j}_CSP_TYPE"
     INGRESS_NGINX_IP="CLUSTER${j}_INGRESS_NGINX_IP"
     
+    if [[ ! "${!CSP_TYPE}" == "NHN" ]]; then
 cat <<EOF >> roles/istio-multi/defaults/main.yml
   - ${!INGRESS_NGINX_IP}
 EOF
+    elif [ "${!CSP_TYPE}" == "NHN" ]; then
+cat <<EOF >> roles/istio-multi/defaults/main.yml
+  - 
+EOF
+    fi
 done
 
 cat <<EOF >> roles/istio-multi/defaults/main.yml
@@ -309,11 +368,18 @@ for ((i=0;i<${CLUSTER_CNT};i++))
   do
     j=$((i+1));
     
+    CSP_TYPE="CLUSTER${j}_CSP_TYPE"
     ISTIO_GATEWAY_PRIVATE_IP="CLUSTER${j}_ISTIO_GATEWAY_PRIVATE_IP"
 
+    if [[ ! "${!CSP_TYPE}" == "NHN" ]]; then
 cat <<EOF >> roles/istio-multi/defaults/main.yml
   - ${!ISTIO_GATEWAY_PRIVATE_IP}
 EOF
+    elif [ "${!CSP_TYPE}" == "NHN" ]; then
+cat <<EOF >> roles/istio-multi/defaults/main.yml
+  - 
+EOF
+    fi
 done
 
 rm -rf hosts.yaml

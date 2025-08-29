@@ -144,28 +144,32 @@ if [ "$result" == 2 ]; then
   return $result
 fi
 
-if [ "$METALLB_IP_RANGE" == "" ]; then
-  echo "METALLB_IP_RANGE is empty. Enter a variable."
-  result=2
-elif [[ ! "$METALLB_IP_RANGE" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "METALLB_IP_RANGE is not a value in IP format. Enter a IP format variable."
-  result=2
+if [[ ! "$CSP_TYPE" == "NHN" ]]; then
+  if [ "$METALLB_IP_RANGE" == "" ]; then
+    echo "METALLB_IP_RANGE is empty. Enter a variable."
+    result=2
+  elif [[ ! "$METALLB_IP_RANGE" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\-[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "METALLB_IP_RANGE is not a value in IP format. Enter a IP format variable."
+    result=2
+  fi
+
+  if [ "$result" == 2 ]; then
+    return $result
+  fi
 fi
 
-if [ "$result" == 2 ]; then
-  return $result
-fi
+if [[ ! "$CSP_TYPE" == "NHN" ]]; then
+  if [ "$INGRESS_NGINX_IP" == "" ]; then
+    echo "INGRESS_NGINX_IP is empty. Enter a variable."
+    result=2
+  elif [[ ! "$INGRESS_NGINX_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "INGRESS_NGINX_IP is not a value in IP format. Enter a IP format variable."
+    result=2
+  fi
 
-if [ "$INGRESS_NGINX_IP" == "" ]; then
-  echo "INGRESS_NGINX_IP is empty. Enter a variable."
-  result=2
-elif [[ ! "$INGRESS_NGINX_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "INGRESS_NGINX_IP is not a value in IP format. Enter a IP format variable."
-  result=2
-fi
-
-if [ "$result" == 2 ]; then
-  return $result
+  if [ "$result" == 2 ]; then
+    return $result
+  fi
 fi
 
 if [ "$INSTALL_KYVERNO" == "" ]; then
@@ -180,20 +184,49 @@ if [ "$result" == 2 ]; then
   return $result
 fi
 
+if [ "$CSP_TYPE" == "NHN" ]; then
+  if [ "$NHN_USERNAME" == "" ]; then
+    echo "NHN_USERNAME is empty, Enter a variable."
+    result=2
+  elif [ "$NHN_PASSWORD" == "" ]; then
+    echo "NHN_PASSWORD is empty, Enter a variable."
+    result=2
+  elif [ "$NHN_TENANT_ID" == "" ]; then
+    echo "NHN_TENANT_ID is empty, Enter a variable."
+    result=2
+  elif [ "$NHN_VIP_SUBNET_ID" == "" ]; then
+    echo "NHN_VIP_SUBNET_ID is empty, Enter a variable."
+    result=2
+  fi
+
+  if [ "$result" == 2 ]; then
+    return $result
+  fi
+fi
+
 echo "Variable check completed."
 
 # Installing Ubuntu, PIP3 Package
 PIP3_INSTALL=$(dpkg -l | grep python3-pip | awk '{print $2}')
+OS_VERSION=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | awk -F '=' '{print $2}')
 
 if [ "$PIP3_INSTALL" == "" ]; then
   sudo apt-get update
-  sudo apt-get install -y python3-pip
+  if [ "$OS_VERSION" == "22.04" ]; then
+    sudo apt-get install -y python3-pip
+  elif [ "$OS_VERSION" == "24.04" ]; then
+    sudo apt-get install -y python3-pip python3-venv
+  fi
   echo "pip3 installation completed."
 fi
 
 PIP3_PACKAGE_INSTALL=$(pip3 freeze | grep ruamel.yaml)
 
 if [ "$PIP3_PACKAGE_INSTALL" == "" ]; then
+  if [ "$OS_VERSION" == "24.04" ]; then
+    python3 -m venv ~/kpaas-venv
+    source ~/kpaas-venv/bin/activate
+  fi
   pip3 install -r ../standalone/requirements.txt
   echo "Python packages installation completed."
 fi
@@ -203,6 +236,13 @@ NET_TOOLS_INSTALL=$(dpkg -l | grep net-tools | awk '{print $2}')
 if [ "$NET_TOOLS_INSTALL" == "" ]; then
   sudo apt-get install -y net-tools
   echo "net-tools installation completed."
+fi
+
+JQ_INSTALL=$(dpkg -l | grep jq | awk '{print $2}')
+
+if [ "$JQ_INSTALL" == "" ]; then
+  sudo apt-get install -y jq
+  echo "jq installation completed."
 fi
 
 # Update /etc/hosts, .ssh/known_hosts
@@ -217,17 +257,17 @@ fi
 echo "Update /etc/hosts, .ssh/known_hosts file."
 
 # Container Platform configuration settings
-cp roles/kubeconfig/defaults/main.yml.ori roles/kubeconfig/defaults/main.yml
+cp roles/kubeconfig/defaults/main.yml.tmpl roles/kubeconfig/defaults/main.yml
 
 if [ "$KUBE_CONTROL_HOSTS" -eq 1 ]; then
-  sed -i "s/{MASTER1_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/g" roles/kubeconfig/defaults/main.yml
+  sed -i "s/{MASTER1_NODE_PUBLIC_IP}/$MASTER1_NODE_PUBLIC_IP/" roles/kubeconfig/defaults/main.yml
 elif [ "$KUBE_CONTROL_HOSTS" -gt 1 ]; then
-  sed -i "s/{MASTER1_NODE_PUBLIC_IP}/$LOADBALANCER_DOMAIN/g" roles/kubeconfig/defaults/main.yml
+  sed -i "s/{MASTER1_NODE_PUBLIC_IP}/$LOADBALANCER_DOMAIN/" roles/kubeconfig/defaults/main.yml
 fi
 
-cp roles/ingress-setting/defaults/main.yml.ori roles/ingress-setting/defaults/main.yml
+cp roles/ingress-setting/defaults/main.yml.tmpl roles/ingress-setting/defaults/main.yml
 
-sed -i "s/{INGRESS_NGINX_IP}/$INGRESS_NGINX_IP/g" roles/ingress-setting/defaults/main.yml
+sed -i "s/{INGRESS_NGINX_IP}/$INGRESS_NGINX_IP/" roles/ingress-setting/defaults/main.yml
 
 rm -rf hosts.yaml
 

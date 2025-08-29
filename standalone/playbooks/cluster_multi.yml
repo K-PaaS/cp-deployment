@@ -179,3 +179,11 @@
   roles:
     - { role: kubespray_defaults }
     - { role: cp/cve_cce/amd64 }
+
+- hosts: kube_control_plane[0]
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray_defaults }
+    - { role: cp/controller }

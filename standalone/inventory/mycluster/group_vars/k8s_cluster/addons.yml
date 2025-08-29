@@ -173,7 +173,6 @@ metallb_config:
       ip_range:
         - {METALLB_IP_RANGE}
       auto_assign: true
-
 #     primary:
 #       ip_range:
 #         - 10.5.0.0/16
@@ -182,7 +181,6 @@ metallb_config:
       ip_range:
         - {INGRESS_NGINX_IP}/32
       auto_assign: false
-
 #     pool1:
 #       ip_range:
 #         - 10.6.0.0/16

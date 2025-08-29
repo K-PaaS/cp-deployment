@@ -1,3 +1,6 @@
+image:
+  repository: registry.k-paas.org/k8s/nfs-subdir-external-provisioner
+
 nfs:
   server: {NFS_SERVER_PRIVATE_IP}
   path: /home/share/nfs

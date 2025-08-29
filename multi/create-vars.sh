@@ -73,6 +73,15 @@ export CLUSTER${IDX}_INGRESS_NGINX_IP=
 # MetalLB Istio Gateway LoadBalancer Service External IP
 export CLUSTER${IDX}_ISTIO_GATEWAY_PRIVATE_IP=
 export CLUSTER${IDX}_ISTIO_GATEWAY_PUBLIC_IP=
+
+# Enter only if the CSP is NHN Cloud (eg. NHN)
+export CLUSTER_CSP_TYPE=
+
+# if CSP_TYPE=NHN
+export CLUSTER${IDX}_NHN_USERNAME=
+export CLUSTER${IDX}_NHN_PASSWORD=
+export CLUSTER${IDX}_NHN_TENANT_ID=
+export CLUSTER${IDX}_NHN_VIP_SUBNET_ID=
 EOF
 done
 

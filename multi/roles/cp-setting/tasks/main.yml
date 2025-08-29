@@ -14,7 +14,7 @@
   become: false
   shell: |
     cat {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars-tmp.sh | grep CLUSTER{{ groups['kube_control_plane'].index(inventory_hostname)|int + 1|int }} > {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars.sh
-    sed -i "s/CLUSTER{{ groups['kube_control_plane'].index(inventory_hostname)|int + 1|int }}_//g" {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars.sh
+    sed -i "s/CLUSTER{{ groups['kube_control_plane'].index(inventory_hostname)|int + 1|int }}_//" {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars.sh
 
 - name: Create istio gateway private ip vars file
   become: false
@@ -27,7 +27,7 @@
 - name: Create istio-setting defaults file
   become: false
   shell: |
-    cp {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml.ori {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
+    cp {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml.tmpl {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
     cat <<EOF > {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
     istio_gateway_private_ip:
     EOF
@@ -35,7 +35,10 @@
 - name: Create istio-setting defaults file
   become: false
   shell: |
-    grep -oP 'CLUSTER\d+_ISTIO_GATEWAY_PRIVATE_IP=\K\d+\.\d+\.\d+\.\d+' {{ home_dir_path.stdout }}/cp-deployment/standalone/gateway-private-vars.sh | sed 's/^/  - /' >> {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
+    set -o pipefail
+    grep -oP 'CLUSTER\d+_ISTIO_GATEWAY_PRIVATE_IP=\K\d+\.\d+\.\d+\.\d+' {{ home_dir_path.stdout }}/cp-deployment/standalone/gateway-private-vars.sh | sed 's/^/  - /' >> {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml     || echo '  - ' >> {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
+  args:
+    executable: /bin/bash
 
 - name: Create istio-setting defaults file
   become: false
@@ -47,7 +50,10 @@
 - name: Create istio-setting defaults file
   become: false
   shell: |
-    grep -oP 'CLUSTER\d+_ISTIO_GATEWAY_PUBLIC_IP=\K\d+\.\d+\.\d+\.\d+' {{ home_dir_path.stdout }}/cp-deployment/standalone/gateway-public-vars.sh | sed 's/^/  - /' >> {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
+    set -o pipefail
+    grep -oP 'CLUSTER\d+_ISTIO_GATEWAY_PUBLIC_IP=\K\d+\.\d+\.\d+\.\d+' {{ home_dir_path.stdout }}/cp-deployment/standalone/gateway-public-vars.sh | sed 's/^/  - /' >> {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml     || echo '  - ' >> {{ home_dir_path.stdout }}/cp-deployment/standalone/roles/cp/istio-setting/defaults/main.yml
+  args:
+    executable: /bin/bash
 
 - name: Delete vars temp file
   become: false

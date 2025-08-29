@@ -56,3 +56,12 @@ export INGRESS_NGINX_IP=
 # Install Kyverno (eg. Y, N)
 # PSS(Pod Security Standards) and cp-policy(Network isolation between namespaces) implemented as Kyverno policies.
 export INSTALL_KYVERNO=
+
+# Enter only if the CSP is NHN Cloud (eg. NHN)
+export CSP_TYPE=
+
+# if CSP_TYPE=NHN
+export NHN_USERNAME=
+export NHN_PASSWORD=
+export NHN_TENANT_ID=
+export NHN_VIP_SUBNET_ID=

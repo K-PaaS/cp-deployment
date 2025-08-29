@@ -1,0 +1,155 @@
+---
+- name: Get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+  when:
+    - lookup('env', 'CSP_TYPE') | trim  != ""
+
+- name: Check kube-apiserver
+  become: false
+  shell: |
+    echo $(kubectl get pods -n kube-system | grep kube-apiserver | awk 'NR==1 { print $3 }')
+  register: kube_status
+  until: kube_status.stdout == "Running"
+  retries: 15
+  delay: 30
+  when:
+    - lookup('env', 'CSP_TYPE') | trim  != ""
+
+- name: Check kyverno webhook
+  become: false
+  shell: |
+    echo $(kubectl get pods -n kyverno | grep kyverno-admission-controller | awk '{print $3}')
+  register: kyverno_status
+  until: kyverno_status.stdout == "Running"
+  retries: 15
+  delay: 30
+  when:
+    - lookup('env', 'CSP_TYPE') | trim != ""
+    - (lookup('file', '/proc/self/cmdline') | regex_replace('\\u0000', ' ')).split() | select('match', '.*\\.ya?ml$') | list | first | basename != "cluster_multi.yml"
+
+- name: Create namespace
+  shell: |
+    kubectl create ns k-paas-system
+  ignore_errors: yes
+  when:
+    - lookup('env', 'CSP_TYPE') | trim  != ""
+
+- name: Derive secrets from ENV (fallback if role vars not provided)
+  no_log: true
+  set_fact:
+    nhn_username_eff: "{{ nhn_username | default(lookup('env', 'NHN_USERNAME'), true) | trim }}"
+    nhn_password_eff: "{{ nhn_password | default(lookup('env', 'NHN_PASSWORD'), true) | trim }}"
+    nhn_tenant_id_eff: "{{ nhn_tenant_id | default(lookup('env', 'NHN_TENANT_ID'), true) | trim }}"
+    nhn_vip_subnet_id_eff: "{{ nhn_vip_subnet_id | default(lookup('env', 'NHN_VIP_SUBNET_ID'), true) | trim }}"
+  when:
+    - lookup('env', 'CSP_TYPE') | trim == "NHN"
+
+- name: Validate derived inputs
+  no_log: true
+  assert:
+    that:
+      - (nhn_username_eff | default('')) | length > 0
+      - (nhn_password_eff | default('')) | length > 0
+      - (nhn_tenant_id_eff | default('')) | length > 0
+      - (nhn_vip_subnet_id_eff | default('')) | length > 0
+    fail_msg: "Please check the NHN_USERNAME, NHN_PASSWORD, NHN_TENANT_ID, NHN_VIP_SUBNET_ID variable again."
+  when:
+    - lookup('env', 'CSP_TYPE') | trim == "NHN"
+
+- name: Build Secret manifest
+  no_log: true
+  set_fact:
+    secret_manifest:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: nhncloud-credentials
+        namespace: k-paas-system
+      type: Opaque
+      stringData:
+        NHN_USERNAME: "{{ nhn_username_eff }}"
+        NHN_PASSWORD: "{{ nhn_password_eff }}"
+        NHN_TENANT_ID: "{{ nhn_tenant_id_eff }}"
+  when:
+    - lookup('env', 'CSP_TYPE') | trim == "NHN"
+
+- name: Apply Secret
+  no_log: true
+  shell: |
+    kubectl apply -f -
+  args:
+    stdin: "{{ secret_manifest | to_nice_yaml }}"
+  when:
+    - lookup('env','CSP_TYPE') | trim == 'NHN'
+
+- name: Build Configmap manifest
+  no_log: true
+  set_fact:
+    configmap_manifest:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: nhncloud-config
+        namespace: k-paas-system
+      data:
+        NHN_API_BASE_URL: "https://kr1-api-network-infrastructure.nhncloudservice.com"
+        NHN_AUTH_URL: "https://api-identity-infrastructure.nhncloudservice.com/v2.0/tokens"
+        NHN_VIP_SUBNET_ID: "{{ nhn_vip_subnet_id_eff }}"
+  when:
+    - lookup('env', 'CSP_TYPE') | trim == "NHN"
+
+- name: Apply Configmap
+  no_log: true
+  shell: |
+    kubectl apply -f -
+  args:
+    stdin: "{{ configmap_manifest | to_nice_yaml }}"
+  when:
+    - lookup('env','CSP_TYPE') | trim == 'NHN'
+
+- name: Wipe sensitive vars
+  no_log: true
+  set_fact:
+    nhn_username_eff: null
+    nhn_password_eff: null
+    nhn_tenant_id_eff: null
+    nhn_vip_subnet_id_eff: null
+    secret_manifest: null
+    configmap_manifest: null
+  when:
+    - lookup('env', 'CSP_TYPE') | trim == "NHN"
+
+- name: Create NHN Controller Resource
+  shell: | 
+    kubectl apply -f {{ home_dir_path.stdout }}/cp-deployment/applications/controller/nhn-deploy.yaml
+  when:
+    - lookup('env', 'CSP_TYPE') | trim != ""
+
+- name: Unset
+  shell: | 
+    unset NHN_USERNAME
+    unset NHN_PASSWORD
+    unset NHN_TENANT_ID
+    unset NHN_VIP_SUBNET_ID
+  
+    sed -i "s/CSP_TYPE=.*/CSP_TYPE=/" {{ home_dir_path.stdout }}/cp-deployment/single/cp-cluster-vars.sh
+    sed -i "s/NHN_USERNAME=.*/NHN_USERNAME=/" {{ home_dir_path.stdout }}/cp-deployment/single/cp-cluster-vars.sh
+    sed -i "s/NHN_PASSWORD=.*/NHN_PASSWORD=/" {{ home_dir_path.stdout }}/cp-deployment/single/cp-cluster-vars.sh
+    sed -i "s/NHN_TENANT_ID=.*/NHN_TENANT_ID=/" {{ home_dir_path.stdout }}/cp-deployment/single/cp-cluster-vars.sh
+    sed -i "s/NHN_VIP_SUBNET_ID=.*/NHN_VIP_SUBNET_ID=/" {{ home_dir_path.stdout }}/cp-deployment/single/cp-cluster-vars.sh
+
+    sed -i "s/CSP_TYPE=.*/CSP_TYPE=/" {{ home_dir_path.stdout }}/cp-deployment/multi/cp-cluster-vars.sh
+    sed -i "s/NHN_USERNAME=.*/NHN_USERNAME=/" {{ home_dir_path.stdout }}/cp-deployment/multi/cp-cluster-vars.sh
+    sed -i "s/NHN_PASSWORD=.*/NHN_PASSWORD=/" {{ home_dir_path.stdout }}/cp-deployment/multi/cp-cluster-vars.sh
+    sed -i "s/NHN_TENANT_ID=.*/NHN_TENANT_ID=/" {{ home_dir_path.stdout }}/cp-deployment/multi/cp-cluster-vars.sh
+    sed -i "s/NHN_VIP_SUBNET_ID=.*/NHN_VIP_SUBNET_ID=/" {{ home_dir_path.stdout }}/cp-deployment/multi/cp-cluster-vars.sh
+
+    sed -i "s/CSP_TYPE=.*/CSP_TYPE=/" {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars.sh
+    sed -i "s/NHN_USERNAME=.*/NHN_USERNAME=/" {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars.sh
+    sed -i "s/NHN_PASSWORD=.*/NHN_PASSWORD=/" {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars.sh
+    sed -i "s/NHN_TENANT_ID=.*/NHN_TENANT_ID=/" {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars.sh
+    sed -i "s/NHN_VIP_SUBNET_ID=.*/NHN_VIP_SUBNET_ID=/" {{ home_dir_path.stdout }}/cp-deployment/standalone/cp-cluster-vars.sh
+  when:
+    - lookup('env', 'CSP_TYPE') | trim == "NHN"

@@ -128,7 +128,7 @@ controlPlaneEndpoint: "{{ kubeadm_config_api_fqdn }}:{{ loadbalancer_apiserver.p
 controlPlaneEndpoint: "{{ main_ip | ansible.utils.ipwrap }}:{{ kube_apiserver_port }}"
 {% endif %}
 certificatesDir: {{ kube_cert_dir }}
-imageRepository: {{ kube_image_repo }}
+imageRepository: registry.k-paas.org/k8s
 apiServer:
   extraArgs:
 {% if kube_apiserver_etcd_compaction_interval is defined %}

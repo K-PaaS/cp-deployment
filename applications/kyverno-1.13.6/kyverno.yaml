@@ -51060,7 +51060,7 @@ spec:
       serviceAccountName: kyverno-admission-controller
       initContainers:
         - name: kyverno-pre
-          image: "ghcr.io/kyverno/kyvernopre:v1.13.6"
+          image: "registry.k-paas.org/kyverno/kyvernopre:v1.13.6"
           imagePullPolicy: IfNotPresent
           args:
             - --loggingFormat=text
@@ -51105,7 +51105,7 @@ spec:
             value: kyverno-svc
       containers:
         - name: kyverno
-          image: "ghcr.io/kyverno/kyverno:v1.13.6"
+          image: "registry.k-paas.org/kyverno/kyverno:v1.13.6"
           imagePullPolicy: IfNotPresent
           args:
             - --caSecretName=kyverno-svc.kyverno.svc.kyverno-tls-ca
@@ -51266,7 +51266,7 @@ spec:
       serviceAccountName: kyverno-background-controller
       containers:
         - name: controller
-          image: "ghcr.io/kyverno/background-controller:v1.13.6"
+          image: "registry.k-paas.org/kyverno/background-controller:v1.13.6"
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 9443
@@ -51371,7 +51371,7 @@ spec:
       serviceAccountName: kyverno-cleanup-controller
       containers:
         - name: controller
-          image: "ghcr.io/kyverno/cleanup-controller:v1.13.6"
+          image: "registry.k-paas.org/kyverno/cleanup-controller:v1.13.6"
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 9443
@@ -51512,7 +51512,7 @@ spec:
       serviceAccountName: kyverno-reports-controller
       containers:
         - name: controller
-          image: "ghcr.io/kyverno/reports-controller:v1.13.6"
+          image: "registry.k-paas.org/kyverno/reports-controller:v1.13.6"
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 9443

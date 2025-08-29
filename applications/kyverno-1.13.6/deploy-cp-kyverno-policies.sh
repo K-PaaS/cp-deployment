@@ -93,7 +93,7 @@ spec:
                 cidr: 0.0.0.0/0
                 except:
                 - 10.233.64.0/18
-${IPv4VXLANTunnelAddrYaml}
+
             - podSelector: {}
           podSelector: {}
           policyTypes:

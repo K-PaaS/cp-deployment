@@ -1,10 +1,91 @@
 ---
 - name: Check podman package installation
-  shell: dpkg -l | grep podman | awk '{print $2}'
+  shell: podman version | grep Version | awk 'NR==1 {print $2}'
   register: podman_install
 
-- name: Install podman
+- name: Clone Podman repository
+  git:
+    repo: https://github.com/containers/podman.git
+    dest: ~/podman
+    version: v3.4.7
+  when: podman_install.stdout == "" 
+
+- name: Modify Podman Path Prefix
+  shell: |
+    sed -i "s/PREFIX ?= \/usr\/local/PREFIX ?= \/usr/" ~/podman/Makefile
+  when: podman_install.stdout == ""
+
+- name: Install base build dependencies
   apt:
-    name: podman
-    update_cache: yes
+    name: make
+    state: present
+  when: podman_install.stdout == ""
+
+- name: Install Golang
+  apt:
+    name: golang
+    state: present
+  when: podman_install.stdout == ""
+
+- name: Install Podman build dependencies
+  apt:
+    name:
+      - libsystemd-dev
+      - libgpgme-dev
+      - libseccomp-dev
+    state: present
+  when: podman_install.stdout == ""
+
+- name: Install go-md2man
+  apt:
+    name: go-md2man
+    state: present
+  when: podman_install.stdout == ""
+
+- name: Build and install Podman
+  make:
+    chdir: ~/podman
+    target: install
+  when: podman_install.stdout == ""
+
+- name: Install runtime dependencies
+  apt:
+    name:
+      - catatonit
+      - conmon
+      - containernetworking-plugins
+      - crun
+      - dconf-gsettings-backend
+      - dconf-service
+      - dns-root-data
+      - dnsmasq-base
+      - fuse-overlayfs
+      - glib-networking
+      - glib-networking-common
+      - glib-networking-services
+      - golang-github-containernetworking-plugin-dnsname
+      - golang-github-containers-common
+      - golang-github-containers-image
+      - gsettings-desktop-schemas
+      - libavahi-client3
+      - libavahi-common-data
+      - libavahi-common3
+      - libavahi-glib1
+      - libdconf1
+      - libostree-1-1
+      - libproxy1v5
+      - libslirp0
+      - libsoup2.4-1
+      - libsoup2.4-common
+      - libyajl2
+      - session-migration
+      - slirp4netns
+      - uidmap
+    state: present
+  when: podman_install.stdout == ""
+
+- name: Remove Podman source directory
+  file:
+    path: ~/podman
+    state: absent
   when: podman_install.stdout == ""
