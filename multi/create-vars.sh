@@ -162,5 +162,5 @@ cat <<EOF >> cluster.yml
   gather_facts: False
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   roles:
-    - { role: cp/unset-vars }
+    - { role: unset-vars }
 EOF

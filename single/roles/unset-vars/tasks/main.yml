@@ -1,4 +1,9 @@
 ---
+- name: Get home dir path
+  become: false
+  shell: "echo $HOME"
+  register: home_dir_path
+
 - name: Unset NHN Cloud environment variables and clear from cp-cluster-vars.sh
   no_log: true
   shell: |
