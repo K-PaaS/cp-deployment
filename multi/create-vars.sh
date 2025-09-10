@@ -75,7 +75,7 @@ export CLUSTER${IDX}_ISTIO_GATEWAY_PRIVATE_IP=
 export CLUSTER${IDX}_ISTIO_GATEWAY_PUBLIC_IP=
 
 # Enter only if the CSP is NHN Cloud (eg. NHN)
-export CLUSTER_CSP_TYPE=
+export CLUSTER${IDX}_CSP_TYPE=
 
 # if CSP_TYPE=NHN
 export CLUSTER${IDX}_NHN_USERNAME=
@@ -157,4 +157,10 @@ cat <<EOF >> cluster.yml
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   roles:
     - { role: istio-multi }
+
+- hosts: localhost
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  roles:
+    - { role: cp/unset-vars }
 EOF

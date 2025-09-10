@@ -58,6 +58,7 @@ spec:
           - chaos-mesh
           - chartmuseum
           - postgres
+          - k-paas-system
     generate:
       apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
@@ -128,6 +129,7 @@ spec:
           - chaos-mesh
           - chartmuseum
           - postgres
+          - k-paas-system
     generate:
       apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
@@ -190,6 +192,7 @@ spec:
           - chaos-mesh
           - chartmuseum
           - postgres
+          - k-paas-system
     mutate:
       targets:
         - apiVersion: v1
@@ -229,6 +232,7 @@ spec:
           - chaos-mesh
           - chartmuseum
           - postgres
+          - k-paas-system
     mutate:
       targets:
         - apiVersion: v1
@@ -268,6 +272,7 @@ spec:
           - chaos-mesh
           - chartmuseum
           - postgres
+          - k-paas-system
     generate:
       apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
@@ -330,6 +335,7 @@ spec:
           - chaos-mesh
           - chartmuseum
           - postgres
+          - k-paas-system
     mutate:
       targets:
         - apiVersion: v1

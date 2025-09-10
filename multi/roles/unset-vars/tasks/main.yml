@@ -1,0 +1,16 @@
+---
+- name: Unset NHN Cloud environment variables and clear from cp-cluster-vars.sh
+  no_log: true
+  shell: |
+    unset NHN_USERNAME
+    unset NHN_PASSWORD
+    unset NHN_TENANT_ID
+    unset NHN_VIP_SUBNET_ID
+
+    sed -i "s/CSP_TYPE=.*/CSP_TYPE=/" {{ home_dir_path.stdout }}/cp-deployment/multi/cp-cluster-vars.sh
+    sed -i "s/NHN_USERNAME=.*/NHN_USERNAME=/" {{ home_dir_path.stdout }}/cp-deployment/multi/cp-cluster-vars.sh
+    sed -i "s/NHN_PASSWORD=.*/NHN_PASSWORD=/" {{ home_dir_path.stdout }}/cp-deployment/multi/cp-cluster-vars.sh
+    sed -i "s/NHN_TENANT_ID=.*/NHN_TENANT_ID=/" {{ home_dir_path.stdout }}/cp-deployment/multi/cp-cluster-vars.sh
+    sed -i "s/NHN_VIP_SUBNET_ID=.*/NHN_VIP_SUBNET_ID=/" {{ home_dir_path.stdout }}/cp-deployment/multi/cp-cluster-vars.sh
+  when:
+    - lookup('env', 'CSP_TYPE') | trim == "NHN"

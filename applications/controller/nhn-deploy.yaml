@@ -137,18 +137,18 @@ metadata:
   name: controller-manager
   namespace: k-paas-system
   labels:
-    control-plane: controller-manager
+    app: controller-manager
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
+      app: controller-manager
   replicas: 1
   template:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
       labels:
-        control-plane: controller-manager
+        app: controller-manager
     spec:
       securityContext:
         runAsNonRoot: true
@@ -160,7 +160,7 @@ spec:
         args:
         - --leader-elect
         - --health-probe-bind-address=:8081
-        image: registry.k-paas.org/kpaas/nhn-controller:v1.0.0
+        image: registry.k-paas.org/kpaas/nhn-controller:v1.0.2
         name: manager
         env:
         - name: CONTROLLER_NAMESPACE
