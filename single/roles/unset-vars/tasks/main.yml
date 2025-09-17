@@ -7,6 +7,7 @@
 - name: Unset NHN Cloud environment variables and clear from cp-cluster-vars.sh
   no_log: true
   shell: |
+    unset CSP_TYPE
     unset NHN_USERNAME
     unset NHN_PASSWORD
     unset NHN_TENANT_ID

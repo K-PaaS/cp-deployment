@@ -32,41 +32,10 @@
   shell: |
     mkdir -p {{ home_dir_path.stdout }}/charts
     helm pull -d {{ home_dir_path.stdout }}/charts "oci://registry.k-paas.org/kpaas/openbao" --version "0.12.0"
-    helm install openbao {{ home_dir_path.stdout }}/charts/openbao-0.12.0.tgz -n k-paas-system -f - <<EOF
+    helm install controller-vault {{ home_dir_path.stdout }}/charts/openbao-0.12.0.tgz --set fullnameOverride=controller-vault -n k-paas-system -f - <<EOF
     {% raw %}
     injector:
-      image:
-        registry: "registry.k-paas.org"
-        repository: "openbao/vault-k8s"
-      agentImage:
-        registry: "registry.k-paas.org"
-        repository: "openbao/openbao"
-      securityContext:
-        pod:
-          runAsUser: 1000
-          fsGroup: 1000
-        container:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop: ["ALL"]
-          runAsNonRoot: true
-          seccompProfile:
-            type: "RuntimeDefault"
-      affinity: |
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: {{ template "openbao.name" . }}-agent-injector
-                  app.kubernetes.io/instance: "{{ .Release.Name }}"
-                  component: webhook
-              topologyKey: kubernetes.io/hostname
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: node-role.kubernetes.io/edge
-                    operator: DoesNotExist
+      enabled: "false"
     server:
       image:
         registry: "registry.k-paas.org"
@@ -127,7 +96,7 @@
     EOF
 
 - name: Wait for openbao to be running
-  shell: kubectl get pods openbao-0 -n k-paas-system | grep Running | awk '{print $3}'
+  shell: kubectl get pods controller-vault-0 -n k-paas-system | grep Running | awk '{print $3}'
   register: openbao_status
   until: openbao_status.stdout == "Running"
   retries: 15
@@ -135,7 +104,7 @@
 
 - name: Set openbao URL
   set_fact:
-    openbao_url: openbao.k-paas-system.svc.cluster.local:8200
+    openbao_url: controller-vault.k-paas-system.svc.cluster.local:8200
 
 - name: Initialize openbao
   no_log: true
@@ -171,16 +140,16 @@
 
 - name: Create service account for openbao
   shell: |
-    kubectl delete serviceaccount openbao-controller -n kube-system
-    kubectl delete clusterrolebinding openbao-controller -n kube-system
-    kubectl create serviceaccount openbao-controller -n kube-system
-    kubectl create clusterrolebinding openbao-controller --clusterrole=cluster-admin --serviceaccount=kube-system:openbao-controller -n kube-system
+    kubectl delete serviceaccount controller-vault -n kube-system
+    kubectl delete clusterrolebinding controller-vault -n kube-system
+    kubectl create serviceaccount controller-vault -n kube-system
+    kubectl create clusterrolebinding controller-vault --clusterrole=cluster-admin --serviceaccount=kube-system:controller-vault -n kube-system
   ignore_errors: true
 
 - name: Create token for openbao
   no_log: true
   shell: |
-    kubectl create token openbao-controller --duration=999999h -n kube-system
+    kubectl create token controller-vault --duration=999999h -n kube-system
   register: openbao_token
 
 - name: Get cluster API URL
@@ -312,6 +281,7 @@
 - name: Unset NHN Cloud environment variables and clear from cp-cluster-vars.sh
   no_log: true
   shell: |
+    unset CSP_TYPE
     unset NHN_USERNAME
     unset NHN_PASSWORD
     unset NHN_TENANT_ID
