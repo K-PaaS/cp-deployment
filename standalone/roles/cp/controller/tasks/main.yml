@@ -10,7 +10,7 @@
   register: kube_status
   until: kube_status.stdout == "Running"
   retries: 15
-  delay: 10
+  delay: 30
 
 - name: Wait for kyverno-admission-controller to be running
   shell: |
@@ -18,7 +18,7 @@
   register: kyverno_status
   until: kyverno_status.stdout == "Running"
   retries: 15
-  delay: 10
+  delay: 30
   when:
     - lookup('env', 'INSTALL_KYVERNO') | trim == "Y"
 
@@ -100,7 +100,7 @@
   register: openbao_status
   until: openbao_status.stdout == "Running"
   retries: 15
-  delay: 10
+  delay: 30
 
 - name: Set openbao URL
   set_fact:
