@@ -4,6 +4,7 @@
 # 0. patch clusterrole : Add 'update' role to namespace (origin : get,list,watch)          #
 ############################################################################################
 kubectl patch clusterrole kyverno:background-controller:core --type='json' -p='[{"op": "replace", "path": "/rules/2", "value":{ "apiGroups": [""], "resources": ["namespaces","configmaps"], "verbs": ["get","list","watch","update"]}}]'
+kubectl patch clusterrole kyverno:background-controller:core --type='json' -p='[{"op": "add", "path": "/rules/-", "value":{ "apiGroups": ["policies.kyverno.io"], "resources": ["mutatingpolicies","mutatingpolicies/status","generatingpolicies","generatingpolicies/status"], "verbs": ["get","list","watch"]}}]'
 
 
 ############################################################################################
