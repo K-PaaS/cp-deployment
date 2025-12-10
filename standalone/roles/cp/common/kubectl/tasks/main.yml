@@ -1,7 +1,7 @@
 ---
 - name: Check if kubectl is installed
   shell: |
-    kubectl version | grep Version | awk 'NR==1 {print $3}'
+    command -v kubectl
   register: kubectl_installed
   changed_when: false
   failed_when: false

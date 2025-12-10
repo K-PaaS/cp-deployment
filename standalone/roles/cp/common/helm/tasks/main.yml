@@ -1,9 +1,7 @@
 ---
 - name: Check if helm is installed
   shell: |
-    {% raw %}
-    helm version --template={{ "{{ .Version }}" }}
-    {% endraw %}
+    command -v helm
   register: helm_installed
   changed_when: false
   failed_when: false

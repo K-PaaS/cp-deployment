@@ -1,7 +1,7 @@
 ---
 - name: Check if istioctl is installed
   shell: |
-    istioctl version | grep "client version" | awk -F': ' '{print $2}'
+    command -v istioctl
   register: istioctl_installed
   changed_when: false
   failed_when: false
