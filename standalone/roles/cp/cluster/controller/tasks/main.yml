@@ -21,7 +21,7 @@
   retries: 15
   delay: 30
   when:
-    - install_kyverno | trim == "Y"
+    - (install_kyverno | default("N") | trim) == "Y"
 
 - name: Ensure k-paas-system namespace exists
   shell: |
