@@ -13,8 +13,6 @@
   become: false
   shell: |
     curl -s https://raw.githubusercontent.com/karmada-io/karmada/master/hack/install-cli.sh | sudo INSTALL_CLI_VERSION=1.15.2 bash
-  args:
-    warn: false
   changed_when: true
 
 - name: Deinitialize karmada
