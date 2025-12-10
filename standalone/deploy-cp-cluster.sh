@@ -16,7 +16,7 @@ if [ "$PIP3_INSTALL" == "" ]; then
   echo "pip3 installation completed."
 fi
 
-PIP3_PACKAGE_INSTALL=$(pip3 freeze | grep netaddr)
+PIP3_PACKAGE_INSTALL=$(pip3 freeze | grep ansible)
 
 if [ "$PIP3_PACKAGE_INSTALL" == "" ]; then
   if [ "$OS_VERSION" == "24.04" ]; then
