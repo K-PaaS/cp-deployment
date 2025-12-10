@@ -2,13 +2,13 @@
 - name:  Generate per-cluster variable file
   become: false
   shell: |
-    cp {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_single.yml  {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+    cp {{ lookup('env', 'HOME') }}/cp-deployment/single/cluster_single.yml  {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
   when: mode == "single"
 
 - name:  Generate per-cluster variable file
   become: false
   shell: |
-    grep "^cluster{{ cluster_no }}_" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | sed "s/^cluster{{ cluster_no }}_//" > {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+    grep "^cluster{{ cluster_no }}_" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cluster_multi.yml | sed "s/^cluster{{ cluster_no }}_//" > {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
   when: mode == "multi"
 
 - name: Generate istio multi-cluster gateway ip list
@@ -16,9 +16,9 @@
   shell: |
     {
       echo "istio_gateway_private_ip_list:";
-      grep -v 'cluster{{ cluster_no }}' {{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | grep istio_gateway_private_ip | sort | sed -E 's/cluster[0-9]+_istio_gateway_private_ip:[[:space:]]*/  - /';
+      grep -v 'cluster{{ cluster_no }}' {{ lookup('env','HOME') }}/cp-deployment/multi/cluster_multi.yml | grep istio_gateway_private_ip | sort | sed -E 's/cluster[0-9]+_istio_gateway_private_ip:[[:space:]]*/  - /';
       echo "istio_gateway_public_ip_list:";
-      grep -v 'cluster{{ cluster_no}}' {{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | grep istio_gateway_public_ip | sort | sed -E 's/cluster[0-9]+_istio_gateway_public_ip:[[:space:]]*/  - /';
+      grep -v 'cluster{{ cluster_no}}' {{ lookup('env','HOME') }}/cp-deployment/multi/cluster_multi.yml | grep istio_gateway_public_ip | sort | sed -E 's/cluster[0-9]+_istio_gateway_public_ip:[[:space:]]*/  - /';
     } > {{ lookup('env', 'HOME') }}/cp-deployment/standalone/roles/cp/multi/istio-iptables-setting/defaults/main.yml
   when: mode == "multi"
 
@@ -27,11 +27,11 @@
   shell: |
     {
       echo "ingress_nginx_ip_list:";
-      grep -E '^cluster[0-9]+_ingress_nginx_ip:' {{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | sort | sed -E 's/cluster[0-9]+_ingress_nginx_ip:[[:space:]]*/  - /';
+      grep -E '^cluster[0-9]+_ingress_nginx_ip:' {{ lookup('env','HOME') }}/cp-deployment/multi/cluster_multi.yml | sort | sed -E 's/cluster[0-9]+_ingress_nginx_ip:[[:space:]]*/  - /';
       echo "istio_gateway_private_ip_list:";
-      grep -E '^cluster[0-9]+_istio_gateway_private_ip:' {{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | sort | sed -E 's/cluster[0-9]+_istio_gateway_private_ip:[[:space:]]*/  - /';
+      grep -E '^cluster[0-9]+_istio_gateway_private_ip:' {{ lookup('env','HOME') }}/cp-deployment/multi/cluster_multi.yml | sort | sed -E 's/cluster[0-9]+_istio_gateway_private_ip:[[:space:]]*/  - /';
       echo "istio_gateway_public_ip_list:";
-      grep -E '^cluster[0-9]+_istio_gateway_public_ip:' {{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | sort | sed -E 's/cluster[0-9]+_istio_gateway_public_ip:[[:space:]]*/  - /';
+      grep -E '^cluster[0-9]+_istio_gateway_public_ip:' {{ lookup('env','HOME') }}/cp-deployment/multi/cluster_multi.yml | sort | sed -E 's/cluster[0-9]+_istio_gateway_public_ip:[[:space:]]*/  - /';
     } > {{ lookup('env', 'HOME') }}/cp-deployment/standalone/roles/cp/multi/istio-multi-setting/defaults/main.yml
   when: mode == "multi"
 
