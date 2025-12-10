@@ -1,0 +1,89 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: "echo $HOME"
+  register: home_dir
+  changed_when: false
+
+- name: Check if podman is installed
+  shell: |
+    podman version | grep Version | awk 'NR==1 {print $2}'
+  register: podman_installed
+  changed_when: false
+  failed_when: false
+
+- name: Clone podman repository
+  become: false
+  git:
+    repo: https://github.com/containers/podman.git
+    dest: "{{ home_dir.stdout }}/podman"
+    version: v3.4.7
+  when: podman_installed.rc != 0
+
+- name: Update podman Makefile install prefix (/usr/local → /usr)
+  become: false
+  replace:
+    path: "{{ home_dir.stdout }}/podman/Makefile"
+    regexp: 'PREFIX \?= /usr/local'
+    replace: 'PREFIX ?= /usr'
+  when: podman_installed.rc != 0
+
+- name: Install base, go, podman build dependencies
+  apt:
+    name:
+      - make
+      - golang
+      - go-md2man
+      - libsystemd-dev
+      - libgpgme-dev
+      - libseccomp-dev
+    state: present
+  when: podman_installed.rc != 0
+
+- name: Build and install podman
+  make:
+    chdir: "{{ home_dir.stdout }}/podman" 
+    target: install
+  when: podman_installed.rc != 0
+
+- name: Install podman runtime dependencies
+  apt:
+    name:
+      - catatonit
+      - conmon
+      - containernetworking-plugins
+      - crun
+      - dconf-gsettings-backend
+      - dconf-service
+      - dns-root-data
+      - dnsmasq-base
+      - fuse-overlayfs
+      - glib-networking
+      - glib-networking-common
+      - glib-networking-services
+      - golang-github-containernetworking-plugin-dnsname
+      - golang-github-containers-common
+      - golang-github-containers-image
+      - gsettings-desktop-schemas
+      - libavahi-client3
+      - libavahi-common-data
+      - libavahi-common3
+      - libavahi-glib1
+      - libdconf1
+      - libostree-1-1
+      - libproxy1v5
+      - libslirp0
+      - libsoup2.4-1
+      - libsoup2.4-common
+      - libyajl2
+      - session-migration
+      - slirp4netns
+      - uidmap
+    state: present
+  when: podman_installed.rc != 0
+
+- name: Remove podman source directory
+  file:
+    path: "{{ home_dir.stdout }}/podman"
+    state: absent
+  when: podman_installed.rc != 0

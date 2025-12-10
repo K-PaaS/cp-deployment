@@ -137,18 +137,18 @@ metadata:
   name: controller-manager
   namespace: k-paas-system
   labels:
-    app: controller-manager
+    control-plane: controller-manager
 spec:
   selector:
     matchLabels:
-      app: controller-manager
+      control-plane: controller-manager
   replicas: 1
   template:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
       labels:
-        app: controller-manager
+        control-plane: controller-manager
     spec:
       securityContext:
         runAsNonRoot: true

@@ -32,7 +32,7 @@ spec:
               - key: kubernetes.io/hostname
                 operator: In
                 values:
-                - "{{ master_node_hostname }}"
+                - "{{ master1_node_hostname }}"
 
       priorityClassName: system-cluster-critical
       serviceAccountName: metrics-server

@@ -1,0 +1,40 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: echo $HOME
+  register: home_dir
+  changed_when: false
+
+- name: Download kustomize archive
+  become: false
+  get_url:
+    url: "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.0.0/kustomize_v5.0.0_linux_amd64.tar.gz"
+    dest: "{{ home_dir.stdout }}/kustomize_v5.0.0_linux_amd64.tar.gz"
+
+- name: Extract kustomize binary
+  become: false
+  shell: |
+    tar -xzf "{{ home_dir.stdout }}/kustomize_v5.0.0_linux_amd64.tar.gz" -C "{{ home_dir.stdout }}"
+  args:
+    creates: "{{ home_dir.stdout }}/kustomize"
+
+- name: Install kustomize binary
+  copy:
+    src: "{{ home_dir.stdout }}/kustomize"
+    dest: /usr/local/bin/kustomize
+    mode: 0755
+
+- name: Cleanup kustomize archive
+  file:
+    path: "{{ home_dir.stdout }}/kustomize_v5.0.0_linux_amd64.tar.gz"
+    state: absent
+
+- name: Cleanup extracted kustomize temporary file
+  file:
+    path: "{{ home_dir.stdout }}/kustomize"
+    state: absent
+
+- name: Deploy Kubeflow with retry
+  shell: |
+    cd {{ home_dir.stdout }}/cp-deployment/applications/kubeflow-1.7.0
+    while ! kustomize build example | awk '!/well-defined/' | kubectl apply -f -; do echo "Retrying to apply resources"; sleep 10; done

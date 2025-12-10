@@ -1,9 +1,0 @@
-#!/bin/bash
-
-export CLOUDCORE_PRIVATE_IP=
-export CLOUDCORE_PUBLIC_IP=
-
-export EDGE_HOSTS=
-
-export EDGE1_NODE_HOSTNAME=
-export EDGE1_NODE_PUBLIC_IP=

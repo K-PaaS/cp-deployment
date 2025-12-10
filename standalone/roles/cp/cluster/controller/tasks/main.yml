@@ -1,0 +1,380 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: echo /home/ubuntu
+  register: home_dir
+  changed_when: false
+
+- name: Wait until kube-apiserver pod becomes running
+  shell: |
+    kubectl get pods -n kube-system | grep kube-apiserver | awk 'NR==1 { print $3 }'
+  register: apiserver_status
+  until: apiserver_status.stdout == "Running"
+  retries: 15
+  delay: 30
+
+- name: Wait until kyverno admission controller becomes running
+  shell: |
+    kubectl get pods -n kyverno | grep kyverno-admission-controller | awk '{print $3}'
+  register: kyverno_status
+  until: kyverno_status.stdout == "Running"
+  retries: 15
+  delay: 30
+  when:
+    - install_kyverno | trim == "Y"
+
+- name: Ensure k-paas-system namespace exists
+  shell: |
+    kubectl create ns k-paas-system
+  ignore_errors: yes
+
+- name: Prepare chart directory
+  file:
+    path: "{{ home_dir.stdout }}/charts"
+    state: directory
+
+- name: Pull OpenBao helm chart
+  shell: |
+    helm pull -d {{ home_dir.stdout }}/charts "oci://registry.k-paas.org/kpaas/openbao" --version "0.19.0"
+
+- name: Remove OpenBao helm chart
+  file:
+    path: "{{ home_dir.stdout }}/charts"
+    state: absent
+
+- name: Install openbao
+  become: false
+  shell: |
+    helm install controller-vault {{ home_dir.stdout }}/charts/openbao-0.19.0.tgz --set fullnameOverride=controller-vault -n k-paas-system -f - <<EOF
+    {% raw %}
+    injector:
+      enabled: "false"
+    server:
+      image:
+        registry: "registry.k-paas.org"
+        repository: "openbao/openbao"
+      ingress:
+        enabled: false
+      dataStorage:
+        storageClass: "cp-storageclass"
+      statefulSet:
+        securityContext:
+          pod:
+            runAsUser: 1000
+            fsGroup: 1000
+          container:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            seccompProfile:
+              type: "RuntimeDefault"
+      affinity: |
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: {{ template "openbao.name" . }}
+                  app.kubernetes.io/instance: "{{ .Release.Name }}"
+                  component: server
+              topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/edge
+                    operator: DoesNotExist
+    csi:
+      daemonSet:
+        securityContext:
+          pod:
+            runAsUser: 1000
+            fsGroup: 1000
+          container:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            seccompProfile:
+              type: "RuntimeDefault"
+      pod:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: node-role.kubernetes.io/edge
+                      operator: DoesNotExist
+    {% endraw %}
+    EOF
+
+- name: Wait until openbao pod is running
+  shell: |
+    kubectl get pod controller-vault-0 -n k-paas-system -o jsonpath='{.status.phase}'
+  register: openbao_status
+  until: openbao_status.stdout == "Running"
+  retries: 15
+  delay: 30
+
+- name: Set openbao url
+  set_fact:
+    openbao_url: controller-vault.k-paas-system.svc.cluster.local:8200
+
+- name: Initialize openbao
+  no_log: true
+  shell: |
+    curl -sk --show-error -X POST -d '{"secret_shares":3, "secret_threshold":2}' {{ openbao_url }}/v1/sys/init
+  register: init_result
+
+- name: Parse OpenBao initialization response
+  no_log: true
+  set_fact:
+    openbao_init_data: "{{ init_result.stdout | from_json }}"
+
+- name: Save unseal keys
+  no_log: true
+  shell: |
+    echo {{ init_result.stdout }} | sed "s/,root_token.*/}/" > {{ home_dir.stdout }}/cp-deployment/standalone/.keys
+  delegate_to: "localhost"
+
+- name: Unseal openbao using unseal keys
+  no_log: true
+  shell: |
+    curl -sk --show-error -X POST -d '{"key": "{{ item }}"}' {{ openbao_url }}/v1/sys/unseal
+  loop: "{{ openbao_init_data.keys_base64 }}"
+
+- name: Enable approle authentication
+  no_log: true
+  shell: |
+    curl -sk --show-error -H "X-Vault-Token: {{ openbao_init_data.root_token }}" -X POST -d '{"type": "approle"}' {{ openbao_url }}/v1/sys/auth/approle
+
+- name: Enable KV v2 secret engine at /secret
+  no_log: true
+  shell: |
+    curl -sk --show-error -H "X-Vault-Token: {{ openbao_init_data.root_token }}" -X POST -d '{"type": "kv", "options": {"version": "2"}}' {{ openbao_url }}/v1/sys/mounts/secret
+
+- name: Re-create controller-vault service account
+  shell: |
+    kubectl delete serviceaccount controller-vault -n kube-system
+    kubectl delete clusterrolebinding controller-vault -n kube-system
+    kubectl create serviceaccount controller-vault -n kube-system
+    kubectl create clusterrolebinding controller-vault --clusterrole=cluster-admin --serviceaccount=kube-system:controller-vault -n kube-system
+  ignore_errors: true
+
+- name: Create long-lived service account token for openbao
+  no_log: true
+  shell: |
+    kubectl create token controller-vault --duration=999999h -n kube-system
+  register: openbao_token
+
+- name: Retrieve kubernetes api server url
+  shell: |
+    kubectl config view --minify -o jsonpath='{.clusters[].cluster.server}'; echo
+  register: cluster_api_url
+
+- name: Store kubernetes cluster metadata in openbao
+  no_log: true  
+  shell: |
+    curl -sk --show-error -H "X-Vault-Token: {{ openbao_init_data.root_token }}" -X POST -d '{"data":{"clusterId": "cp-cluster", "clusterApiUrl": "{{ cluster_api_url.stdout }}", "clusterToken": "{{ openbao_token.stdout }}"}}' {{ openbao_url }}/v1/secret/data/cluster/cp-cluster
+
+- name: Create openbao access policy for cluster
+  no_log: true
+  shell: |
+    curl -sk --show-error -H "X-Vault-Token: {{ openbao_init_data.root_token }}" -X POST -d '{"policy":"path \"secret/*\" { capabilities = [\"create\", \"update\", \"delete\", \"read\"] } "}' {{ openbao_url }}/v1/sys/policy/cluster_policy
+
+- name: Get ingress-nginx pod cidr
+  shell: |
+    kubectl get pods -n ingress-nginx --selector=app.kubernetes.io/name=ingress-nginx --field-selector=status.phase=Running -o jsonpath='{range .items[*]}{@.status.podIP}{"/16"}{"\t"}{end}'
+  register: pod_cidr
+
+- name: Create approle for controller-manager
+  no_log: true
+  shell: |
+    curl -sk --show-error -H "X-Vault-Token: {{ openbao_init_data.root_token }}" -X POST -d '{"secret_id_ttl": 0, "token_num_uses": 0, "token_ttl": "1m", "token_max_ttl": "10m", "token_explicit_max_ttl": "10m", "secret_id_num_uses": 0, "secret_id_bound_cidrs": ["127.0.0.6/16","{{ pod_cidr.stdout | trim }}"], "token_bound_cidrs": ["127.0.0.6/16","{{ pod_cidr.stdout | trim }}"], "token_policies": "cluster_policy"}' {{ openbao_url }}/v1/auth/approle/role/cluster_role
+
+- name: Get approle role id
+  no_log: true
+  shell: |
+    curl -sk --show-error -H "X-Vault-Token: {{ openbao_init_data.root_token }}" -X GET {{ openbao_url }}/v1/auth/approle/role/cluster_role/role-id
+  register: approle_role_id
+
+- name: Get approle secret id
+  no_log: true
+  shell: |
+    curl -sk --show-error -H "X-Vault-Token: {{ openbao_init_data.root_token }}" -X POST {{ openbao_url }}/v1/auth/approle/role/cluster_role/secret-id
+  register: approle_secret_id
+
+- name: Extract approle credentials
+  no_log: true
+  set_fact:
+    openbao_approle_role_id: "{{ approle_role_id.stdout | from_json | json_query('data.role_id') }}"
+    openbao_approle_secret_id: "{{ approle_secret_id.stdout | from_json | json_query('data.secret_id') }}"
+
+- name: Create kubernetes secret for controller-manager approle
+  no_log: true
+  shell: |
+    kubectl delete secret controller-manager -n k-paas-system
+    kubectl create secret generic controller-manager --from-literal=VAULT_ROLE_NAME=cluster_role --from-literal=VAULT_ROLE_ID={{ openbao_approle_role_id }} --from-literal=VAULT_SECRET_ID={{ openbao_approle_secret_id }} -n k-paas-system
+
+- name: Validate NHN Cloud credentials
+  no_log: true
+  assert:
+    that:
+      - (nhn_username | default('')) | length > 0
+      - (nhn_password | default('')) | length > 0
+      - (nhn_tenant_id | default('')) | length > 0
+      - (nhn_vip_subnet_id | default('')) | length > 0
+    fail_msg: "Please check the nhn_username, nhn_password, nhn_tenant_id, nhn_vip_subnet_id variable again."
+  when:
+    - csp_type | trim == "NHN"
+
+- name: Store NHN Cloud credentials into openbao
+  no_log: true
+  shell: |
+    curl -sk --show-error -H "X-Vault-Token: {{ openbao_init_data.root_token }}" -X POST -d '{"data":{"NHN_TENANT_ID": "{{ nhn_tenant_id }}", "NHN_USERNAME": "{{ nhn_username }}", "NHN_PASSWORD": "{{ nhn_password }}"}}' {{ openbao_url }}/v1/secret/data/csp/nhncloud
+  when:
+    - csp_type | trim == "NHN"
+
+- name: Build NHN Cloud configmap manifest
+  no_log: true
+  set_fact:
+    configmap_manifest:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: nhncloud-config
+        namespace: k-paas-system
+      data:
+        NHN_API_BASE_URL: "{{ nhn_api_base_url }}"
+        NHN_AUTH_URL: "https://api-identity-infrastructure.nhncloudservice.com/v2.0/tokens"
+        NHN_VIP_SUBNET_ID: "{{ nhn_vip_subnet_id }}"
+  when:
+    - csp_type | trim == "NHN"
+
+- name: Apply NHN Cloud configmap
+  no_log: true
+  shell: |
+    kubectl apply -f -
+  args:
+    stdin: "{{ configmap_manifest | to_nice_yaml }}"
+  when:
+    - csp_type | trim == 'NHN'
+
+- name: Deploy NHN Cloud controller manifest
+  shell: |
+    kubectl apply -f {{ home_dir.stdout }}/cp-deployment/applications/controller/nhn-deploy.yaml
+  when:
+    - csp_type | trim == "NHN"
+
+- name: Cleanup NHN temporary vars and manifest
+  no_log: true
+  set_fact:
+    nhn_username: null
+    nhn_password: null
+    nhn_tenant_id: null
+    nhn_vip_subnet_id: null
+    configmap_manifest: null
+  when:
+    - csp_type | trim == "NHN"
+
+- name: Unset NHN Cloud environment variables and clear from cp-cluster-vars.sh
+  no_log: true
+  shell: |
+    sed -i "s/NHN_USERNAME=.*/NHN_USERNAME=/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cp-cluster-vars.sh
+    sed -i "s/NHN_PASSWORD=.*/NHN_PASSWORD=/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cp-cluster-vars.sh
+    sed -i "s/NHN_TENANT_ID=.*/NHN_TENANT_ID=/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cp-cluster-vars.sh
+    sed -i "s/NHN_VIP_SUBNET_ID=.*/NHN_VIP_SUBNET_ID=/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cp-cluster-vars.sh
+
+    sed -i "s/nhn_username:.*/nhn_username:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+    sed -i "s/nhn_password:.*/nhn_password:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+    sed -i "s/nhn_tenant_id:.*/nhn_tenant_id:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+    sed -i "s/nhn_vip_subnet_id:.*/nhn_vip_subnet_id:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+  delegate_to: "localhost"
+  when:
+    - csp_type | trim == "NHN"
+
+- name: Validate NAVER Cloud credentials
+  no_log: true
+  assert:
+    that:
+      - (naver_cloud_api_key | default('')) | length > 0
+      - (naver_cloud_api_secret | default('')) | length > 0
+      - (naver_cloud_region | default('')) | length > 0
+      - (naver_cloud_vpc_no | default('')) | length > 0
+      - (naver_cloud_subnet_no | default('')) | length > 0
+    fail_msg: "Please check the naver_cloud_api_key, naver_cloud_api_secret, naver_cloud_region, naver_cloud_vpc_no, naver_cloud_subnet_no variable again."
+  when:
+    - csp_type | trim == "NAVER"
+
+- name: Store NAVER Cloud credentials into openbao
+  no_log: true
+  shell: |
+    curl -sk --show-error -H "X-Vault-Token: {{ openbao_init_data.root_token }}" -X POST -d '{"data":{"NAVER_CLOUD_API_KEY": "{{ naver_cloud_api_key }}", "NAVER_CLOUD_API_SECRET": "{{ naver_cloud_api_secret }}"}}' {{ openbao_url }}/v1/secret/data/csp/navercloud
+  when:
+    - csp_type | trim == "NAVER"
+
+- name: Build NAVER Cloud configmap manifest
+  no_log: true
+  set_fact:
+    configmap_manifest:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: navercloud-config
+        namespace: k-paas-system
+      data:
+        NAVER_CLOUD_REGION: "{{ naver_cloud_region }}"
+        NAVER_CLOUD_VPC_NO: "{{ naver_cloud_vpc_no }}"
+        NAVER_CLOUD_SUBNET_NO: "{{ naver_cloud_subnet_no }}"
+  when:
+    - csp_type | trim == "NAVER"
+
+- name: Apply NAVER Cloud configmap
+  no_log: true
+  shell: |
+    kubectl apply -f -
+  args:
+    stdin: "{{ configmap_manifest | to_nice_yaml }}"
+  when:
+    - csp_type | trim == 'NAVER'
+
+- name: Deploy NAVER Cloud controller manifest
+  shell: |
+    kubectl apply -f {{ home_dir.stdout }}/cp-deployment/applications/controller/naver-deploy.yaml
+  when:
+    - csp_type | trim == "NAVER"
+
+- name: Cleanup NAVER temporary vars and manifest
+  no_log: true
+  set_fact:
+    naver_cloud_api_key: null
+    naver_cloud_api_secret: null
+    naver_cloud_region: null
+    naver_cloud_vpc_no: null
+    naver_cloud_subnet_no: null
+    configmap_manifest: null
+  when:
+    - csp_type | trim == "NAVER"
+
+- name: Unset NAVER Cloud environment variables and clear from cp-cluster-vars.sh
+  no_log: true
+  shell: |
+    sed -i "s/NAVER_CLOUD_API_KEY=.*/NAVER_CLOUD_API_KEY=/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cp-cluster-vars.sh
+    sed -i "s/NAVER_CLOUD_API_SECRET=.*/NAVER_CLOUD_API_SECRET=/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cp-cluster-vars.sh
+    sed -i "s/NAVER_CLOUD_VPC_NO=.*/NAVER_CLOUD_VPC_NO=/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cp-cluster-vars.sh
+    sed -i "s/NAVER_CLOUD_SUBNET_NO=.*/NAVER_CLOUD_SUBNET_NO=/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cp-cluster-vars.sh
+
+    sed -i "s/naver_cloud_api_key:.*/naver_cloud_api_key:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+    sed -i "s/naver_cloud_api_secret:.*/naver_cloud_api_secret:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+    sed -i "s/naver_cloud_vpc_no:.*/NHN_TENANT_ID=/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+    sed -i "s/naver_cloud_subnet_no:.*/naver_cloud_subnet_no:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+  delegate_to: "localhost"
+  when:
+    - csp_type | trim == "NAVER"
+
+- name: Cleanup openbao credentials and sensitive facts
+  no_log: true
+  set_fact:
+    openbao_init_data: null
+    openbao_approle_role_id: null
+    openbao_approle_secret_id: null

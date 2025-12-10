@@ -1,4 +1,0 @@
----
-- name: reset kubeedge
-  shell: |
-    keadm reset edge --force

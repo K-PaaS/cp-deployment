@@ -1,0 +1,55 @@
+[all]
+{% set m_count = kube_control_hosts | int %}
+{% for i in range(1, m_count + 1) %}
+{% set host = lookup('vars', 'master' ~ i ~ '_node_hostname') %}
+{% set private_ip = lookup('vars', 'master' ~ i ~ '_node_private_ip') %}
+{% if etcd_type | length == 0 or etcd_type == "stacked" %}
+{{ host }} ansible_host={{ private_ip }} ip={{ private_ip }} access_ip={{ private_ip }} etcd_member_name=etcd{{ i }}
+{% else %}
+{{ host }} ansible_host={{ private_ip }} ip={{ private_ip }} access_ip={{ private_ip }}
+{% endif %}
+{% endfor %}
+{% if etcd_type == "external" %}
+{% for i in range(1, m_count + 1) %}
+{% set host = lookup('vars', 'etcd' ~ i ~ '_node_hostname') %}
+{% set private_ip = lookup('vars', 'etcd' ~ i ~ '_node_private_ip') %}
+{{ host }} ansible_host={{ private_ip }} ip={{ private_ip }} access_ip={{ private_ip }} etcd_member_name=etcd{{ i }}
+{% endfor %}
+{% endif %}
+{% set w_count = kube_worker_hosts | int %}
+{% for i in range(1, w_count + 1) %}
+{% set host = lookup('vars', 'worker' ~ i ~ '_node_hostname') %}
+{% set private_ip = lookup('vars', 'worker' ~ i ~ '_node_private_ip') %}
+{{ host }} ansible_host={{ private_ip }} ip={{ private_ip }} access_ip={{ private_ip }}
+{% endfor %}
+
+[bastion]
+bastion ansible_host={{ master1_node_public_ip }} ansible_user=ubuntu
+
+[kube_control_plane]
+{% for i in range(1, m_count + 1) %}
+{{ lookup('vars', 'master' ~ i ~ '_node_hostname') }}
+{% endfor %}
+
+[etcd]
+{% if etcd_type == "external" %}
+{% for i in range(1, m_count + 1) %}
+{{ lookup('vars', 'etcd' ~ i ~ '_node_hostname') }}
+{% endfor %}
+{% else %}
+{% for i in range(1, m_count + 1) %}
+{{ lookup('vars', 'master' ~ i ~ '_node_hostname') }}
+{% endfor %}
+{% endif %}
+
+[kube_node]
+{% for i in range(1, w_count + 1) %}
+{{ lookup('vars', 'worker' ~ i ~ '_node_hostname') }}
+{% endfor %}
+
+[calico_rr]
+
+[k8s_cluster:children]
+kube_control_plane
+kube_node
+calico_rr

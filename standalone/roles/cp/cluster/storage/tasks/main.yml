@@ -1,0 +1,69 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: echo $HOME
+  register: home_dir
+  changed_when: false
+
+- name: Deploy nfs subdir external provisioner (Helm)
+  shell: |
+    helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner
+    helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner -f values.yaml --version 4.0.18
+  args:
+    chdir: "{{ home_dir.stdout }}/cp-deployment/applications/nfs-subdir-external-provisioner-4.0.18"
+  when:
+    - storage_type | trim == "nfs"
+
+- name: Apply rook-ceph operator manifests
+  shell: |
+    kubectl apply -f crds.yaml -f common.yaml -f csi-operator.yaml -f operator.yaml
+  args:
+    chdir: "{{ home_dir.stdout }}/cp-deployment/applications/rook-1.18.5/deploy/examples"
+  when:
+    - storage_type | trim == "rook-ceph"
+
+- name: Wait for rook-ceph-operator pod to be running
+  shell: |
+    kubectl get pods -n rook-ceph | grep rook-ceph-operator | awk '{print $3}'
+  register: rook_operator_status
+  until: rook_operator_status.stdout == "Running"
+  retries: 20
+  delay: 30
+  when:
+    - storage_type | trim == "rook-ceph"
+
+- name: Deploy rook-ceph cluster
+  shell: |
+    kubectl create -f cluster.yaml
+  args:
+    chdir: "{{ home_dir.stdout }}/cp-deployment/applications/rook-1.18.5/deploy/examples"
+  when:
+    - storage_type | trim == "rook-ceph"
+
+- name: Wait for osd-0 to become running
+  shell: |
+    kubectl get pods -n rook-ceph | grep rook-ceph-osd-0 | awk '{print $3}'
+  register: rook_osd_status
+  until: rook_osd_status.stdout == "Running"
+  retries: 60
+  delay: 30
+  when:
+    - storage_type | trim == "rook-ceph"
+
+- name: Deploy ceph toolbox
+  shell: |
+    kubectl create -f toolbox.yaml
+  args:
+    chdir: "{{ home_dir.stdout }}/cp-deployment/applications/rook-1.18.5/deploy/examples"
+  when:
+    - storage_type | trim == "rook-ceph"
+
+- name: Deploy ceph fileSystem & storageClass
+  shell: |
+    kubectl create -f filesystem.yaml
+    kubectl create -f csi/cephfs/storageclass.yaml
+    kubectl patch storageclass cp-storageclass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+  args:
+    chdir: "{{ home_dir.stdout }}/cp-deployment/applications/rook-1.18.5/deploy/examples"
+  when:
+    - storage_type | trim == "rook-ceph"

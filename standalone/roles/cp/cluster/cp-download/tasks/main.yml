@@ -1,0 +1,37 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: "echo $HOME"
+  register: home_dir
+  changed_when: false
+
+- name: Create cp-deployment archive on controller
+  become: false
+  shell: |
+    tar -czf {{ lookup('env','HOME') }}/cp-deployment.tar.gz -C "{{ lookup('env','HOME') }}" cp-deployment
+  delegate_to: "localhost"
+
+- name: Fetch cp-deployment archive from controller to bastion
+  become: false
+  copy:
+    src: "{{ lookup('env','HOME') }}/cp-deployment.tar.gz"
+    dest: "{{ home_dir.stdout }}/cp-deployment.tar.gz"
+  delegate_to: "bastion"
+
+- name: Extract cp-deployment on bastion
+  become: false
+  unarchive:
+    src: "{{ home_dir.stdout }}/cp-deployment.tar.gz"
+    dest: "{{ home_dir.stdout }}"
+    remote_src: true
+
+- name: Cleanup tar file on bastion
+  file:
+    path: "{{ home_dir.stdout }}/cp-deployment.tar.gz"
+    state: absent
+
+- name: Cleanup tar file on controller
+  file:
+    path: "{{ lookup('env','HOME') }}/cp-deployment.tar.gz"
+    state: absent
+  delegate_to: "localhost"

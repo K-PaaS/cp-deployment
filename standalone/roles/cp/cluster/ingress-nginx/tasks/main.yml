@@ -1,0 +1,10 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: echo /home/ubuntu
+  register: home_dir
+  changed_when: false
+
+- name: Apply ingress nginx controller manifest
+  shell: |
+    kubectl apply -f {{ home_dir.stdout }}/cp-deployment/applications/ingress-nginx-1.13.3/deploy.yaml

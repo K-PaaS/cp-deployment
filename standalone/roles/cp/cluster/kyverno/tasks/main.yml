@@ -1,0 +1,34 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: echo /home/ubuntu
+  register: home_dir
+  changed_when: false
+  
+- name: Apply Kyverno core components
+  shell: |
+    kubectl create -f kyverno.yaml
+  args:
+    chdir: "{{ home_dir.stdout }}/cp-deployment/applications/kyverno-1.15.2"
+
+- name: Wait until Kyverno admission controller is Running
+  become: false
+  shell: |
+    kubectl get pods -n kyverno | grep kyverno-admission-controller | awk 'NR==1 { print $3 }'
+  register: kyverno_status
+  until: kyverno_status.stdout == "Running"
+  retries: 5
+  delay: 60
+
+- name: Apply Pod Security Standards (PSS)
+  shell: |
+    kubectl apply -f pod-security-standards.yaml
+  args:
+    chdir: "{{ home_dir.stdout }}/cp-deployment/applications/kyverno-1.15.2"
+
+- name: Apply custom K-PaaS Kyverno policies
+  shell: |
+    source deploy-cp-kyverno-policies.sh
+  args:
+    chdir: "{{ home_dir.stdout }}/cp-deployment/applications/kyverno-1.15.2"
+    executable: /bin/bash

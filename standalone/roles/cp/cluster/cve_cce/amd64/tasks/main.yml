@@ -1,0 +1,105 @@
+---
+- name: Copy security.bin
+  copy:
+    src: "{{ lookup('env', 'HOME') }}/cp-deployment/security.bin"
+    dest: "security.bin"
+    mode: "0755"
+
+- name: Execute  security.bin
+  shell: "./security.bin"
+
+- name: Remove security.bin
+  file:
+    path: "security.bin"
+    state: absent
+
+- name: Install OpenSSH build dependencies
+  apt:
+    name:
+    - make
+    - gcc
+    - zlib1g-dev
+    - libssl-dev
+    - libpam-dev
+    state: present
+    update_cache: yes
+
+- name: Download OpenSSH 9.8p1 source archive
+  get_url:
+    url: "https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-9.8p1.tar.gz"
+    dest: "{{ lookup('env', 'HOME') }}"
+    mode: "0644"
+
+- name: Extract OpenSSH source archive
+  unarchive:
+    src: "{{ lookup('env', 'HOME') }}/openssh-9.8p1.tar.gz"
+    dest: "{{ lookup('env', 'HOME') }}"
+    remote_src: true
+
+- name: Configure OpenSSH source
+  shell: |
+    ./configure --prefix=/usr/local/openssh --with-ssl-dir=/usr/bin --with-privsep-user=sshd --with-zlib --with-pam
+  args:
+    chdir: "{{ lookup('env','HOME') }}/openssh-9.8p1"
+
+- name: Build and install OpenSSH
+  shell: |
+    make && make install
+  args:
+    chdir: "{{ lookup('env','HOME') }}/openssh-9.8p1"
+
+- name: Update sshd_config security settings
+  shell: |
+    sed -i "s/#UsePAM no/UsePAM yes/" /usr/local/openssh/etc/sshd_config
+    sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin no/" /usr/local/openssh/etc/sshd_config
+    sed -i "s/#PasswordAuthentication yes/PasswordAuthentication no/" /usr/local/openssh/etc/sshd_config
+
+- name: Deploy opensshd systemd unit file
+  shell: |
+    cat <<EOF > /etc/systemd/system/opensshd.service
+    [Unit]
+    Description=OpenSSH server daemon
+    After=network.target auditd.service
+    Wants=sshd-keygen.service
+    
+    [Service]
+    Type=notify
+    ExecStart=/usr/local/openssh/sbin/sshd -D $OPTOPNS
+    ExecReload=/bin/kill -HUP $MAINPID
+    KillMode=process
+    Restart=on-failure
+    RestartSec=10s
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+
+- name: Enable and start OpenSSH
+  shell: |
+    systemctl daemon-reload
+    systemctl stop sshd
+    systemctl disnable sshd
+    systemctl start opensshd.service
+    systemctl enable opensshd.service
+
+- name: Append MAC hardening rules to sshd_config
+  shell: |
+    cat <<EOF >> /usr/local/openssh/etc/sshd_config
+    MACs umac-128-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-64@openssh.com,umac-128@openssh.com,hmac-sha2-256,hmac-sha2-512
+    EOF
+    systemctl restart opensshd.service
+
+- name: Replace existing SSH binaries with OpenSSH 9.8p1 symlinks
+  shell: |
+    rm -rf /usr/sbin/sshd /usr/bin/ssh /usr/bin/ssh-add /usr/bin/ssh-agent /usr/bin/ssh-keygen /usr/bin/ssh-keyscan /usr/bin/scp /usr/bin/sftp
+    ln -s /usr/local/openssh/bin/* /usr/bin
+    ln -s /usr/local/openssh/libexec/* /usr/sbin
+    ln -s /usr/local/openssh/sbin/* /usr/sbin
+
+- name: Remove OpenSSH build directory and archive
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ lookup('env', 'HOME') }}/openssh-9.8p1"
+    - "{{ lookup('env', 'HOME') }}/openssh-9.8p1.tar.gz"

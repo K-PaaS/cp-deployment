@@ -1,0 +1,21 @@
+---
+- name: Check if istioctl is installed
+  shell: |
+    istioctl version | grep "client version" | awk -F': ' '{print $2}'
+  register: istioctl_installed
+  changed_when: false
+  failed_when: false
+
+- name: Detect home directory of current user
+  become: false
+  shell: "echo $HOME"
+  register: home_dir
+  changed_when: false
+  when: istioctl_installed.rc != 0
+
+- name: Install istioctl binary to /usr/bin
+  copy:
+    src: "{{ home_dir.stdout }}/cp-deployment/applications/istio-1.27.3/bin/istioctl"
+    dest: "/usr/bin/istioctl"
+    mode: 0755
+  when: istioctl_installed.rc != 0

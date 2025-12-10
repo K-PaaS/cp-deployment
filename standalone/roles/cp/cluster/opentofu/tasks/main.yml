@@ -1,0 +1,12 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: "echo $HOME"
+  register: home_dir
+  changed_when: false
+
+- name: Install opentofu binary
+  copy:
+    src: "{{ home_dir.stdout }}/cp-deployment/applications/opentofu-1.10.6/tofu"
+    dest: "/usr/bin/tofu"
+    mode: "0755"

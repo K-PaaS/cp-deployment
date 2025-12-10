@@ -29,7 +29,6 @@ local_path_provisioner_enabled: false
 # local_path_provisioner_claim_root: /opt/local-path-provisioner/
 # local_path_provisioner_debug: false
 # local_path_provisioner_image_repo: "{{ docker_image_repo }}/rancher/local-path-provisioner"
-# local_path_provisioner_image_tag: "v0.0.24"
 # local_path_provisioner_helper_image_repo: "busybox"
 # local_path_provisioner_helper_image_tag: "latest"
 
@@ -171,7 +170,7 @@ metallb_config:
   address_pools:
     primary:
       ip_range:
-        - {METALLB_IP_RANGE}
+        - "{{ metallb_ip_range }}"
       auto_assign: true
 #     primary:
 #       ip_range:
@@ -179,7 +178,7 @@ metallb_config:
 #       auto_assign: true
     ingress-nginx:
       ip_range:
-        - {INGRESS_NGINX_IP}/32
+        - "{{ ingress_nginx_ip }}/32"
       auto_assign: false
 #     pool1:
 #       ip_range:
@@ -192,7 +191,6 @@ metallb_config:
   layer2:
     - primary
     - ingress-nginx
-
 #   layer3:
 #     defaults:
 #       peer_port: 179

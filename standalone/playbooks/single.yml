@@ -1,0 +1,30 @@
+---
+- hosts: localhost
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  roles:
+    - { role: cp/common/kubectl }
+
+- hosts: localhost
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  roles:
+    - { role: cp/common/helm }
+
+- hosts: localhost
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  roles:
+    - { role: cp/common/podman }
+
+- hosts: localhost
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  roles:
+    - { role: cp/common/istio }
+
+- hosts: localhost
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  roles:
+    - { role: cp/single/ingress-nginx-setting }

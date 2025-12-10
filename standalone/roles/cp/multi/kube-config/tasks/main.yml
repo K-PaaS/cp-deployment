@@ -1,0 +1,49 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: echo $HOME
+  register: home_dir
+  changed_when: false
+
+- name: Decide API endpoint based on kube_control_hosts
+  set_fact:
+    api_endpoint_ip: "{{ loadbalancer_domain if kube_control_hosts | int > 1 else master1_node_public_ip }}"
+
+- name: Copy kube config file
+  become: false
+  shell: "cp {{ home_dir.stdout }}/.kube/config {{ home_dir.stdout }}/.kube/kubeconfig"
+
+- name: Modify kube config file (api)
+  become: false
+  replace:
+    path: "{{ home_dir.stdout }}/.kube/kubeconfig"
+    regexp: "server: https://127.0.0.1:6443"
+    replace: "server: https://{{ api_endpoint_ip }}:6443"
+
+- name: Modify kube config file (cluster)
+  become: false
+  replace:
+    path: "{{ home_dir.stdout }}/.kube/kubeconfig"
+    regexp: "kubernetes-admin@cluster.local"
+    replace: "cluster{{ cluster_no | int }}"
+
+- name: Modify kube config file (context)
+  become: false
+  replace:
+    path: "{{ home_dir.stdout }}/.kube/kubeconfig"
+    regexp: "cluster.local"
+    replace: "cluster{{ cluster_no | int }}"
+
+- name: Modify kube config file (user)
+  become: false
+  replace:
+    path: "{{ home_dir.stdout }}/.kube/kubeconfig"
+    regexp: "kubernetes-admin"
+    replace: "cluster{{ cluster_no | int }}-admin"
+
+- name: Copy kube config file
+  become: false
+  fetch:
+    src: "{{ home_dir.stdout }}/.kube/kubeconfig"
+    dest: "{{ lookup('env', 'HOME') }}/.kube/config{{ cluster_no | int }}"
+    flat: yes

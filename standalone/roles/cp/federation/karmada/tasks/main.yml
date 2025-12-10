@@ -1,0 +1,41 @@
+---
+- name: Get uid
+  become: false
+  shell: id -u
+  register: uid
+
+- name: Get gid
+  become: false
+  shell: id -g
+  register: gid
+
+- name: Install karmadactl
+  become: false
+  shell: |
+    curl -s https://raw.githubusercontent.com/karmada-io/karmada/master/hack/install-cli.sh | sudo INSTALL_CLI_VERSION=1.15.2 bash
+  args:
+    warn: false
+  changed_when: true
+
+- name: Deinitialize karmada
+  shell: |
+    karmadactl deinit --force
+  failed_when: false
+  changed_when: false
+
+- name: Initialize karmada
+  shell: |
+    karmadactl init --etcd-storage-mode PVC
+  changed_when: true
+
+- name: Fetch karmada-apiserver kubeconfig
+  fetch:
+    src: "/etc/karmada/karmada-apiserver.config"
+    dest: "{{ lookup('env', 'HOME') }}/.kube/karmada-apiserver.config"
+    flat: yes
+
+- name: Ensure karmada kubeconfig ownership matches current user
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.kube/karmada-apiserver.config"
+    owner: "{{ uid.stdout }}"
+    group: "{{ gid.stdout }}"

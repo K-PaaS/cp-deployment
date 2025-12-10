@@ -1,0 +1,146 @@
+---
+- name:  Generate per-cluster variable file
+  become: false
+  shell: |
+    cp {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_single.yml  {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+  when: mode == "single"
+
+- name:  Generate per-cluster variable file
+  become: false
+  shell: |
+    grep "^cluster{{ cluster_no }}_" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | sed "s/^cluster{{ cluster_no }}_//" > {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+  when: mode == "multi"
+
+- name: Generate istio multi-cluster gateway ip list
+  become: false
+  shell: |
+    {
+      echo "istio_gateway_private_ip_list:";
+      grep -v 'cluster{{ cluster_no }}' {{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | grep istio_gateway_private_ip | sort | sed -E 's/cluster[0-9]+_istio_gateway_private_ip:[[:space:]]*/  - /';
+      echo "istio_gateway_public_ip_list:";
+      grep -v 'cluster{{ cluster_no}}' {{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | grep istio_gateway_public_ip | sort | sed -E 's/cluster[0-9]+_istio_gateway_public_ip:[[:space:]]*/  - /';
+    } > {{ lookup('env', 'HOME') }}/cp-deployment/standalone/roles/cp/multi/istio-iptables-setting/defaults/main.yml
+  when: mode == "multi"
+
+- name: Generate istio multi-cluster gateway ip list
+  become: false
+  shell: |
+    {
+      echo "ingress_nginx_ip_list:";
+      grep -E '^cluster[0-9]+_ingress_nginx_ip:' {{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | sort | sed -E 's/cluster[0-9]+_ingress_nginx_ip:[[:space:]]*/  - /';
+      echo "istio_gateway_private_ip_list:";
+      grep -E '^cluster[0-9]+_istio_gateway_private_ip:' {{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | sort | sed -E 's/cluster[0-9]+_istio_gateway_private_ip:[[:space:]]*/  - /';
+      echo "istio_gateway_public_ip_list:";
+      grep -E '^cluster[0-9]+_istio_gateway_public_ip:' {{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster_multi.yml | sort | sed -E 's/cluster[0-9]+_istio_gateway_public_ip:[[:space:]]*/  - /';
+    } > {{ lookup('env', 'HOME') }}/cp-deployment/standalone/roles/cp/multi/istio-multi-setting/defaults/main.yml
+  when: mode == "multi"
+
+- name: Load cluster.yml variables
+  include_vars:
+    file: "{{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml"
+
+- name: Generate inventory.ini from template
+  template:
+    src: "inventory.ini.j2"
+    dest: "{{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/inventory.ini"
+    mode: "0644"
+
+- name: Remove previous nfs server block
+  blockinfile:
+    path: "{{ lookup('env','HOME') }}/cp-deployment/applications/nfs-subdir-external-provisioner-4.0.18/values.yaml"
+    marker: "## NFS Server Private IP {mark}"
+    block: ""
+    state: absent
+
+- name: Insert nfs server config
+  blockinfile:
+    path: "{{ lookup('env','HOME') }}/cp-deployment/applications/nfs-subdir-external-provisioner-4.0.18/values.yaml"
+    marker: "  ## NFS Server Private IP {mark}"
+    insertafter: "^nfs:$"
+    block: |2
+        server: "{{ nfs_server_private_ip }}"
+
+- name: Set metallb_enabled based on csp_type
+  replace:
+    path: "{{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/k8s_cluster/addons.yml"
+    regexp: '^metallb_enabled:.*'
+    replace: "metallb_enabled: {{ 'false' if csp_type in ['NHN','NAVER'] else 'true' }}"
+
+- name: Insert istio-ingress address pool block
+  blockinfile:
+    path: "{{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/k8s_cluster/addons.yml"
+    insertafter: '^#     pool1:'
+    block: |
+      istio-ingress:
+        ip_range:
+          - {{ istio_gateway_private_ip }}/32
+        auto_assign: false
+  when:
+    - mode in ["multi", "federation"]
+    - csp_type not in ["NHN","NAVER"]
+
+- name: Add istio-ingress to ingress-nginx section
+  lineinfile:
+    path: "{{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/k8s_cluster/addons.yml"
+    insertafter: '^\s*- ingress-nginx'
+    line: "    - istio-ingress"
+  when:
+    - mode in ["multi", "federation"]
+    - csp_type not in ["NHN","NAVER"]
+
+- name: Create etcd url and ip list (external etcd)
+  set_fact:
+    etcd_url_list: "{{ etcd_url_list | default([])
+                      + [ 'https://' ~ lookup('vars', 'etcd' ~ item ~ '_node_private_ip') ~ ':2379' ] }}"
+    etcd_ip_list: "{{ etcd_ip_list | default([])
+                      + [ lookup('vars', 'etcd' ~ item ~ '_node_private_ip') ] }}"
+  loop: "{{ range(1, (kube_control_hosts | int) + 1) | list }}"
+  when:
+    - kube_control_hosts | int > 1
+    - etcd_type == "external"
+
+- name: Create etcd url and ip list (stacked etcd)
+  set_fact:
+    etcd_url_list: "{{ etcd_url_list | default([])
+                      + [ 'https://' ~ lookup('vars', 'master' ~ item ~ '_node_private_ip') ~ ':2379' ] }}"
+    etcd_ip_list: "{{ etcd_ip_list | default([])
+                      + [ lookup('vars', 'master' ~ item ~ '_node_private_ip') ] }}"
+  loop: "{{ range(1, (kube_control_hosts | int) + 1) | list }}"
+  when:
+    - kube_control_hosts | int > 1
+    - etcd_type == "stacked"
+
+- name: Build etcd_url and etcd_ips final string
+  set_fact:
+    etcd_url: "{{ etcd_url_list | join(',') }}"
+  when: kube_control_hosts | int > 1
+
+- name: Remove previous etcd block
+  blockinfile:
+    path: "{{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/all.yml"
+    marker: "## HA Control Plane {mark}"
+    block: ""
+    state: absent
+
+- name: Build etcd block
+  set_fact:
+    etcd_block: |
+      apiserver_loadbalancer_domain_name: "{{ loadbalancer_domain }}"
+      loadbalancer_apiserver:
+        port: 6443
+      loadbalancer_apiserver_localhost: false
+      download_container: true
+      etcd_access_addresses: "{{ etcd_url }}"
+      etcd_client_url: "{{ etcd_url }}"
+      etcd_cert_alt_ips:
+      {% for ip in etcd_ip_list %}
+        - "{{ ip }}"
+      {% endfor %}
+  when: kube_control_hosts | int > 1
+
+- name: Insert ha control plane settings & etcd values
+  blockinfile:
+    path: "{{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/all.yml"
+    marker: "## HA Control Plane {mark}"
+    block: "{{ etcd_block }}"
+  when: kube_control_hosts | int > 1

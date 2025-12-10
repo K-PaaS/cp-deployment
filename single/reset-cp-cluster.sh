@@ -1,4 +1,5 @@
 #!/bin/bash
 
-# Reset Container Platform
-ansible-playbook -i hosts.yaml  --become --become-user=root reset.yml
+# Remove Container Platform (Single Cluster)
+cd ../standalone
+./reset-cp-cluster.sh single

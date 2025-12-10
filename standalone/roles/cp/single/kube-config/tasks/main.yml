@@ -1,0 +1,35 @@
+- name: Detect home directory of current user
+  become: false
+  shell: "echo $HOME"
+  register: home_dir
+  changed_when: false
+
+- name: Decide API endpoint based on kube_control_hosts
+  set_fact:
+    api_endpoint_ip: "{{ loadbalancer_domain if kube_control_hosts | int > 1 else master1_node_public_ip }}"
+
+- name: Create a copy of remote kubeconfig
+  become: false
+  shell: |
+    cp {{ home_dir.stdout }}/.kube/config {{ home_dir.stdout }}/.kube/kubeconfig
+
+- name: Update API server endpoint in remote kubeconfig
+  become: false
+  replace:
+    path: "{{ home_dir.stdout }}/.kube/kubeconfig"
+    regexp: "server: https://127.0.0.1:6443"
+    replace: "server: https://{{ api_endpoint_ip }}:6443"
+
+- name: Ensure local .kube directory exists
+  become: false
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.kube"
+    state: directory
+    mode: '0700'
+
+- name: Fetch updated kubeconfig to local machine
+  become: false
+  fetch:
+    src: "{{ home_dir.stdout }}/.kube/kubeconfig"
+    dest: "{{ lookup('env', 'HOME') }}/.kube/config"
+    flat: yes

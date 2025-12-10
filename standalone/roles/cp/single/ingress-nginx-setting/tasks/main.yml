@@ -1,0 +1,16 @@
+---
+- name: Wait until kube-apiserver becomes Running
+  become: false
+  shell: |
+    kubectl get pods -n kube-system | grep kube-apiserver | awk 'NR==1 { print $3 }'
+  register: kube_status
+  until: kube_status.stdout == "Running"
+  retries: 15
+  delay: 30
+  changed_when: false
+
+- name: Patch ingress-nginx-controller Service loadBalancerIP
+  become: false
+  shell: |
+    kubectl patch svc ingress-nginx-controller -p '{"spec":{"loadBalancerIP":"{{ ingress_nginx_ip }}"}}' -n ingress-nginx
+  ignore_errors: yes
