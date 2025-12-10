@@ -70,11 +70,11 @@
   blockinfile:
     path: "{{ lookup('env','HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/k8s_cluster/addons.yml"
     insertafter: '^#     pool1:'
-    block: |
-      istio-ingress:
-        ip_range:
-          - {{ istio_gateway_private_ip }}/32
-        auto_assign: false
+    block: |2
+          istio-ingress:
+            ip_range:
+              - {{ istio_gateway_private_ip }}/32
+            auto_assign: false
   when:
     - mode in ["multi", "federation"]
     - csp_type not in ["NHN","NAVER"]
