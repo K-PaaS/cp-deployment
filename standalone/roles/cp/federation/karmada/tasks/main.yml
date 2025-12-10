@@ -9,6 +9,11 @@
   shell: id -g
   register: gid
 
+- name: Remove karmadactl
+  file:
+    path: "/usr/local/bin/karmadactl"
+    state: absent
+
 - name: Install karmadactl
   become: false
   shell: |

@@ -1,13 +1,8 @@
 ---
-- name: Copy kubeconfig to secondary location
-  copy:
-    src: "{{ lookup('env','HOME') }}/.kube/config-single"
-    dest: "{{ lookup('env','HOME') }}/.kube/config"
-
 - name: Collect kubeconfig fragment file list
   become: false
   shell: |
-    ls {{ lookup('env', 'HOME') }}/.kube | grep -E '^config([0-9]+)$'
+    ls {{ lookup('env', 'HOME') }}/.kube | grep -E '^config([0-9]+|-single)$'
   register: config_list
 
 - name: Merge all kubeconfig fragments into a single kubeconfig
