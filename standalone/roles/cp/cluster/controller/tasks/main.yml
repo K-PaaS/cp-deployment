@@ -37,11 +37,6 @@
   shell: |
     helm pull -d {{ home_dir.stdout }}/charts "oci://registry.k-paas.org/kpaas/openbao" --version "0.19.0"
 
-- name: Remove OpenBao helm chart
-  file:
-    path: "{{ home_dir.stdout }}/charts"
-    state: absent
-
 - name: Install openbao
   become: false
   shell: |
@@ -107,6 +102,11 @@
                       operator: DoesNotExist
     {% endraw %}
     EOF
+
+- name: Remove OpenBao helm chart
+  file:
+    path: "{{ home_dir.stdout }}/charts"
+    state: absent
 
 - name: Wait until openbao pod is running
   shell: |
