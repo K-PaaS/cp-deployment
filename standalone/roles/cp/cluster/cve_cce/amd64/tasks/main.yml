@@ -77,8 +77,10 @@
 - name: Enable and start OpenSSH
   shell: |
     systemctl daemon-reload
-    systemctl stop sshd
-    systemctl disnable sshd
+    systemctl stop ssh.service
+    systemctl disnable ssh.service
+    systemctl stop ssh.socket
+    systemctl disnable ssh.socket
     systemctl start opensshd.service
     systemctl enable opensshd.service
 

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Member 클러스터 개수
 CLUSTER_CNT=2
 
 cat <<EOF > host-cp-cluster-vars.sh

@@ -49,9 +49,6 @@ else
   source $HOME/.bashrc
 fi
 
-export PATH=$PATH:$HOME/.local/bin
-source $HOME/.bashrc
-
 if [ "$MODE" == "single" ]; then
   ansible-playbook -i localhost, -c local -e mode=single playbooks/local.yml
   PRE_RET=$?
