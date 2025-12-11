@@ -27,4 +27,5 @@
   gather_facts: False
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   roles:
-    - { role: cp/single/ingress-nginx-setting, when: csp_type not in ["NHN","NAVER"] }
+    - role: cp/single/ingress-nginx-setting
+      when: csp_type not in ["NHN","NAVER"]
