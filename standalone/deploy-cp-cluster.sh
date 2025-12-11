@@ -20,8 +20,8 @@ PIP3_PACKAGE_INSTALL=$(pip3 freeze | grep ansible)
 
 if [ "$PIP3_PACKAGE_INSTALL" == "" ]; then
   if [ "$OS_VERSION" == "24.04" ]; then
-    python3 -m venv ~/kpaas-venv
-    source ~/kpaas-venv/bin/activate
+    python3 -m venv $HOME/kpaas-venv
+    source $HOME/kpaas-venv/bin/activate
   fi
   pip3 install -r requirements.txt
 
@@ -40,6 +40,13 @@ JQ_INSTALL=$(dpkg -l | grep -w jq | awk '{print $2}')
 if [ "$JQ_INSTALL" == "" ]; then
   sudo apt-get install -y jq
   echo "jq installation completed."
+fi
+
+if [ "$OS_VERSION" == "24.04" ]; then
+  source $HOME/kpaas-venv/bin/activate
+else
+  export PATH=$PATH:$HOME/.local/bin
+  source $HOME/.bashrc
 fi
 
 export PATH=$PATH:$HOME/.local/bin
