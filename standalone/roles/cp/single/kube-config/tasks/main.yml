@@ -20,6 +20,27 @@
     regexp: "server: https://127.0.0.1:6443"
     replace: "server: https://{{ api_endpoint_ip }}:6443"
 
+- name: Modify kube config file (cluster)
+  become: false
+  replace:
+    path: "{{ home_dir.stdout }}/.kube/kubeconfig"
+    regexp: "kubernetes-admin@cluster.local"
+    replace: "cluster-host"
+
+- name: Modify kube config file (context)
+  become: false
+  replace:
+    path: "{{ home_dir.stdout }}/.kube/kubeconfig"
+    regexp: "cluster.local"
+    replace: "cluster-host"
+
+- name: Modify kube config file (user)
+  become: false
+  replace:
+    path: "{{ home_dir.stdout }}/.kube/kubeconfig"
+    regexp: "kubernetes-admin"
+    replace: "cluster-host-admin"
+
 - name: Ensure local .kube directory exists
   become: false
   file:

@@ -1,0 +1,6 @@
+---
+- name: Generate edge-hosts.yaml from template
+  template:
+    src: edge-hosts.yaml.j2
+    dest: {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/edge-hosts.yaml
+    mode: "0644"
