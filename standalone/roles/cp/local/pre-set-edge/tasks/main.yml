@@ -1,6 +1,40 @@
 ---
+- name:  Generate per-cluster variable file
+  become: false
+  shell: |
+    cp {{ lookup('env', 'HOME') }}/cp-deployment/single/cluster_single.yml  {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+
+- name:  Generate per-cluster variable file
+  become: false
+  shell: |
+    cp {{ lookup('env', 'HOME') }}/cp-deployment/edge/edge.yml  {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/edge.yml
+
+- name: Load cluster.yml variables
+  include_vars:
+    file: "{{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml"
+
+- name: Load edge.yml variables
+  include_vars:
+    file: "{{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/edge.yml"
+
+- name: Remove previous relay nodes block
+  replace:
+    path: "{{ lookup('env','HOME') }}/cp-deployment/edge/edgemesh/agent/04-configmap.yaml"
+    regexp: '^\s*- nodeName: {{ master1_node_hostname }}\n\s*advertiseAddress:\n\s*-\s*{{ master1_node_public_ip }}\n'
+    replace: ''
+
+- name: Insert relay nodes block
+  blockinfile:
+    path: "{{ lookup('env','HOME') }}/cp-deployment/edge/edgemesh/agent/04-configmap.yaml"
+    insertafter: '^        relayNodes:'
+    marker: ""
+    block: |2
+              - nodeName: {{ master1_node_hostname }}
+                advertiseAddress:
+                - {{ master1_node_public_ip }}
+
 - name: Generate edge-hosts.yaml from template
   template:
     src: edge-hosts.yaml.j2
-    dest: {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/edge-hosts.yaml
+    dest: "{{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/edge-hosts.yaml"
     mode: "0644"

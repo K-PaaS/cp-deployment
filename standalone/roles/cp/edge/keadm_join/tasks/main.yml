@@ -11,16 +11,13 @@
     dest: "{{ home_dir.stdout }}"
 
 - name: Read keadm token
-  shell: |
-    token=$(<{{ home_dir.stdout }}/keadm_token)
-    echo "$token"
+  shell: "echo $(<{{ home_dir.stdout }}/keadm_token)"
   register: keadm_token
   args:
     executable: /bin/bash
 
 - name: Execute keadm join to connect edge node
-  shell: |
-    "nohup keadm join --cloudcore-ipport {{ cloudcore_public_ip }}:10000 --cgroupdriver systemd --kubeedge-version v1.20.0 --remote-runtime-endpoint unix:///var/run/crio/crio.sock --token {{ keadm_token.stdout }}"
+  shell: "nohup keadm join --cloudcore-ipport {{ cloudcore_public_ip }}:10000 --cgroupdriver systemd --kubeedge-version v1.20.0 --remote-runtime-endpoint unix:///var/run/crio/crio.sock --token {{ keadm_token.stdout }}"
 
 - name: Delete keadm token file after join
   file:
