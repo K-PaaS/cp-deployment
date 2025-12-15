@@ -60,7 +60,7 @@ spec:
           - chartmuseum
           - postgres
           - k-paas-system
-          - karmada
+          - karmada-system
     generate:
       apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
@@ -132,7 +132,7 @@ spec:
           - chartmuseum
           - postgres
           - k-paas-system
-          - karmada
+          - karmada-system
     generate:
       apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
@@ -196,7 +196,7 @@ spec:
           - chartmuseum
           - postgres
           - k-paas-system
-          - karmada
+          - karmada-system
     mutate:
       targets:
         - apiVersion: v1
@@ -237,7 +237,7 @@ spec:
           - chartmuseum
           - postgres
           - k-paas-system
-          - karmada
+          - karmada-system
     mutate:
       targets:
         - apiVersion: v1
@@ -278,7 +278,7 @@ spec:
           - chartmuseum
           - postgres
           - k-paas-system
-          - karmada
+          - karmada-system
     generate:
       apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
@@ -342,7 +342,7 @@ spec:
           - chartmuseum
           - postgres
           - k-paas-system
-          - karmada
+          - karmada-system
     mutate:
       targets:
         - apiVersion: v1

@@ -33,3 +33,10 @@
     src: "{{ home_dir.stdout }}/.kube/kubeconfig"
     dest: "{{ lookup('env', 'HOME') }}/.kube/config"
     flat: yes
+
+- name: Fetch updated kubeconfig to local machine
+  become: false
+  fetch:
+    src: "{{ home_dir.stdout }}/.kube/kubeconfig"
+    dest: "{{ lookup('env', 'HOME') }}/.kube/config-single"
+    flat: yes
