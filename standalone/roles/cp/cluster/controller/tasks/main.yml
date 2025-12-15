@@ -366,7 +366,7 @@
 
     sed -i "s/naver_cloud_api_key:.*/naver_cloud_api_key:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
     sed -i "s/naver_cloud_api_secret:.*/naver_cloud_api_secret:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
-    sed -i "s/naver_cloud_vpc_no:.*/NHN_TENANT_ID=/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
+    sed -i "s/naver_cloud_vpc_no:.*/naver_cloud_vpc_no:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
     sed -i "s/naver_cloud_subnet_no:.*/naver_cloud_subnet_no:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
   delegate_to: "localhost"
   when:

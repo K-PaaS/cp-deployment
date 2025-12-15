@@ -1,0 +1,51 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: echo $HOME
+  register: home_dir
+  changed_when: false
+
+- name: Download CRI-O tarball & Extract CRI-O package & Install CRI-O runtime
+  shell: |
+    wget https://storage.googleapis.com/cri-o/artifacts/cri-o.amd64.v1.30.0.tar.gz
+    tar zxvf cri-o.amd64.v1.30.0.tar.gz
+    cd cri-o
+    ./install
+  args:
+    executable: /bin/bash
+  when: ansible_architecture == "x86_64"
+
+- name: Download CRI-O tarball & Extract CRI-O package & Install CRI-O runtime
+  shell: |
+    wget https://storage.googleapis.com/cri-o/artifacts/cri-o.arm64.v1.30.0.tar.gz
+    tar zxvf cri-o.arm64.v1.30.0.tar.gz
+    cd cri-o
+    ./install
+  args:
+    executable: /bin/bash
+  when: ansible_architecture == "aarch64"
+
+- name: Remove CRI-O tarball
+  file:
+    path: "{{ home_dir.stdout }}/cri-o.amd64.v1.30.0.tar.gz"
+    state: absent
+  when: ansible_architecture == "x86_64"
+
+- name: Remove CRI-O tarball
+  file:
+    path: "{{ home_dir.stdout }}/cri-o.arm64.v1.30.0.tar.gz"
+    state: absent
+  when: ansible_architecture == "aarch64"
+
+- name: Remove extracted CRI-O directory
+  file:
+    path: "{{ home_dir.stdout }}/cri-o"
+    state: absent
+
+- name: Enable and start CRI-O service
+  shell: |
+    echo unqualified-search-registries = [\"docker.io\", \"quay.io\"] > /etc/containers/registries.conf
+    systemctl daemon-reload
+    systemctl enable crio.service
+    systemctl start crio.service
+  ignore_errors: true

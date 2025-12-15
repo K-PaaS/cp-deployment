@@ -1,0 +1,54 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: echo $HOME
+  register: home_dir
+  changed_when: false
+
+- name: Patch nodeAffinity for daemonsets and deployments
+  shell: |
+    kubectl patch daemonset kube-proxy -n kube-system --patch-file {{ home_dir.stdout }}/cp-deployment/edge/manifest/node-affinity.yaml
+    kubectl patch daemonset calico-node -n kube-system --patch-file {{ home_dir.stdout }}/cp-deployment/edge/manifest/node-affinity.yaml
+    kubectl patch daemonset speaker -n metallb-system --patch-file {{ home_dir.stdout }}/cp-deployment/edge/manifest/node-affinity.yaml
+    kubectl patch deployment nfs-subdir-external-provisioner --patch-file {{ home_dir.stdout }}/cp-deployment/edge/manifest/node-affinity.yaml
+    kubectl patch deployment controller -n metallb-system --patch-file {{ home_dir.stdout }}/cp-deployment/edge/manifest/node-affinity.yaml
+
+- name: Create MetalLB IPAddressPool for cloudcore
+  shell: |
+    cat << EOF | kubectl apply -f -
+    apiVersion: metallb.io/v1beta1
+    kind: IPAddressPool
+    metadata:
+      name: cloudcore
+      namespace: metallb-system
+    spec:
+      addresses:
+      - {{ cloudcore_private_ip }}/32
+      autoAssign: false
+    EOF
+
+- name: Initialize CloudCore using keadm
+  shell: |
+    nohup keadm init --advertise-address={{ cloudcore_public_ip }} --set cloudCore.modules.dynamicController.enable=true
+
+- name: Modify cloudcore service
+  shell: |
+    kubectl patch svc cloudcore -n kubeedge -p '{"spec": {"type": "LoadBalancer"}}'
+    kubectl patch svc cloudcore -n kubeedge -p '{"spec": {"loadBalancerIP": "{{ cloudcore_private_ip }}"}}'
+    kubectl patch svc cloudcore -n kubeedge --type='json' -p '[{"op": "replace", "path": "/spec/ports/0/nodePort", "value": 30000}]'
+    kubectl patch svc cloudcore -n kubeedge --type='json' -p '[{"op": "replace", "path": "/spec/ports/1/nodePort", "value": 30001}]'
+    kubectl patch svc cloudcore -n kubeedge --type='json' -p '[{"op": "replace", "path": "/spec/ports/2/nodePort", "value": 30002}]'
+    kubectl patch svc cloudcore -n kubeedge --type='json' -p '[{"op": "replace", "path": "/spec/ports/3/nodePort", "value": 30003}]'
+    kubectl patch svc cloudcore -n kubeedge --type='json' -p '[{"op": "replace", "path": "/spec/ports/4/nodePort", "value": 30004}]'
+
+- name: Patch cloud-iptables-manager tolerations
+  shell: |
+    kubectl patch daemonset cloud-iptables-manager -n kubeedge --patch-file {{ home_dir.stdout }}/cp-deployment/edge/manifest/tolerations.yaml
+
+- name: Wait for CloudCore init to stabilize
+  pause:
+    minutes: 1
+
+- name: Generate keadm join token
+  shell: |
+    keadm gettoken > keadm_token

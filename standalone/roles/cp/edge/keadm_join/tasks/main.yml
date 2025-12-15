@@ -1,0 +1,47 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: echo $HOME
+  register: home_dir
+  changed_when: false
+
+- name: Copy keadm token file to local node
+  copy:
+    src: "{{ home_dir.stdout }}/keadm_token"
+    dest: "{{ home_dir.stdout }}"
+
+- name: Read keadm token
+  shell: |
+    token=$(<{{ home_dir.stdout }}/keadm_token)
+    echo "$token"
+  register: keadm_token
+  args:
+    executable: /bin/bash
+
+- name: Execute keadm join to connect edge node
+  shell: |
+    "nohup keadm join --cloudcore-ipport {{ cloudcore_public_ip }}:10000 --cgroupdriver systemd --kubeedge-version v1.20.0 --remote-runtime-endpoint unix:///var/run/crio/crio.sock --token {{ keadm_token.stdout }}"
+
+- name: Delete keadm token file after join
+  file:
+    path: "{{ home_dir.stdout }}/keadm_token"
+    state: absent
+
+- name: Insert DNS cluster settings into edgecore config
+  lineinfile:
+    path: /etc/kubeedge/config/edgecore.yaml
+    insertafter: "tailoredKubeletConfig:"
+    line: "{{ item }}"
+  with_items:
+    - "        - 169.254.96.16"
+    - "      clusterDNS:"
+
+- name: Enable tailoredKubeletConfig in edgecore.yaml
+  shell: |
+    sed -i '165s/false/true/g' /etc/kubeedge/config/edgecore.yaml
+
+- name: Restart edgecore service
+
+  shell: |
+    systemctl daemon-reload
+    systemctl restart edgecore.service

@@ -1,0 +1,19 @@
+---
+- name: Detect home directory of current user
+  become: false
+  shell: echo $HOME
+  register: home_dir
+  changed_when: false
+
+- name: Extract keadm (arm64) tarball
+  shell: |
+    tar zxvf keadm.tar.gz
+  args:
+    chdir: "{{ home_dir.stdout }}/cp-deployment/edge/keadm/arm64"
+  delegate_to: localhost
+
+- name: Install keadm binary to /usr/bin
+  copy:
+    src: "{{ home_dir.stdout }}/cp-deployment/edge/keadm/arm64/keadm"
+    dest: "/usr/bin/keadm"
+    mode: 0755

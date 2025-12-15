@@ -51,73 +51,69 @@ fi
 
 if [ "$MODE" == "single" ]; then
   ansible-playbook -i localhost, -c local -e mode=single playbooks/local.yml
-  PRE_RET=$?
-  if [ $PRE_RET -ne 0 ]; then
+  RET=$?
+  if [ "$RET" -ne 0 ]; then
     exit 1
   else
     ansible-playbook -i inventory/mycluster/inventory.ini -e mode=single --become --become-user=root playbooks/cluster.yml
-    POST_RET=$?
-    if [ $POST_RET -ne 0 ]; then
+    RET=$?
+    if [ "$RET" -ne 0 ]; then
       exit 1
     else
       ansible-playbook -i inventory/mycluster/inventory.ini --become --become-user=root playbooks/single.yml
     fi
   fi
-
-
 elif [ "$MODE" == "multi" ]; then
   CLUSTER_CNT="$2"
   for i in $(seq 1 $CLUSTER_CNT); do
     ansible-playbook -i localhost, -c local -e mode=multi -e cluster_no=$i playbooks/local.yml
-    PRE_RET=$?
-    if [ $PRE_RET -ne 0 ]; then
+    RET=$?
+    if [ "$RET" -ne 0 ]; then
       exit 1
     else
       ansible-playbook -i inventory/mycluster/inventory.ini -e mode=multi -e cluster_no=$i --become --become-user=root playbooks/cluster.yml
+      RET=$?
+      if [ "$RET" -ne 0 ]; then
+        exit 1
+      fi
     fi
   done
-  POST_RET=$?
-  if [ $POST_RET -ne 0 ]; then
-    exit 1
-  else
-    ansible-playbook -i inventory/mycluster/inventory.ini -e cluster_cnt=$CLUSTER_CNT --become --become-user=root playbooks/multi.yml
-  fi
-
-
-
+  ansible-playbook -i inventory/mycluster/inventory.ini -e cluster_cnt=$CLUSTER_CNT --become --become-user=root playbooks/multi.yml
 elif [ "$MODE" == "federation" ]; then
   ansible-playbook -i localhost, -c local -e mode=single playbooks/local.yml
-  PRE_RET=$?
-  if [ $PRE_RET -ne 0 ]; then
+  RET=$?
+  if [ "$RET" -ne 0 ]; then
     exit 1
   else
     ansible-playbook -i inventory/mycluster/inventory.ini -e mode=single --become --become-user=root playbooks/cluster.yml
-    POST_RET=$?
-    if [ $POST_RET -ne 0 ]; then
+    RET=$?
+    if [ "$RET" -ne 0 ]; then
       exit 1
     else
       ansible-playbook -i inventory/mycluster/inventory.ini --become --become-user=root playbooks/single.yml
+      RET=$?
+      if [ "$RET" -ne 0 ]; then
+        exit 1
+      fi
     fi
   fi
-  
   CLUSTER_CNT="$2"
   for i in $(seq 1 $CLUSTER_CNT); do
     ansible-playbook -i localhost, -c local -e mode=multi -e cluster_no=$i playbooks/local.yml
-    PRE_RET=$?
-    if [ $PRE_RET -ne 0 ]; then
+    RET=$?
+    if [ "$RET" -ne 0 ]; then
       exit 1
     else
       ansible-playbook -i inventory/mycluster/inventory.ini -e mode=multi -e cluster_no=$i --become --become-user=root playbooks/cluster.yml
+      RET=$?
+      if [ "$RET" -ne 0 ]; then
+        exit 1
+      fi
     fi
   done
-  POST_RET=$?
-  if [ $POST_RET -ne 0 ]; then
-    exit 1
-  else
-    ansible-playbook -i inventory/mycluster/inventory.ini -e cluster_cnt=$CLUSTER_CNT --become --become-user=root playbooks/multi.yml
-  fi
-  POST_RET=$?
-  if [ $POST_RET -ne 0 ]; then
+  ansible-playbook -i inventory/mycluster/inventory.ini -e cluster_cnt=$CLUSTER_CNT --become --become-user=root playbooks/multi.yml
+  RET=$?
+  if [ "$RET" -ne 0 ]; then
     exit 1
   else
     ansible-playbook -i inventory/mycluster/inventory.ini -e cluster_cnt=$CLUSTER_CNT --become --become-user=root playbooks/federation.yml
