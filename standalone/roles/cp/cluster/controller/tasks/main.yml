@@ -334,7 +334,7 @@
 - name: Store NAVER Cloud credentials into openbao
   no_log: true
   shell: |
-    curl -sk --show-error -H "X-Vault-Token: {{ openbao_init_data.root_token }}" -X POST -d '{"data":{"NAVER_CLOUD_API_KEY": "{{ naver_cloud_api_key }}", "NAVER_CLOUD_API_SECRET": "{{ naver_cloud_api_secret }}"}}' {{ openbao_url }}/v1/secret/data/csp/navercloud
+    curl -sk --show-error -H "X-Vault-Token: {{ openbao_init_data.root_token }}" -X POST -d '{"data":{"NAVER_CLOUD_API_KEY": "{{ naver_cloud_api_key }}", "NAVER_CLOUD_API_SECRET": "{{ naver_cloud_api_secret }}"}}' {{ openbao_url }}/v1/secret/data/csp/naver-cloud
   when:
     - csp_type | trim == "NAVER"
 
@@ -345,7 +345,7 @@
       apiVersion: v1
       kind: ConfigMap
       metadata:
-        name: navercloud-config
+        name: naver-cloud-config
         namespace: k-paas-system
       data:
         NAVER_CLOUD_REGION: "{{ naver_cloud_region }}"
