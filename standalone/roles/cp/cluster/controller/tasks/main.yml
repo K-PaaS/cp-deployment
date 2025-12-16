@@ -288,17 +288,17 @@
     sed -i "s/nhn_username:.*/nhn_username:/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cluster_single.yml
     sed -i "s/nhn_password:.*/nhn_password:/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cluster_single.yml
     sed -i "s/nhn_tenant_id:.*/nhn_tenant_id:/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cluster_single.yml
-    sed -i "s/nhn_vip_subnet_id:.*/nhn_vip_subnet_id:/" {{ lookup('env', 'HOME') }}/single/cluster_single.yml
+    sed -i "s/nhn_vip_subnet_id:.*/nhn_vip_subnet_id:/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cluster_single.yml
 
     sed -i "s/^CLUSTER[0-9]*_NHN_USERNAME=.*/CLUSTER\1_NHN_USERNAME=/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars.sh
     sed -i "s/^CLUSTER[0-9]*_NHN_PASSWORD=.*/CLUSTER\1_NHN_PASSWORD=/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars.sh
     sed -i "s/^CLUSTER[0-9]*_NHN_TENANT_ID=.*/CLUSTER\1_NHN_TENANT_ID=/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars.sh
-    sed -i "s/^CLUSTER[0-9]*_NHN_VIP_SUBNET_ID=.*/CLUSTER\1_NHN_VIP_SUBNET_ID=/" {{ lookup('env', 'HOME') }}/multi/cp-cluster-vars.sh
+    sed -i "s/^CLUSTER[0-9]*_NHN_VIP_SUBNET_ID=.*/CLUSTER\1_NHN_VIP_SUBNET_ID=/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars.sh
 
     sed -i "s/^cluster[0-9]*_nhn_username:.*/cluster\1_nhn_username:/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cluster_multi.yml
     sed -i "s/^cluster[0-9]*_nhn_password:.*/cluster\1_nhn_password:/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cluster_multi.yml
     sed -i "s/^cluster[0-9]*_nhn_tenant_id:.*/cluster\1_nhn_tenant_id:/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cluster_multi.yml
-    sed -i "s/^cluster[0-9]*_nhn_vip_subnet_id:.*/cluster\1_nhn_vip_subnet_id:/" {{ lookup('env', 'HOME') }}/multi/cluster_multi.yml
+    sed -i "s/^cluster[0-9]*_nhn_vip_subnet_id:.*/cluster\1_nhn_vip_subnet_id:/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cluster_multi.yml
 
     sed -i "s/NHN_USERNAME=.*/NHN_USERNAME=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/host-cp-cluster-vars.sh
     sed -i "s/NHN_PASSWORD=.*/NHN_PASSWORD=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/host-cp-cluster-vars.sh
@@ -308,7 +308,7 @@
     sed -i "s/^CLUSTER[0-9]*_NHN_USERNAME=.*/CLUSTER\1_NHN_USERNAME=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/member-cp-cluster-vars.sh
     sed -i "s/^CLUSTER[0-9]*_NHN_PASSWORD=.*/CLUSTER\1_NHN_PASSWORD=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/member-cp-cluster-vars.sh
     sed -i "s/^CLUSTER[0-9]*_NHN_TENANT_ID=.*/CLUSTER\1_NHN_TENANT_ID=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/member-cp-cluster-vars.sh
-    sed -i "s/^CLUSTER[0-9]*_NHN_VIP_SUBNET_ID=.*/CLUSTER\1_NHN_VIP_SUBNET_ID=/" {{ lookup('env', 'HOME') }}/federation/member-cp-cluster-vars.sh
+    sed -i "s/^CLUSTER[0-9]*_NHN_VIP_SUBNET_ID=.*/CLUSTER\1_NHN_VIP_SUBNET_ID=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/member-cp-cluster-vars.sh
 
     sed -i "s/nhn_username:.*/nhn_username:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
     sed -i "s/nhn_password:.*/nhn_password:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
@@ -392,17 +392,17 @@
     sed -i "s/naver_cloud_api_key:.*/naver_cloud_api_key:/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cluster_single.yml
     sed -i "s/naver_cloud_api_secret:.*/naver_cloud_api_secret:/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cluster_single.yml
     sed -i "s/naver_cloud_vpc_no:.*/naver_cloud_vpc_no:/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cluster_single.yml
-    sed -i "s/naver_cloud_subnet_no:.*/naver_cloud_subnet_no:/" {{ lookup('env', 'HOME') }}/single/cluster_single.yml
+    sed -i "s/naver_cloud_subnet_no:.*/naver_cloud_subnet_no:/" {{ lookup('env', 'HOME') }}/cp-deployment/single/cluster_single.yml
 
     sed -i "s/^CLUSTER[0-9]*_NAVER_CLOUD_API_KEY=.*/CLUSTER\1_NAVER_CLOUD_API_KEY=/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars.sh
     sed -i "s/^CLUSTER[0-9]*_NAVER_CLOUD_API_SECRET=.*/CLUSTER\1_NAVER_CLOUD_API_SECRET=/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars.sh
     sed -i "s/^CLUSTER[0-9]*_NAVER_CLOUD_VPC_NO=.*/CLUSTER\1_NAVER_CLOUD_VPC_NO=/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars.sh
-    sed -i "s/^CLUSTER[0-9]*_NAVER_CLOUD_SUBNET_NO=.*/CLUSTER\1_NAVER_CLOUD_SUBNET_NO=/" {{ lookup('env', 'HOME') }}/multi/cp-cluster-vars.sh
+    sed -i "s/^CLUSTER[0-9]*_NAVER_CLOUD_SUBNET_NO=.*/CLUSTER\1_NAVER_CLOUD_SUBNET_NO=/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cp-cluster-vars.sh
 
     sed -i "s/^cluster[0-9]*_naver_cloud_api_key:.*/cluster\1_naver_cloud_api_key:/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cluster_multi.yml
     sed -i "s/^cluster[0-9]*_naver_cloud_api_secret:.*/cluster\1_naver_cloud_api_secret:/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cluster_multi.yml
     sed -i "s/^cluster[0-9]*_naver_cloud_vpc_no:.*/cluster\1_naver_cloud_vpc_no:/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cluster_multi.yml
-    sed -i "s/^cluster[0-9]*_naver_cloud_subnet_no:.*/cluster\1_naver_cloud_subnet_no:/" {{ lookup('env', 'HOME') }}/multi/cluster_multi.yml
+    sed -i "s/^cluster[0-9]*_naver_cloud_subnet_no:.*/cluster\1_naver_cloud_subnet_no:/" {{ lookup('env', 'HOME') }}/cp-deployment/multi/cluster_multi.yml
 
     sed -i "s/NAVER_CLOUD_API_KEY=.*/NAVER_CLOUD_API_KEY=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/host-cp-cluster-vars.sh
     sed -i "s/NAVER_CLOUD_API_SECRET=.*/NAVER_CLOUD_API_SECRET=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/host-cp-cluster-vars.sh
@@ -412,7 +412,7 @@
     sed -i "s/^CLUSTER[0-9]*_NAVER_CLOUD_API_KEY=.*/CLUSTER\1_NAVER_CLOUD_API_KEY=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/member-cp-cluster-vars.sh
     sed -i "s/^CLUSTER[0-9]*_NAVER_CLOUD_API_SECRET=.*/CLUSTER\1_NAVER_CLOUD_API_SECRET=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/member-cp-cluster-vars.sh
     sed -i "s/^CLUSTER[0-9]*_NAVER_CLOUD_VPC_NO=.*/CLUSTER\1_NAVER_CLOUD_VPC_NO=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/member-cp-cluster-vars.sh
-    sed -i "s/^CLUSTER[0-9]*_NAVER_CLOUD_SUBNET_NO=.*/CLUSTER\1_NAVER_CLOUD_SUBNET_NO=/" {{ lookup('env', 'HOME') }}/federation/member-cp-cluster-vars.sh
+    sed -i "s/^CLUSTER[0-9]*_NAVER_CLOUD_SUBNET_NO=.*/CLUSTER\1_NAVER_CLOUD_SUBNET_NO=/" {{ lookup('env', 'HOME') }}/cp-deployment/federation/member-cp-cluster-vars.sh
 
     sed -i "s/naver_cloud_api_key:.*/naver_cloud_api_key:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
     sed -i "s/naver_cloud_api_secret:.*/naver_cloud_api_secret:/" {{ lookup('env', 'HOME') }}/cp-deployment/standalone/inventory/mycluster/group_vars/all/cluster.yml
